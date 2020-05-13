@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block body %}
+    {% if wrong == True %}
+        The login data is wrong
+    {% endif %}
+    <form action="/check-login" method="post">
+        <input name="user" type="text" placeholder="Email"><br><br>
+        <input name="pass" type="password" placeholder="Password"><br><br>
+        <input type="submit">
+    </form>
+{% endblock %}
