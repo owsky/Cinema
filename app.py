@@ -75,24 +75,14 @@ def load_user(user_id):
     return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
 
 
-# Actual app
+# App routes
 @app.route('/')
 def home():
-    # The home lists all the currently available movies
-    conn = engine.connect()
-    rs = conn.execute(select([movies]))
-    f = rs.fetchall()
-    conn.close()
-    return render_template("index.html", films=f)
+    return render_template("index.html", films=get_movies())
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template("login.html")
-
-
-@app.route('/check-login', methods=['GET', 'POST'])
-def check_login():
     if request.method == 'POST':
         conn = engine.connect()
         rs = conn.execute(select([users]).where(users.c.email == request.form['user']))
@@ -102,15 +92,9 @@ def check_login():
             user = user_by_email(request.form['user'])
             login_user(user)
             return render_template("private.html", manager=user.is_manager)
-    return render_template("login.html", wrong=True)
-
-
-def user_by_email(user_email):
-    conn = engine.connect()
-    rs = conn.execute(select([users]).where(users.c.email == user_email))
-    user = rs.fetchone()
-    conn.close()
-    return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
+        else:
+            return render_template("login.html", wrong=True)
+    return render_template("login.html")
 
 
 @app.route('/private')
@@ -126,6 +110,23 @@ def private():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+# Functions
+def user_by_email(user_email):
+    conn = engine.connect()
+    rs = conn.execute(select([users]).where(users.c.email == user_email))
+    user = rs.fetchone()
+    conn.close()
+    return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
+
+
+def get_movies():
+    conn = engine.connect()
+    rs = conn.execute(select([movies]))
+    films = rs.fetchall()
+    conn.close()
+    return films
 
 
 if __name__ == '__main__':
