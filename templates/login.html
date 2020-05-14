@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
     {% if wrong == True %}
-        The login data is wrong
+        User not found or incorrect password <br><br>
     {% endif %}
     <form action="/check-login" method="post">
         <input name="user" type="text" placeholder="Email"><br><br>

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_login import LoginManager, UserMixin, login_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, select
 import secrets
 
@@ -70,7 +70,7 @@ class User(UserMixin):
 def load_user(user_id):
     conn = engine.connect()
     rs = conn.execute(select([users]).where(users.c.id == user_id))
-    user = rs.fetchone
+    user = rs.fetchone()
     conn.close()
     return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
 
@@ -91,23 +91,18 @@ def login():
     return render_template("login.html")
 
 
-@app.route('/check-login', methods=['get', 'post'])
+@app.route('/check-login', methods=['GET', 'POST'])
 def check_login():
-    if request.method == 'post':
+    if request.method == 'POST':
         conn = engine.connect()
-        rs = conn.execute(select[users.c.pwd].where(users.c.email == request.form['user']))
-        real_pwd = rs.fetchone()['pwd']
+        rs = conn.execute(select([users]).where(users.c.email == request.form['user']))
+        u = rs.fetchone()
         conn.close()
-        if request.form['pass'] == real_pwd:
+        if u and request.form['pass'] == u.pwd:
             user = user_by_email(request.form['user'])
             login_user(user)
-            return redirect(url_for('private'))
-    return redirect(url_for('login', wrong=True))
-
-
-@app.route('/private')
-def private():
-    return render_template("private.html")
+            return render_template("private.html", manager=user.is_manager)
+    return render_template("login.html", wrong=True)
 
 
 def user_by_email(user_email):
@@ -116,6 +111,21 @@ def user_by_email(user_email):
     user = rs.fetchone()
     conn.close()
     return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
+
+
+@app.route('/private')
+@login_required
+def private():
+    conn = engine.connect()
+    rs = conn.execute(select[users.c.is_manager])
+    return render_template("private.html")
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 
 if __name__ == '__main__':
