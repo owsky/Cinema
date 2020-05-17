@@ -27,7 +27,7 @@ CREATE TABLE public.movies (
     movies_title varchar NOT NULL,
     movies_genre varchar NOT NULL,
     movies_synopsis varchar NOT NULL,
-    movies_directory varchar NOT NULL
+    movies_director varchar NOT NULL
 );
 
 CREATE TABLE public.actors (

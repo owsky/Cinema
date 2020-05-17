@@ -4,10 +4,10 @@
     These are the movies currently available:
     <ul>
         {% for f in films %}
-            Title: {{ f.title }} <br>
-            Genre: {{ f.genre }} <br>
-            Synopsis: {{ f.synopsis }} <br>
-            Director: {{ f.director }} <br>
+            Title: {{ f.movies_title }} <br>
+            Genre: {{ f.movies_genre }} <br>
+            Synopsis: {{ f.movies_synopsis }} <br>
+            Director: {{ f.movies_director }} <br>
             <br><br>
         {% endfor %}
     </ul>

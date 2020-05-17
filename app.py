@@ -6,49 +6,55 @@ import secrets
 app = Flask(__name__)
 
 # DB
-engine = create_engine('postgresql://postgres:toor@localhost/cinema')
+engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 metadata = MetaData(engine)
 
 actors = Table('actors', metadata,
-               Column('id', Integer, primary_key=True),
-               Column('name', String),
-               Column('surname', String)
+               Column('actors_id', Integer, primary_key=True),
+               Column('actors_name', String),
+               Column('actors_surname', String)
                )
 cast = Table('cast', metadata,
-             Column('id', Integer, primary_key=True),
-             Column('movie', Integer),
-             Column('actor', Integer)
+             Column('cast_id', Integer, primary_key=True),
+             Column('cast_movie', Integer),
+             Column('cast_actor', Integer)
              )
 movies = Table('movies', metadata,
-               Column('id', Integer, primary_key=True),
-               Column('title', String),
-               Column('genre', String),
-               Column('synopsis', String),
-               Column('director', String)
+               Column('movies_id', Integer, primary_key=True),
+               Column('movies_title', String),
+               Column('movies_genre', String),
+               Column('movies_synopsis', String),
+               Column('movies_director', String)
                )
 rooms = Table('rooms', metadata,
-              Column('id', Integer, primary_key=True),
-              Column('name', String)
+              Column('rooms_id', Integer, primary_key=True),
+              Column('rooms_name', String)
               )
 seats = Table('seats', metadata,
-              Column('id', Integer, primary_key=True),
-              Column('room', Integer)
+              Column('seats_id', Integer, primary_key=True),
+              Column('seats_room', Integer)
               )
 tickets = Table('tickets', metadata,
-                Column('id', Integer, primary_key=True),
-                Column('user', Integer),
-                Column('movie', Integer),
-                Column('seat', Integer),
-                Column('date_time', DateTime)
+                Column('tickets_id', Integer, primary_key=True),
+                Column('tickets_user', Integer),
+                Column('tickets_movie', Integer),
+                Column('tickets_seat', Integer),
+                Column('tickets_date_time', DateTime)
                 )
 users = Table('users', metadata,
-              Column('id', Integer, primary_key=True),
-              Column('email', String),
-              Column('name', String),
-              Column('surname', String),
-              Column('pwd', String),
-              Column('is_manager', Boolean)
+              Column('users_id', Integer, primary_key=True),
+              Column('users_email', String),
+              Column('users_name', String),
+              Column('users_surname', String),
+              Column('users_pwd', String),
+              Column('users_is_manager', Boolean)
               )
+
+projections = Table('projections', metadata,
+                    Column('projections_id', Integer, primary_key=True),
+                    Column('projections_movie', Integer),
+                    Column('projections_date_time', DateTime),
+                    Column('projections_room', Integer))
 
 # Login Manager
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
@@ -57,8 +63,8 @@ login_manager.init_app(app)
 
 
 class User(UserMixin):
-    def __init__(self, id, email, name, surname, pwd, is_manager):
-        self.id = id
+    def __init__(self, user_id, email, name, surname, pwd, is_manager):
+        self.id = user_id
         self.email = email
         self.name = name
         self.surname = surname
@@ -69,7 +75,7 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     conn = engine.connect()
-    rs = conn.execute(select([users]).where(users.c.id == user_id))
+    rs = conn.execute(select([users]).where(users.c.users_id == user_id))
     user = rs.fetchone()
     conn.close()
     return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
@@ -85,7 +91,7 @@ def home():
 def login():
     if request.method == 'POST':
         conn = engine.connect()
-        rs = conn.execute(select([users]).where(users.c.email == request.form['user']))
+        rs = conn.execute(select([users]).where(users.c.users_email == request.form['user']))
         u = rs.fetchone()
         conn.close()
         if u and request.form['pass'] == u.pwd:
@@ -101,7 +107,7 @@ def login():
 @login_required
 def private():
     conn = engine.connect()
-    rs = conn.execute(select[users.c.is_manager])
+    rs = conn.execute(select[users.c.users_is_manager])
     return render_template("private.html")
 
 
@@ -115,7 +121,7 @@ def logout():
 # Functions
 def user_by_email(user_email):
     conn = engine.connect()
-    rs = conn.execute(select([users]).where(users.c.email == user_email))
+    rs = conn.execute(select([users]).where(users.c.users_email == user_email))
     user = rs.fetchone()
     conn.close()
     return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
