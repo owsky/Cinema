@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, select
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, select, ColumnDefault
 import secrets
+
+from sqlalchemy.engine import default
 
 app = Flask(__name__)
 
@@ -111,10 +113,10 @@ def login():
 def signup():
     if request.method == 'POST':
         conn = engine.connect()
-        conn.execute("INSERT INTO users VALUES (DEFAULT,%s,'huang','ruoxin',%s,False)", request.form['user'],
-                     request.form['pass'])
+        ins = users.insert()
+        conn.execute(ins, [{'users_name':request.form['name'], 'users_surname':request.form['surname'], 'users_email':request.form['email'], 'users_pwd':request.form['pwd'], 'users_is_manager':False}])
         conn.close()
-    return render_template("signup.html")
+    return render_template("login.html")
 
 
 @app.route('/logout')
