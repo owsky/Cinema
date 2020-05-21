@@ -78,7 +78,7 @@ def load_user(user_id):
     rs = conn.execute(select([users]).where(users.c.users_id == user_id))
     user = rs.fetchone()
     conn.close()
-    return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
+    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd, user.users_is_manager)
 
 
 # App routes
@@ -94,21 +94,13 @@ def login():
         rs = conn.execute(select([users]).where(users.c.users_email == request.form['user']))
         u = rs.fetchone()
         conn.close()
-        if u and request.form['pass'] == u.pwd:
+        if u and request.form['pass'] == u.users_pwd:
             user = user_by_email(request.form['user'])
             login_user(user)
-            return render_template("private.html", manager=user.is_manager)
+            return render_template("private.html", manager=user.is_manager, films=get_movies())
         else:
             return render_template("login.html", wrong=True)
     return render_template("login.html")
-
-
-@app.route('/private')
-@login_required
-def private():
-    conn = engine.connect()
-    rs = conn.execute(select[users.c.users_is_manager])
-    return render_template("private.html")
 
 
 @app.route('/logout')
@@ -124,7 +116,7 @@ def user_by_email(user_email):
     rs = conn.execute(select([users]).where(users.c.users_email == user_email))
     user = rs.fetchone()
     conn.close()
-    return User(user.id, user.email, user.name, user.surname, user.pwd, user.is_manager)
+    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd, user.users_is_manager)
 
 
 def get_movies():
