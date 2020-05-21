@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask import Flask, render_template, request, redirect, url_for, abort
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, select
 import secrets
 
@@ -123,6 +123,14 @@ def signup():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+@app.route('/movie_manager')
+@login_required
+def movie_manager():
+    if not current_user.is_manager:
+        abort(403)
+    return render_template("movie_manager.html")
 
 
 # Functions
