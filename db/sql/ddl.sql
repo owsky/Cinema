@@ -6,7 +6,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 CREATE SCHEMA IF NOT EXISTS public;
--- ALTER SCHEMA public OWNER TO cinema_user;
 
 CREATE TABLE public.users (
     users_id serial PRIMARY KEY,
@@ -95,3 +94,8 @@ CREATE TABLE public.cast (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
+
+CREATE VIEW public.projections_info AS
+SELECT movies_title, movies_genre, movies_synopsis, movies_director, projections_date_time, projections_room
+FROM public.movies, public.projections
+WHERE movies_id = projections_movie
