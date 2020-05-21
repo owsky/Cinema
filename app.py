@@ -92,9 +92,7 @@ def home():
 def login():
     if request.method == 'POST':
         conn = engine.connect()
-
         rs = conn.execute(select([users]).where(users.c.users_email == request.form['user']))
-
         u = rs.fetchone()
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
@@ -111,9 +109,12 @@ def login():
 def signup():
     if request.method == 'POST':
         conn = engine.connect()
-        conn.execute("INSERT INTO users VALUES (DEFAULT,%s,'huang','ruoxin',%s,False)", request.form['user'],
-                     request.form['pass'])
+        ins = users.insert()
+        conn.execute(ins, [
+            {"users_name": request.form['name'], "users_surname": request.form['surname'], "users_email": request.form['email'], "users_pwd": request.form['pwd'], "users_is_manager": False}
+        ])
         conn.close()
+        return redirect(url_for('home'))
     return render_template("signup.html")
 
 
