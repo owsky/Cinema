@@ -1,13 +1,20 @@
+from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, render_template, request, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, select
 import secrets
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
 
 # DB
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 metadata = MetaData(engine)
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
+db = SQLAlchemy(app)
 
 actors = Table('actors', metadata,
                Column('actors_id', Integer, primary_key=True),
@@ -41,6 +48,7 @@ tickets = Table('tickets', metadata,
                 Column('tickets_seat', Integer),
                 Column('tickets_date_time', DateTime)
                 )
+
 users = Table('users', metadata,
               Column('users_id', Integer, primary_key=True),
               Column('users_email', String),
@@ -72,6 +80,22 @@ class User(UserMixin):
         self.is_manager = is_manager
 
 
+"""Session = sessionmaker(bind=engine)
+session = Session()
+user = User()
+user.id
+session.add(User(request.form['id'],
+                 request.form['email'],
+                 request.form['name'],
+                 request.form['surname'],
+                 request.form['pwd'],
+                 False))
+session.commit()
+session.close()
+print("SUCCESSO")
+"""
+
+
 @login_manager.user_loader
 def load_user(user_id):
     conn = engine.connect()
@@ -91,7 +115,9 @@ def home():
 def login():
     if request.method == 'POST':
         conn = engine.connect()
+
         rs = conn.execute(select([users]).where(users.c.users_email == request.form['user']))
+
         u = rs.fetchone()
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
@@ -100,7 +126,20 @@ def login():
             return render_template("private.html", manager=user.is_manager, films=get_movies())
         else:
             return render_template("login.html", wrong=True)
-    return render_template("login.html")
+    else:
+        return render_template("login.html")
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        conn = engine.connect()
+        conn.execute("INSERT INTO users VALUES (3,%s,'huang','ruoxin',%s,False)", request.form['user'],
+                     request.form['pass'])
+        conn.close()
+        return render_template("login.html")
+    else:
+        return render_template("index.html")
 
 
 @app.route('/logout')
