@@ -32,8 +32,7 @@ CREATE TABLE public.movies (
 
 CREATE TABLE public.actors (
     actors_id serial PRIMARY KEY,
-    actors_name varchar NOT NULL,
-    actors_surname varchar NOT NULL
+    actors_fullname varchar NOT NULL
 );
 
 CREATE TABLE public.projections (
@@ -50,7 +49,7 @@ CREATE TABLE public.projections (
 
 CREATE TABLE public.seats (
     seats_id serial PRIMARY KEY,
-    seats_name int UNIQUE NOT NULL,
+    seats_name varchar UNIQUE NOT NULL,
     seats_room int NOT NULL,
     CONSTRAINT seats_room_fkey
         FOREIGN KEY(seats_room) 
@@ -62,15 +61,15 @@ CREATE TABLE public.seats (
 CREATE TABLE public.tickets (
     tickets_id serial PRIMARY KEY,
     tickets_user int NOT NULL,
-    tickets_movie int NOT NULL,
+    tickets_projection int NOT NULL,
     tickets_seat int NOT NULL,
     CONSTRAINT tickets_user_fkey
         FOREIGN KEY(tickets_user)
         REFERENCES public.users(users_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
-    CONSTRAINT tickets_movie_fkey
-        FOREIGN KEY(tickets_movie)
+    CONSTRAINT tickets_projection_fkey
+        FOREIGN KEY(tickets_projection)
         REFERENCES public.projections(projections_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
