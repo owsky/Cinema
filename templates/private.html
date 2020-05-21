@@ -11,7 +11,7 @@
         {% endfor %}
     </ul>
     {% if manager %}
-        TODO edit movies
+        To manage movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
     {% else %}
         Hello user
     {% endif %}
