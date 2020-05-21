@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
     To sign in click <a href="{{ url_for('login') }}">here</a><br><br>
+    If you don't have an account sign up <a href="{{ url_for('signup') }}">here</a><br><br>
     These are the movies currently available:
     <ul>
         {% for f in films %}
