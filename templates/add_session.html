@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+    Compile the following data to add a session!
+    <ul>
+        <form action="/add_session" method="POST">
+        <input name="movie" type="text" placeholder="MOVIE"><br>
+        <input name="date" type="date" placeholder="DATE"><br>
+        <input name="room" type="text" placeholder="ROOM"><br>
+        <input name="price" type="text" placeholder="PRICE">€<br>
+        <input name="capacity" type="text" placeholder="N_SEATS"><br>
+
+            <input type="submit">
+    </form>
+
+
+    </ul>
+{% endblock %}

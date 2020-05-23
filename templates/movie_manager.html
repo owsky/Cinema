@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+    There are the upcoming projections:
+    <ul>
+        {% for p in projected_movies %}
+            Title: {{ f.movies_title }} <br>
+            Genre: {{ f.movies_genre }} <br>
+            Synopsis: {{ f.movies_synopsis }} <br>
+            Director: {{ f.movies_director }} <br>
+            <br><br>
+        {% endfor %}
+    </ul>
+{% endblock %}

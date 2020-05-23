@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, select, ColumnDefault
+
+from flask import Flask, render_template, request, redirect, url_for, abort
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select
 import secrets
 
 from sqlalchemy.engine import default
@@ -57,7 +61,9 @@ projections = Table('projections', metadata,
                     Column('projections_id', Integer, primary_key=True),
                     Column('projections_movie', Integer),
                     Column('projections_date_time', DateTime),
-                    Column('projections_room', Integer))
+                    Column('projections_room', Integer),
+                    Column('projections_price',  Float),
+                    Column('projections_remain', Integer))
 
 # Login Manager
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
@@ -128,6 +134,32 @@ def logout():
     return redirect(url_for('home'))
 
 
+@app.route('/movie_manager')
+@login_required
+def movie_manager():
+    if not current_user.is_manager:
+        abort(403)
+    return render_template("movie_manager.html")
+
+
+@app.route('/session_manager')
+@login_required
+def session_manager():
+    if not current_user.is_manager:
+        abort(403)
+    return render_template("session_manager.html", movies=get_projections())
+
+    # TODO
+
+
+@app.route('/session_manager/add_session')
+@login_required
+def add_session():
+    if not current_user.is_manager:
+        abort(403)
+    return render_template("add_session.html")
+
+
 # Functions
 def user_by_email(user_email):
     conn = engine.connect()
@@ -143,6 +175,14 @@ def get_movies():
     films = rs.fetchall()
     conn.close()
     return films
+
+
+def get_projections():
+    conn = engine.connect()
+    rs = conn.execute(select([projections]))
+    movies = rs.fetchall()
+    conn.close()
+    return movies
 
 
 if __name__ == '__main__':
