@@ -142,6 +142,25 @@ def movie_manager():
     return render_template("movie_manager.html")
 
 
+@app.route('/movie_manager/add_movie', methods=['GET', 'POST'])
+@login_required
+def add_movie():
+    if not current_user.is_manager:
+        abort(403)
+
+    if request.method == 'POST':
+        conn = engine.connect()
+        ins = movies.insert()
+        conn.execute(ins, [
+            {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
+             "movies_synopsis": request.form['synopsis'], "movies_director": request.form['director']}
+        ])
+        conn.close()
+        return render_template("movie_manager.html", movies=get_projections())
+    else:
+        return render_template("add_movie.html")
+
+
 @app.route('/session_manager')
 @login_required
 def session_manager():
@@ -150,7 +169,7 @@ def session_manager():
     return render_template("session_manager.html", movies=get_projections())
 
 
-@app.route('/add_session', methods=['GET', 'POST'])
+@app.route('/session_manager/add_session', methods=['GET', 'POST'])
 @login_required
 def add_session():
     if not current_user.is_manager:
@@ -168,7 +187,6 @@ def add_session():
         return render_template("session_manager.html", movies=get_projections())
     else:
         return render_template("add_session.html")
-
 
 
 # Functions
