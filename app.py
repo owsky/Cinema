@@ -149,15 +149,26 @@ def session_manager():
         abort(403)
     return render_template("session_manager.html", movies=get_projections())
 
-    # TODO
 
-
-@app.route('/session_manager/add_session')
+@app.route('/add_session', methods=['GET', 'POST'])
 @login_required
 def add_session():
     if not current_user.is_manager:
         abort(403)
-    return render_template("add_session.html")
+
+    if request.method == 'POST':
+        conn = engine.connect()
+        ins = projections.insert()
+        conn.execute(ins, [
+            {"projections_movie": request.form['movie'], "projections_date_time": request.form['date'],
+             "projections_room": request.form['room'], "projections_price": request.form['price'],
+             "projections_remain": request.form['capacity']}
+        ])
+        conn.close()
+        return render_template("session_manager.html", movies=get_projections())
+    else:
+        return render_template("add_session.html")
+
 
 
 # Functions
