@@ -12,6 +12,9 @@
     </ul>
     {% if manager %}
         To manage movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
+
+        To manage movies' sessions click <a href="{{ url_for('session_manager') }}">here</a><br><br>
+
     {% else %}
         Hello user
     {% endif %}

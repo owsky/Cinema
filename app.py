@@ -1,13 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Boolean, select, ColumnDefault
-
 from flask import Flask, render_template, request, redirect, url_for, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select
 import secrets
 
-from sqlalchemy.engine import default
 
 app = Flask(__name__)
 
@@ -187,6 +182,13 @@ def add_session():
         return render_template("session_manager.html", movies=get_projections())
     else:
         return render_template("add_session.html")
+
+
+@login_required
+def delete_movie():
+    if not current_user.is_manager:
+        abort(403)
+        #TODO
 
 
 # Functions
