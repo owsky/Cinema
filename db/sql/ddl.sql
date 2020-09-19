@@ -25,6 +25,7 @@ CREATE TABLE public.movies (
     movies_id serial PRIMARY KEY,
     movies_title varchar NOT NULL,
     movies_genre varchar NOT NULL,
+    movies_duration int NOT NULL,
     movies_synopsis varchar NOT NULL,
     movies_director varchar NOT NULL
 );
@@ -98,4 +99,4 @@ CREATE TABLE public.cast (
 CREATE VIEW public.projections_info AS
 SELECT movies_title, movies_genre, movies_synopsis, movies_director, projections_date_time, projections_room
 FROM public.movies, public.projections
-WHERE movies_id = projections_movie
+WHERE movies_id = projections_movie;
