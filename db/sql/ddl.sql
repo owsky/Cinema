@@ -100,4 +100,4 @@ CREATE TABLE public.cast (
 CREATE VIEW public.projections_info AS
 SELECT movies_title, movies_genre, movies_synopsis, movies_director, projections_date_time, projections_room
 FROM public.movies, public.projections
-WHERE movies_id = projections_movie
+WHERE movies_id = projections_movie;
