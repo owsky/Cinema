@@ -24,6 +24,7 @@ CREATE TABLE public.rooms (
 CREATE TABLE public.movies (
     movies_id serial PRIMARY KEY,
     movies_title varchar NOT NULL,
+    movies_duration int NOT NULL,
     movies_genre varchar NOT NULL,
     movies_synopsis varchar NOT NULL,
     movies_director varchar NOT NULL
