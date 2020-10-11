@@ -1,19 +1,32 @@
 {% extends "base.html" %}
 {% block body %}
     <style>
-        .movies {
+        .leftPanel {
             float:left;
             margin-left:10px;
         }
-        .login {
+        .rightPanel {
             float:right;
             margin-right:10px;
         }
     </style>
-    <div class="login">
-        To sign in click <a href="{{ url_for('login') }}">here</a>
+    <div class="rightPanel">
+        {% if not name %}
+            To sign in click <a href="{{ url_for('login') }}">here</a>
+        {% else %}
+            To sign out click <a href="{{ url_for('logout') }}">here</a>
+        {% endif %}
     </div>
-    <div class="movies">
+
+    <div class="leftPanel">
+    {% if manager %}
+        To manage movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
+        To manage movies' sessions click <a href="{{ url_for('session_manager') }}">here</a><br><br>
+    {% else %}
+        {% if name %}
+            Hello {{ name }}!<br><br>
+        {% endif %}
+    {% endif %}
         Movies currently available:
         <ul>
             {% for f in films %}

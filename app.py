@@ -1,7 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, abort, flash
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask import Flask, render_template, request, redirect, url_for, abort, flash, session
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
+    AnonymousUserMixin
 from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select
 import secrets
+
+from sqlalchemy.sql.functions import user
 
 app = Flask(__name__)
 
@@ -54,7 +57,7 @@ projections = Table('projections', metadata,
                     Column('projections_movie', Integer),
                     Column('projections_date_time', DateTime),
                     Column('projections_room', Integer),
-                    Column('projections_price',  Float),
+                    Column('projections_price', Float),
                     Column('projections_remain', Integer))
 
 # Login Manager
@@ -72,21 +75,37 @@ class User(UserMixin):
         self.pwd = pwd
         self.is_manager = is_manager
 
+    def is_manager(self):
+        return self.is_manager
+
+    def get_name(self):
+        return self.name
+
+
+class Anonymous(AnonymousUserMixin):
+    def __init__(self):
+        self.name = None
+        self.is_manager = False
+
+
+login_manager.anonymous_user = Anonymous
+
 
 @login_manager.user_loader
 def load_user(user_id):
     conn = engine.connect()
     rs = conn.execute(select([users]).where(users.c.users_id == user_id))
-    user = rs.fetchone()
+    u = rs.fetchone()
     conn.close()
-    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd,
-                user.users_is_manager)
+    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd,
+                u.users_is_manager)
 
 
 # App routes
 @app.route('/')
 def home():
-    return render_template("index.html", films=get_movies())
+    return render_template("index.html", films=get_movies(), name=User.get_name(current_user),
+                           manager=User.is_manager(current_user))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -97,9 +116,9 @@ def login():
         u = rs.fetchone()
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
-            user = user_by_email(request.form['user'])
-            login_user(user)
-            return render_template("private.html", manager=user.is_manager, films=get_movies())
+            u = user_by_email(request.form['user'])
+            login_user(u, remember=True)
+            return redirect(url_for('home'))
         else:
             flash("Incorrect username or password")
             return redirect(url_for('login'))
@@ -194,10 +213,10 @@ def delete_movie():
 def user_by_email(user_email):
     conn = engine.connect()
     rs = conn.execute(select([users]).where(users.c.users_email == user_email))
-    user = rs.fetchone()
+    u = rs.fetchone()
     conn.close()
-    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd,
-                user.users_is_manager)
+    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd,
+                u.users_is_manager)
 
 
 def get_movies():
