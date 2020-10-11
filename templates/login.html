@@ -1,8 +1,5 @@
 {% extends "base.html" %}
 {% block body %}
-    {% if wrong == True %}
-        User not found or incorrect password <br><br>
-    {% endif %}
     <form action="/login" method="post">
         <input name="user" type="text" placeholder="Email"><br><br>
         <input name="pass" type="password" placeholder="Password"><br><br>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, abort
+from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select
 import secrets
@@ -101,7 +101,8 @@ def login():
             login_user(user)
             return render_template("private.html", manager=user.is_manager, films=get_movies())
         else:
-            return render_template("login.html", wrong=True)
+            flash("Incorrect username or password")
+            return redirect(url_for('login'))
     else:
         return render_template("login.html")
 
