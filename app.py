@@ -3,17 +3,15 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select
 import secrets
 
-
 app = Flask(__name__)
 
-# DB
+# DB connection
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 metadata = MetaData(engine)
 
 actors = Table('actors', metadata,
                Column('actors_id', Integer, primary_key=True),
-               Column('actors_name', String),
-               Column('actors_surname', String)
+               Column('actors_fullname', String),
                )
 cast = Table('cast', metadata,
              Column('cast_id', Integer, primary_key=True),
@@ -23,9 +21,10 @@ cast = Table('cast', metadata,
 movies = Table('movies', metadata,
                Column('movies_id', Integer, primary_key=True),
                Column('movies_title', String),
+               Column('movies_duration', Integer),
                Column('movies_genre', String),
                Column('movies_synopsis', String),
-               Column('movies_director', String)
+               Column('movies_director', String)  # Tabella separata?
                )
 rooms = Table('rooms', metadata,
               Column('rooms_id', Integer, primary_key=True),
@@ -33,16 +32,15 @@ rooms = Table('rooms', metadata,
               )
 seats = Table('seats', metadata,
               Column('seats_id', Integer, primary_key=True),
+              Column('seats_name', String),
               Column('seats_room', Integer)
               )
 tickets = Table('tickets', metadata,
                 Column('tickets_id', Integer, primary_key=True),
                 Column('tickets_user', Integer),
-                Column('tickets_movie', Integer),
-                Column('tickets_seat', Integer),
-                Column('tickets_date_time', DateTime)
+                Column('tickets_projection', Integer),
+                Column('tickets_seat', Integer)
                 )
-
 users = Table('users', metadata,
               Column('users_id', Integer, primary_key=True),
               Column('users_email', String),
@@ -51,7 +49,6 @@ users = Table('users', metadata,
               Column('users_pwd', String),
               Column('users_is_manager', Boolean)
               )
-
 projections = Table('projections', metadata,
                     Column('projections_id', Integer, primary_key=True),
                     Column('projections_movie', Integer),
@@ -82,7 +79,8 @@ def load_user(user_id):
     rs = conn.execute(select([users]).where(users.c.users_id == user_id))
     user = rs.fetchone()
     conn.close()
-    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd, user.users_is_manager)
+    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd,
+                user.users_is_manager)
 
 
 # App routes
@@ -188,7 +186,7 @@ def add_session():
 def delete_movie():
     if not current_user.is_manager:
         abort(403)
-        #TODO
+        '''TODO'''
 
 
 # Functions
@@ -197,7 +195,8 @@ def user_by_email(user_email):
     rs = conn.execute(select([users]).where(users.c.users_email == user_email))
     user = rs.fetchone()
     conn.close()
-    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd, user.users_is_manager)
+    return User(user.users_id, user.users_email, user.users_name, user.users_surname, user.users_pwd,
+                user.users_is_manager)
 
 
 def get_movies():
@@ -211,9 +210,9 @@ def get_movies():
 def get_projections():
     conn = engine.connect()
     rs = conn.execute(select([projections]))
-    movies = rs.fetchall()
+    proj = rs.fetchall()
     conn.close()
-    return movies
+    return proj
 
 
 if __name__ == '__main__':
