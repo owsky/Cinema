@@ -53,7 +53,8 @@ INSERT INTO public.users(users_id, users_email, users_name, users_surname, users
     (2, 'jane@hotmail.com', 'Jane', 'Accounting', 'bookkeepingaf', False),
     (3, 'anonymous@gmail.com', 'Anon', 'Chan', 'imgoodlulz', False),
     (4, 'megamanager@gmail.com', 'Kim', 'Schmitz', 'fuckfbi', True),
-    (5, 'test', 'test', 'test', 'test', True);
+    (5, 'manager', 'manager', 'manager', 'manager', True),
+    (6, 'user', 'user', 'user', 'user', False);
 
 -- PROJECTIONS
 INSERT INTO public.projections(projections_id, projections_movie, projections_date_time, projections_room) VALUES
