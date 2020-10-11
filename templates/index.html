@@ -1,15 +1,28 @@
 {% extends "base.html" %}
 {% block body %}
-    To sign in click <a href="{{ url_for('login') }}">here</a><br><br>
-    If you don't have an account sign up <a href="{{ url_for('signup') }}">here</a><br><br>
-    These are the movies currently available:
-    <ul>
-        {% for f in films %}
-            Title: {{ f.movies_title }} <br>
-            Genre: {{ f.movies_genre }} <br>
-            Synopsis: {{ f.movies_synopsis }} <br>
-            Director: {{ f.movies_director }} <br>
-            <br><br>
-        {% endfor %}
-    </ul>
+    <style>
+        .movies {
+            float:left;
+            margin-left:10px;
+        }
+        .login {
+            float:right;
+            margin-right:10px;
+        }
+    </style>
+    <div class="login">
+        To sign in click <a href="{{ url_for('login') }}">here</a>
+    </div>
+    <div class="movies">
+        Movies currently available:
+        <ul>
+            {% for f in films %}
+                Title: {{ f.movies_title }} <br>
+                Genre: {{ f.movies_genre }} <br>
+                Synopsis: {{ f.movies_synopsis }} <br>
+                Director: {{ f.movies_director }} <br>
+                <br><br>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock %}
