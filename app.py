@@ -105,8 +105,17 @@ def load_user(user_id):
 # App routes
 @app.route('/')
 def home():
-    return render_template("index.html", films=get_movies(None), name=User.get_name(current_user),
-                           manager=User.is_manager(current_user))
+    if User.is_manager(current_user):
+        return redirect(url_for('manager'))
+    return render_template("index.html", films=get_movies(None), name=User.get_name(current_user))
+
+
+@app.route('/manager')
+@login_required
+def manager():
+    if not User.is_manager(current_user):
+        abort(403)
+    return render_template("manager.html")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -118,7 +127,7 @@ def login():
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
             u = user_by_email(request.form['user'])
-            login_user(u, remember=True)
+            login_user(u)
             return redirect(url_for('home'))
         else:
             flash("Incorrect username or password")
