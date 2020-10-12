@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
-from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select
+from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select, text
 import secrets
 
 app = Flask(__name__)
@@ -106,7 +106,7 @@ def load_user(user_id):
 # App routes
 @app.route('/')
 def home():
-    return render_template("index.html", films=get_movies(), name=User.get_name(current_user),
+    return render_template("index.html", films=get_movies(None), name=User.get_name(current_user),
                            manager=User.is_manager(current_user))
 
 
@@ -152,6 +152,14 @@ def logout():
 @app.route('/projections')
 def projections():
     return render_template("projections.html", projections=get_projections())
+
+
+@app.route('/<title>')
+def movie_info(title):
+    m = get_movies(title)
+    if m is None:
+        abort(404)
+    return render_template("movie_info.html", movie=m)
 
 
 @app.route('/movie_manager')
@@ -226,10 +234,15 @@ def user_by_email(user_email):
                 u.users_is_manager)
 
 
-def get_movies():
+def get_movies(mov):
     conn = engine.connect()
-    rs = conn.execute(select([movies, directors]).where(movies.c.movies_director == directors.c.directors_id))
-    films = rs.fetchall()
+    if mov:
+        s = text("SELECT * FROM movies, directors WHERE movies_director = directors_id AND movies_title = :e1")
+        rs = conn.execute(s, e1=mov)
+        films = rs.fetchone()
+    else:
+        rs = conn.execute(select([movies, directors]).where(movies.c.movies_director == directors.c.directors_id))
+        films = rs.fetchall()
     conn.close()
     return films
 

@@ -12,7 +12,7 @@
         Movies currently available:
         <ul>
             {% for f in films %}
-                Title: {{ f.movies_title }} <br>
+                Title: <a href="{{ url_for('movie_info', title=f.movies_title) }}">{{ f.movies_title }}</a> <br>
                 Genre: {{ f.movies_genre }} <br>
                 Synopsis: {{ f.movies_synopsis }} <br>
                 Director: {{ f.directors_name }} <br>
