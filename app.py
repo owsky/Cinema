@@ -123,14 +123,17 @@ def login():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        conn = engine.connect()
-        ins = users.insert()
-        conn.execute(ins, [
-            {"users_name": request.form['name'], "users_surname": request.form['surname'],
-             "users_email": request.form['email'], "users_pwd": request.form['pwd'], "users_is_manager": False}
-        ])
-        conn.close()
-        return redirect(url_for('home'))
+        if user_by_email(request.form['email']) is not None:
+            flash("There’s already an account set up to use this email address")
+        else:
+            conn = engine.connect()
+            ins = users.insert()
+            conn.execute(ins, [
+                {"users_name": request.form['name'], "users_surname": request.form['surname'],
+                 "users_email": request.form['email'], "users_pwd": request.form['pwd'], "users_is_manager": False}
+            ])
+            conn.close()
+            return redirect(url_for('home'))
     return render_template("signup.html")
 
 
