@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, abort, flash, session
+from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
-from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select
+from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select, and_, \
+    text
 import secrets
-
-from sqlalchemy.sql.functions import user
 
 app = Flask(__name__)
 
@@ -153,7 +152,7 @@ def logout():
 
 @app.route('/projections')
 def projections():
-    return render_template("projections.html")
+    return render_template("projections.html", projections=get_projections())
 
 
 @app.route('/movie_manager')
@@ -238,7 +237,10 @@ def get_movies():
 
 def get_projections():
     conn = engine.connect()
-    rs = conn.execute(select([projections]))
+    s = """SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
+            WHERE projections_movie = movies_id AND movies_director = directors_id AND movies_id = cast_movie
+            AND cast_movie = actors_id AND projections_room = rooms_id"""
+    rs = conn.execute(s)
     proj = rs.fetchall()
     conn.close()
     return proj
