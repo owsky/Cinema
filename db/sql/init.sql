@@ -27,12 +27,18 @@ INSERT INTO public.seats(seats_id, seats_name, seats_room) VALUES
     (19, '9B', 2),
     (20, '10B', 2);
 
+-- DIRECTORS
+INSERT INTO public.directors(directors_id, directors_name) VALUES
+    (1, 'Martin Scorsese'),
+    (2, 'Christopher Nolan'),
+    (3, 'Stanley Kubrick');
+
 -- MOVIES
 INSERT INTO public.movies(movies_id, movies_title, movies_duration, movies_genre, movies_synopsis, movies_director) VALUES
-    (1, 'Shutter Island', 139, 'Thriller', 'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.', 'Martin Scorsese'),
-    (2, 'Inception', 162, 'Action', 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 'Christopher Nolan'),
-    (3, '2001: A Space Odyssey', 164, 'Sci-Fi', 'After discovering a mysterious artifact buried beneath the Lunar surface, mankind sets off on a quest to find its origins with help from intelligent supercomputer H.A.L. 9000.', 'Stanley Kubrick'),
-    (4, 'Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb', 102, 'Comedy', 'An insane general triggers a path to nuclear holocaust that a War Room full of politicians and generals frantically tries to stop.', 'Stanley Kubrick');
+    (1, 'Shutter Island', 139, 'Thriller', 'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.', 1),
+    (2, 'Inception', 162, 'Action', 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 2),
+    (3, '2001: A Space Odyssey', 164, 'Sci-Fi', 'After discovering a mysterious artifact buried beneath the Lunar surface, mankind sets off on a quest to find its origins with help from intelligent supercomputer H.A.L. 9000.', 3),
+    (4, 'Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb', 102, 'Comedy', 'An insane general triggers a path to nuclear holocaust that a War Room full of politicians and generals frantically tries to stop.', 3);
 
 -- ACTORS
 INSERT INTO public.actors(actors_id, actors_fullname) VALUES

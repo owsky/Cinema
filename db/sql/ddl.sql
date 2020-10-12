@@ -21,13 +21,18 @@ CREATE TABLE public.rooms (
     rooms_name varchar UNIQUE NOT NULL
 );
 
+CREATE TABLE public.directors (
+    directors_id serial PRIMARY KEY,
+    directors_name varchar NOT NULL
+);
+
 CREATE TABLE public.movies (
     movies_id serial PRIMARY KEY,
     movies_title varchar NOT NULL,
     movies_duration int NOT NULL,
     movies_genre varchar NOT NULL,
     movies_synopsis varchar NOT NULL,
-    movies_director varchar NOT NULL
+    movies_director int REFERENCES public.directors(directors_id) NOT NULL
 );
 
 CREATE TABLE public.actors (

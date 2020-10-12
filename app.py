@@ -21,13 +21,17 @@ cast = Table('cast', metadata,
              Column('cast_movie', Integer),
              Column('cast_actor', Integer)
              )
+directors = Table('directors', metadata,
+                  Column('directors_id', Integer, primary_key=True),
+                  Column('directors_name', String)
+                  )
 movies = Table('movies', metadata,
                Column('movies_id', Integer, primary_key=True),
                Column('movies_title', String),
                Column('movies_duration', Integer),
                Column('movies_genre', String),
                Column('movies_synopsis', String),
-               Column('movies_director', String)  # Tabella separata?
+               Column('movies_director', Integer)
                )
 rooms = Table('rooms', metadata,
               Column('rooms_id', Integer, primary_key=True),
@@ -147,6 +151,11 @@ def logout():
     return redirect(url_for('home'))
 
 
+@app.route('/projections')
+def projections():
+    return render_template("projections.html")
+
+
 @app.route('/movie_manager')
 @login_required
 def movie_manager():
@@ -221,7 +230,7 @@ def user_by_email(user_email):
 
 def get_movies():
     conn = engine.connect()
-    rs = conn.execute(select([movies]))
+    rs = conn.execute(select([movies, directors]).where(movies.c.movies_director == directors.c.directors_id))
     films = rs.fetchall()
     conn.close()
     return films
