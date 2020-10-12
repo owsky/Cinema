@@ -2,12 +2,8 @@
 {% block body %}
     <ul>
         {% for p in projections %}
-            Title: {{ p.movies_title }} <br>
-            Genre: {{ p.movies_genre }} <br>
-            Synopsis: {{ p.movies_synopsis }} <br>
-            Director: {{ p.directors_name }} <br>
+            Title: <a href="{{ url_for('movie_info', title=p.movies_title) }}">{{ p.movies_title }}</a> <br>
             Timestamp: {{ p.projections_date_time }} <br>
-            Cast: {{ p.actors_fullname }} <br>
             Price: {{ p.projections_price }} <br>
             Rooms: {{ p.rooms_name }}
             <br><br>
