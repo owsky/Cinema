@@ -1,11 +1,5 @@
 {% extends "base.html" %}
 {% block body %}
-    <style>
-        .leftPanel {
-            margin-left:10px;
-            font-family: "Georgia", serif;
-        }
-    </style>
     <div class="leftPanel">
     {% if manager %}
         To manage movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
