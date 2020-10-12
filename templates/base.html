@@ -9,7 +9,7 @@
 <body>
 <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
-        <a class="navbar-item" href="https://bulma.io">
+        <a class="navbar-item" href="{{ url_for('home') }}">
             <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
         </a>
         <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
@@ -23,6 +23,10 @@
         <div class="navbar-start">
             <a href="{{ url_for('home') }}" class="navbar-item">
                 Home
+            </a>
+
+            <a href="{{ url_for('projections') }}" class="navbar-item">
+                Projections
             </a>
             <!--
             Menu dropdown
