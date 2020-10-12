@@ -31,9 +31,18 @@
                 Home
             </a>
 
-            <a href="{{ url_for('projections') }}" class="navbar-item">
-                Projections
-            </a>
+            {% if current_user.is_manager %}
+                <a href="{{ url_for('projections') }}" class="navbar-item">
+                    Edit movies
+                </a>
+                <a href="{{ url_for('projections') }}" class="navbar-item">
+                    Edit projections
+                </a>
+            {% else %}
+                <a href="{{ url_for('projections') }}" class="navbar-item">
+                    Projections
+                </a>
+            {% endif %}
 
             <!--
             Menu dropdown

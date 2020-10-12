@@ -73,12 +73,6 @@ class User(UserMixin):
         self.pwd = pwd
         self.is_manager = is_manager
 
-    def is_manager(self):
-        return self.is_manager
-
-    def get_name(self):
-        return self.name
-
 
 class Anonymous(AnonymousUserMixin):
     def __init__(self):
@@ -105,15 +99,13 @@ def load_user(user_id):
 # App routes
 @app.route('/')
 def home():
-    if User.is_manager(current_user):
-        return redirect(url_for('manager'))
-    return render_template("index.html", films=get_movies(None), name=User.get_name(current_user))
+    return render_template("index.html", films=get_movies(None))
 
 
 @app.route('/manager')
 @login_required
 def manager():
-    if not User.is_manager(current_user):
+    if not current_user.is_manager:
         abort(403)
     return render_template("manager.html")
 
