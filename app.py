@@ -62,12 +62,8 @@ projections = Table('projections', metadata,
                     Column('projections_price', Float),
                     Column('projections_remain', Integer))
 
+
 # Login Manager
-app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-
 class User(UserMixin):
     def __init__(self, user_id, email, name, surname, pwd, is_manager):
         self.id = user_id
@@ -90,6 +86,9 @@ class Anonymous(AnonymousUserMixin):
         self.is_manager = False
 
 
+app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
+login_manager = LoginManager()
+login_manager.init_app(app)
 login_manager.anonymous_user = Anonymous
 
 
