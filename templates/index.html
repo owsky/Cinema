@@ -2,22 +2,10 @@
 {% block body %}
     <style>
         .leftPanel {
-            float:left;
             margin-left:10px;
-        }
-        .rightPanel {
-            float:right;
-            margin-right:10px;
+            font-family: "Georgia", serif;
         }
     </style>
-    <div class="rightPanel">
-        {% if not name %}
-            To sign in click <a href="{{ url_for('login') }}">here</a>
-        {% else %}
-            To sign out click <a href="{{ url_for('logout') }}">here</a>
-        {% endif %}
-    </div>
-
     <div class="leftPanel">
     {% if manager %}
         To manage movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
