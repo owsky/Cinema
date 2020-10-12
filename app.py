@@ -102,14 +102,6 @@ def home():
     return render_template("index.html", films=get_movies(None))
 
 
-@app.route('/manager')
-@login_required
-def manager():
-    if not current_user.is_manager:
-        abort(403)
-    return render_template("manager.html")
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
