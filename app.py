@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
-from sqlalchemy import create_engine, MetaData, Table, Column, Float, Integer, String, DateTime, Boolean, select, text
+from sqlalchemy import select, text
 import secrets
 from schema import engine, actors, cast, directors, movies, rooms, seats, tickets, users, projections
 
@@ -42,9 +42,27 @@ def load_user(user_id):
 
 
 # App routes
+# User side
 @app.route('/')
 def home():
     return render_template("index.html", films=get_movies(None))
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        if user_by_email(request.form['email']) is not None:
+            flash("There’s already an account set up to use this email address")
+        else:
+            conn = engine.connect()
+            ins = users.insert()
+            conn.execute(ins, [
+                {"users_name": request.form['name'], "users_surname": request.form['surname'],
+                 "users_email": request.form['email'], "users_pwd": request.form['pwd'], "users_is_manager": False}
+            ])
+            conn.close()
+            return redirect(url_for('home'))
+    return render_template("signup.html")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -63,23 +81,6 @@ def login():
             return redirect(url_for('login'))
     else:
         return render_template("login.html")
-
-
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        if user_by_email(request.form['email']) is not None:
-            flash("There’s already an account set up to use this email address")
-        else:
-            conn = engine.connect()
-            ins = users.insert()
-            conn.execute(ins, [
-                {"users_name": request.form['name'], "users_surname": request.form['surname'],
-                 "users_email": request.form['email'], "users_pwd": request.form['pwd'], "users_is_manager": False}
-            ])
-            conn.close()
-            return redirect(url_for('home'))
-    return render_template("signup.html")
 
 
 @app.route('/logout')
@@ -102,6 +103,7 @@ def movie_info(title):
     return render_template("movie_info.html", movie=m)
 
 
+# Manager side
 @app.route('/movie_manager')
 @login_required
 def movie_manager():
