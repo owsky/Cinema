@@ -45,7 +45,7 @@ def load_user(user_id):
 # User side
 @app.route('/')
 def home():
-    return render_template("index.html", films=get_movies(None))
+    return render_template("user/index.html", films=get_movies(None))
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -62,7 +62,7 @@ def signup():
             ])
             conn.close()
             return redirect(url_for('home'))
-    return render_template("signup.html")
+    return render_template("user/signup.html")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -80,7 +80,7 @@ def login():
             flash("Incorrect username or password")
             return redirect(url_for('login'))
     else:
-        return render_template("login.html")
+        return render_template("user/login.html")
 
 
 @app.route('/logout')
@@ -92,7 +92,7 @@ def logout():
 
 @app.route('/projections')
 def projections():
-    return render_template("projections.html", projections=get_projections())
+    return render_template("user/projections.html", projections=get_projections())
 
 
 @app.route('/<title>')
@@ -100,16 +100,16 @@ def movie_info(title):
     m = get_movies(title)
     if m is None:
         abort(404)
-    return render_template("movie_info.html", movie=m)
+    return render_template("user/movie_info.html", movie=m)
 
 
 # Manager side
-@app.route('/movie_manager')
+@app.route('/manager/')
 @login_required
 def movie_manager():
     if not current_user.is_manager:
         abort(403)
-    return render_template("movie_manager.html")
+    return render_template("manager/manager.html")
 
 
 @app.route('/movie_manager/add_movie', methods=['GET', 'POST'])
@@ -126,9 +126,9 @@ def add_movie():
              "movies_synopsis": request.form['synopsis'], "movies_director": request.form['director']}
         ])
         conn.close()
-        return render_template("movie_manager.html", movies=get_projections())
+        return render_template("manager/movie_manager.html", movies=get_projections())
     else:
-        return render_template("add_movie.html")
+        return render_template("manager/add_movie.html")
 
 
 @app.route('/session_manager')
@@ -136,7 +136,7 @@ def add_movie():
 def session_manager():
     if not current_user.is_manager:
         abort(403)
-    return render_template("session_manager.html", movies=get_projections())
+    return render_template("manager/session_manager.html", movies=get_projections())
 
 
 @app.route('/session_manager/add_session', methods=['GET', 'POST'])
@@ -154,9 +154,9 @@ def add_session():
              "projections_remain": request.form['capacity']}
         ])
         conn.close()
-        return render_template("session_manager.html", movies=get_projections())
+        return render_template("manager/session_manager.html", movies=get_projections())
     else:
-        return render_template("add_session.html")
+        return render_template("manager/add_session.html")
 
 
 @login_required
