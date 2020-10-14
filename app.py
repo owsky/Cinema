@@ -51,6 +51,8 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
+            flash("Missing information")
         if user_by_email(request.form['email']) is not None:
             flash("There’s already an account set up to use this email address")
         else:
@@ -172,8 +174,10 @@ def user_by_email(user_email):
     rs = conn.execute(select([users]).where(users.c.users_email == user_email))
     u = rs.fetchone()
     conn.close()
-    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd,
-                u.users_is_manager)
+    if u:
+        return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager)
+    else:
+        return None
 
 
 def get_movies(mov):
