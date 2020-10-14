@@ -244,9 +244,9 @@ def get_movies(mov):
 
 def get_projections():
     conn = engine.connect()
-    s = """SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
+    s = text("""SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
             WHERE projections_movie = movies_id AND movies_director = directors_id AND movies_id = cast_movie
-            AND cast_movie = actors_id AND projections_room = rooms_id"""
+            AND cast_movie = actors_id AND projections_room = rooms_id""")
     rs = conn.execute(s)
     proj = rs.fetchall()
     conn.close()
