@@ -45,7 +45,7 @@ CREATE TABLE public.projections (
     projections_movie int NOT NULL,
     projections_date_time timestamp without time zone NOT NULL,
     projections_room int REFERENCES public.rooms(rooms_id) NOT NULL,
-    projections_price float,
+    projections_price Numeric(12,2) NOT NULL,
     CONSTRAINT projections_movie_fkey
         FOREIGN KEY(projections_movie)
         REFERENCES public.movies(movies_id)
