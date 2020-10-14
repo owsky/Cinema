@@ -63,11 +63,11 @@ INSERT INTO public.users(users_email, users_name, users_surname, users_pwd, user
     ('user', 'user', 'user', 'user', False);
 
 -- PROJECTIONS
-INSERT INTO public.projections(projections_movie, projections_date_time, projections_room) VALUES
-    (1, '2020-08-01 21:00:00', 1),
-    (2, '2020-08-01 21:00:00', 2),
-    (3, '2020-08-02 21:00:00', 1),
-    (4, '2020-08-02 21:00:00', 2);
+INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, projections_price) VALUES
+    (1, '2020-08-01 21:00:00', 1, 10.00),
+    (2, '2020-08-01 21:00:00', 2, 10.00),
+    (3, '2020-08-02 21:00:00', 1, 10.00),
+    (4, '2020-08-02 21:00:00', 2, 10.00);
 
 -- TICKETS
 INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES
