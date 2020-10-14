@@ -5,6 +5,29 @@
         Genre: {{ movie.movies_genre }} <br>
         Synopsis: {{ movie.movies_synopsis }} <br>
         Director: {{ movie.directors_name }} <br>
+        Length: {{ (movie.movies_duration/60) | round(1) }} hours
         <br><br>
     </ul>
+    Projections schedule: <br>
+    {% if proj == None %}
+    We're sorry. There are no scheduled projections at the moment
+    {% else %}
+    <ul>
+        {% for p in proj %}
+            Date: {{ date }}<br>
+            Time: {{ hour }} <br>
+            Rooms: {{ p.rooms_name }}<br>
+            Price: {{ p.projections_price }}<br>
+            Tickets: {{ tl }} <br>
+            <br>
+            {% if tl > 0 and current_user.is_authenticated %}
+            Do you want to reserve a ticket?
+            <form action="{{ url_for('movie_info', title=movie.movies_title) }}" method="POST">
+                <input type="submit">
+                <input type="hidden" name="proj" value="{{ p.projections_id }}">
+            </form><br>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {% endif %}
 {% endblock %}

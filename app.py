@@ -94,15 +94,26 @@ def logout():
 
 @app.route('/projections')
 def projections():
-    return render_template("user/projections.html", projections=get_projections())
+    return render_template("user/projections.html", projections=get_projections(None))
 
 
-@app.route('/<title>')
+@app.route('/<title>', methods=['GET', 'POST'])
 def movie_info(title):
     m = get_movies(title)
     if m is None:
         abort(404)
-    return render_template("user/movie_info.html", movie=m)
+    proj = get_projections(title)
+    if request.method == 'POST':
+        if reserve_ticket(request.form.get('proj')):
+            flash("Ticket reserved successfully")
+        else:
+            flash("Failed to reserve ticket")
+    for p in proj:
+        date = p.projections_date_time.strftime("%m/%d/%Y")
+        hour = p.projections_date_time.strftime("%H:%M:%S")[:5]
+        tickets_left = how_many_seats_left(p[0])
+        return render_template("user/movie_info.html", movie=m, proj=proj, date=date, hour=hour, tl=tickets_left)
+    return render_template("user/movie_info.html", movie=m, proj=None)
 
 
 # Manager side
@@ -128,7 +139,7 @@ def add_movie():
              "movies_synopsis": request.form['synopsis'], "movies_director": request.form['director']}
         ])
         conn.close()
-        return render_template("manager/movie_manager.html", movies=get_projections())
+        return render_template("manager/movie_manager.html", movies=get_projections(None))
     else:
         return render_template("manager/add_movie.html")
 
@@ -138,7 +149,7 @@ def add_movie():
 def session_manager():
     if not current_user.is_manager:
         abort(403)
-    return render_template("manager/session_manager.html", movies=get_projections())
+    return render_template("manager/session_manager.html", movies=get_projections(None))
 
 
 @app.route('/session_manager/add_session', methods=['GET', 'POST'])
@@ -156,7 +167,7 @@ def add_session():
              "projections_remain": request.form['capacity']}
         ])
         conn.close()
-        return render_template("manager/session_manager.html", movies=get_projections())
+        return render_template("manager/session_manager.html", movies=get_projections(None))
     else:
         return render_template("manager/add_session.html")
 
@@ -193,15 +204,50 @@ def get_movies(mov):
     return films
 
 
-def get_projections():
+def get_projections(mov):
     conn = engine.connect()
-    s = text("""SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
-            WHERE projections_movie = movies_id AND movies_director = directors_id AND movies_id = cast_movie
-            AND cast_movie = actors_id AND projections_room = rooms_id""")
-    rs = conn.execute(s)
+    if mov is not None:
+        s = text("""SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
+                    WHERE projections_movie = movies_id AND movies_director = directors_id AND movies_id = cast_movie
+                    AND cast_movie = actors_id AND projections_room = rooms_id AND movies_title = :e1""")
+        rs = conn.execute(s, e1=mov)
+    else:
+        s = text("""SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
+                    WHERE projections_movie = movies_id AND movies_director = directors_id AND movies_id = cast_movie
+                    AND cast_movie = actors_id AND projections_room = rooms_id""")
+        rs = conn.execute(s)
     proj = rs.fetchall()
     conn.close()
     return proj
+
+
+def how_many_seats_left(proj_id):
+    conn = engine.connect()
+    s1 = text("""SELECT COUNT(seats_id) FROM public.projections, public.movies, public.rooms, public.seats
+                 WHERE projections_movie = movies_id AND projections_room = rooms_id AND seats_room = rooms_id
+                 AND projections_id = :e1""")
+    rs1 = conn.execute(s1, e1=proj_id)
+    total = rs1.fetchone()
+    s2 = text("""SELECT COUNT(tickets_id) FROM public.projections, public.tickets
+                 WHERE tickets_projection = projections_id AND projections_id = :e1""")
+    rs2 = conn.execute(s2, e1=proj_id)
+    sold = rs2.fetchone()
+    return total[0] - sold[0]
+
+
+def reserve_ticket(proj_id):
+    conn = engine.connect()
+    if how_many_seats_left(proj_id) == 0:
+        return False
+    else:
+        s1 = text("""SELECT COUNT(tickets_id) FROM public.projections, public.tickets
+                         WHERE tickets_projection = projections_id AND projections_id = :e1""")
+        rs1 = conn.execute(s1, e1=proj_id)
+        sold = rs1.fetchone()
+
+        s2 = text("INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
+        conn.execute(s2, e1=current_user.id, e2=proj_id, e3=sold[0]+1)
+        return True
 
 
 if __name__ == '__main__':
