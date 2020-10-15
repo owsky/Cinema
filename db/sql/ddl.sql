@@ -18,7 +18,8 @@ CREATE TABLE public.users (
 
 CREATE TABLE public.rooms (
     rooms_id serial PRIMARY KEY,
-    rooms_name varchar UNIQUE NOT NULL
+    rooms_name varchar UNIQUE NOT NULL,
+    rooms_capacity int NOT NULL
 );
 
 CREATE TABLE public.directors (
