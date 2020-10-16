@@ -4,7 +4,6 @@ INSERT INTO public.rooms(rooms_name) VALUES
     ('Room B');
 
 -- SEATS
-
 INSERT INTO public.seats(seats_name, seats_room) VALUES
     ('1A', 1),
     ('2A', 1),

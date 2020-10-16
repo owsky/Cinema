@@ -2,12 +2,11 @@
 {% block body %}
     Projections online:
     <ul>
-        {% for m in movies %}
-            Title: {{ m.projections_movie }} <br>
-            Data: {{ m.projections_data_time }} <br>
-            Price: {{ m.projections_price }} <br>
-            Room: {{ m.projections_room }} <br>
-            Remain_seats: {{ m.projections_remain }} <br>
+        {% for p in projections %}
+            Date: {{ date }}<br>
+            Time: {{ hour }} <br>
+            Rooms: {{ p.rooms_name }}<br>
+            Price: {{ p.projections_price }}<br>
             <br><br>
         {% endfor %}
     To Add Projections :  <a href="{{ url_for('add_session') }}">ADD</a><br>

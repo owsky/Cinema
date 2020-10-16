@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block body %}
     <div class="leftPanel">
-    {% if manager %}
-        To manage movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
+    {% if current_user.is_manager %}
+        Hello Manager {{ current_user.name }}!<br><br>
+        To add movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
         To manage movies' sessions click <a href="{{ url_for('session_manager') }}">here</a><br><br>
     {% else %}
         {% if current_user.name %}

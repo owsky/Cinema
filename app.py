@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
-    AnonymousUserMixin
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, AnonymousUserMixin
 from sqlalchemy import select, text
 import secrets
 from schema import engine, actors, cast, directors, movies, rooms, seats, tickets, users, projections
@@ -54,7 +53,7 @@ def signup():
         if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']) is not None:
-            flash("There’s already an account set up to use this email address")
+            flash("There's already an account set up to use this email address")
         else:
             conn = engine.connect()
             ins = users.insert()
@@ -176,7 +175,7 @@ def add_session():
 def delete_movie():
     if not current_user.is_manager:
         abort(403)
-        '''TODO'''
+        # TODO
 
 
 # Functions

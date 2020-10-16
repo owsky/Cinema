@@ -2,11 +2,11 @@
 {% block body %}
     There are the upcoming projections:
     <ul>
-        {% for p in projected_movies %}
-            Title: {{ f.movies_title }} <br>
-            Genre: {{ f.movies_genre }} <br>
-            Synopsis: {{ f.movies_synopsis }} <br>
-            Director: {{ f.movies_director }} <br>
+        {% for p in proj %}
+            Title: <a href="{{  url_for('projections') }}">{{ p.projections_movie }}</a><br>
+            Genre: {{ p.projections_data_time }} <br>
+            Synopsis: {{ p.projections_room }} <br>
+            Director: {{ p.projections_price }} <br>
             <br><br>
         {% endfor %}
     To Add Movies :  <a href="{{ url_for('add_movie') }}">ADD</a><br>
