@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block body %}
-    Compile the following data to add a session!
+    Compile the following data to add a movie!
     <ul>
-        <form action="/add_session" method="POST">
-        <input name="movie" type="text" placeholder="TITLE"><br>
+        <form action="/add_movie" method="POST">
+        <input name="title" type="text" placeholder="TITLE"><br>
         <input name="genre" type="text" placeholder="GENRE"><br>
+        <input name="duration" type="int" placeholder="DURATION"><br>
         <input name="synopsis" type="text" placeholder="SYNOPSIS"><br>
         <input name="director" type="text" placeholder="DIRECTOR"><br>
 

@@ -3,7 +3,7 @@
     <div class="leftPanel">
     {% if current_user.is_manager %}
         Hello Manager {{ current_user.name }}!<br><br>
-        To add movies click <a href="{{ url_for('movie_manager') }}">here</a><br><br>
+        To add movies click <a href="{{ url_for('add_movie') }}">here</a><br><br>
         To manage movies' sessions click <a href="{{ url_for('session_manager') }}">here</a><br><br>
     {% else %}
         {% if current_user.name %}
@@ -17,6 +17,11 @@
                 Genre: {{ f.movies_genre }} <br>
                 Synopsis: {{ f.movies_synopsis }} <br>
                 Director: {{ f.directors_name }} <br>
+                {% if current_user.is_manager %}
+                    <h4>
+                        <a href="update_movie/{{ f.projections_movie }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                    </h4>
+                {% endif %}
                 <br><br>
             {% endfor %}
         </ul>
