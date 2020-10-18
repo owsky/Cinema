@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% block body %}
     <div class="leftPanel">
+
+    Update the current movie!
+
     <ul>
-        <form action="/update_movie" method="POST">
-        <input name="title" type="text" placeholder="TITLE" value="{{  movie_to_update.title }}"><br>
-        <input name="genre" type="text" placeholder="GENRE" value="{{  movie_to_update.genre }}"><br>
-        <input name="duration" type="int" placeholder="DURATION" value="{{  movie_to_update.duration }}"><br>
-        <input name="synopsis" type="text" placeholder="SYNOPSIS" value="{{  movie_to_update.synopsis }}"><br>
-        <input name="director" type="text" placeholder="DIRECTOR" value="{{  movie_to_update.director }}"><br>
+        <form action="/update/{{ movie_to_update.movies_title }}" method="POST">
+        <input name="title" type="text" placeholder="TITLE" value="{{  movie_to_update.movies_title }}"><br>
+        <input name="genre" type="text" placeholder="GENRE" value="{{  movie_to_update.movies_genre }}"><br>
+        <input name="duration" type="int" placeholder="DURATION" value="{{  movie_to_update.movies_duration }}"><br>
+        <input name="synopsis" type="text" placeholder="SYNOPSIS" value="{{  movie_to_update.movies_synopsis }}"><br>
+        <input name="director" type="int" placeholder="DIRECTOR" value="{{  movie_to_update.movies_director }}"><br>
             <input type="submit">
 
         </form>

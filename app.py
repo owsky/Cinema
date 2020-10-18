@@ -135,7 +135,7 @@ def movie_manager():
             return render_template("manager/manager.html", projection=u, date=date, hour=hour)
 
 
-@app.route('/manager/')
+@app.route('/manager')
 @login_required
 def projection():
     conn = engine.connect()
@@ -149,27 +149,19 @@ def projection():
     return render_template('manager/manager.html', proj=u)
 
 
-@app.route('/update/<int:id>', methods=['GET', 'POST'])
+@app.route('/update_movie/<title>')
 @login_required
-def update_movie(id):
+def update_movie(title):
     if not current_user.is_manager:
         abort(403)
-    conn = engine.connect()
-    movie_to_update = movies.get(id)
+    m = get_movies(title)
     if request.method == "POST":
-        movie_to_update.title = request.form['title']
-        movie_to_update.genre = request.form['genre']
-        movie_to_update.duration = request.form['duration']
-        movie_to_update.synopsis = request.form['synopsis']
-        movie_to_update.director = request.form['director']
-        u = movies.update().values(movies_title=movie_to_update.title, movies_genre=movie_to_update.genre,
-                                   movies_duration=movie_to_update.duration,
-                                   movies_synopsis=movie_to_update.synopsis, movies_director=movie_to_update.director). \
-            where(movies.c.movies_id == id)
-        conn.execute(u)
+        conn = engine.connect()
+        conn.execute(movies.update().where(movies.movies_id == m.movies_id).values({"movies_title": request.form['title'], "movies_genre": request.form['genre'], "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'], "movies_director": request.form['director']}))
         conn.close()
-        return redirect(url_for('home'))
-    return render_template('update_movie.html', movie_to_update=movie_to_update)
+        return render_template('manager/movie_manager.html')
+    print("NEL GET")
+    return render_template('manager/update_movie.html', movie_to_update=m)
 
 
 @app.route('/add_movie', methods=['GET', 'POST'])

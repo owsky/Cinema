@@ -1,7 +1,7 @@
 -- ROOMS
-INSERT INTO public.rooms(rooms_name) VALUES
-    ('Room A'),
-    ('Room B');
+INSERT INTO public.rooms(rooms_name,rooms_capacity) VALUES
+    ('Room A', 100),
+    ('Room B', 100);
 
 -- SEATS
 INSERT INTO public.seats(seats_name, seats_room) VALUES
@@ -30,7 +30,8 @@ INSERT INTO public.seats(seats_name, seats_room) VALUES
 INSERT INTO public.directors(directors_name) VALUES
     ('Martin Scorsese'),
     ('Christopher Nolan'),
-    ('Stanley Kubrick');
+    ('Stanley Kubrick'),
+    ('Robert Zemeckis');
 
 -- MOVIES
 INSERT INTO public.movies(movies_title, movies_duration, movies_genre, movies_synopsis, movies_director) VALUES

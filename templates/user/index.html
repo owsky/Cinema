@@ -19,7 +19,7 @@
                 Director: {{ f.directors_name }} <br>
                 {% if current_user.is_manager %}
                     <h4>
-                        <a href="update_movie/{{ f.projections_movie }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                        <a href="{{ url_for('update_movie', title=f.movies_title) }}">Edit</a><br>
                     </h4>
                 {% endif %}
                 <br><br>
