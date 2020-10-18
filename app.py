@@ -125,7 +125,7 @@ def movie_manager():
         abort(403)
     else:
         conn = engine.connect()
-        s = text("""SELECT * FROM public.projections JOIN public.movies ON (projections_movie=movies_id)""")
+        s = text("SELECT * FROM public.projections JOIN public.movies ON (projections_movie=movies_id)")
         rs = conn.execute(s)
         u = rs.fetchall()
         conn.close()
@@ -158,11 +158,15 @@ def update_movie(title):
     m = get_movies(title)
     if request.method == "POST":
         conn = engine.connect()
-        conn.execute(movies.update().where(movies.movies_id == m.movies_id).values({"movies_title": request.form['title'], "movies_genre": request.form['genre'], "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'], "movies_director": request.form['director']}))
+        u = movies.update().values(movies_title=request.form['title'], movies_genre=request.form['genre'],
+                                   movies_duration=request.form['duration'],
+                                   movies_synopsis=request.form['synopsis'],
+                                   movies_director=request.form['director']).where(movies_title=title)
+        conn.execute(u)
         conn.close()
         return render_template('manager/movie_manager.html')
-    print("NEL GET")
-    return render_template('manager/update_movie.html', movie_to_update=m)
+    else:
+        return render_template('manager/update_movie.html', movie_to_update=m)
 
 
 @app.route('/add_movie', methods=['GET', 'POST'])
@@ -218,8 +222,8 @@ def delete_movie(title):
         abort(403)
     if request.method == 'GET':
         conn = engine.connect()
-        s = text("DELETE FROM public.movies WHERE public.movies.movies_title = :mt")
-        conn.execute(s,mt = title)
+        s = text("DELETE FROM public.movies WHERE movies_title = :mt")
+        conn.execute(s, mt=title)
         conn.close()
         return redirect(url_for('home'))
 
@@ -239,7 +243,8 @@ def user_by_email(user_email):
 def get_movies(mov):
     conn = engine.connect()
     if mov:
-        s = text("SELECT * FROM movies, directors WHERE movies_director = directors_id AND movies_title = :e1")
+        s = text("SELECT * FROM movies JOIN directors ON movies.movies_director = directors.directors_id WHERE "
+                 "movies_title = :e1")
         rs = conn.execute(s, e1=mov)
         films = rs.fetchone()
     else:
@@ -252,14 +257,15 @@ def get_movies(mov):
 def get_projections(mov):
     conn = engine.connect()
     if mov is not None:
-        s = text("""SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
-                    WHERE projections_movie = movies_id AND movies_director = directors_id AND movies_id = cast_movie
-                    AND cast_movie = actors_id AND projections_room = rooms_id AND movies_title = :e1""")
+        s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie = movies_id JOIN "
+                 "public.cast ON movies_id = cast_movie JOIN public.actors ON cast_movie = actors_id JOIN "
+                 "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id "
+                 "WHERE movies_title = :e1")
         rs = conn.execute(s, e1=mov)
     else:
-        s = text("""SELECT * FROM public.projections, public.movies, public.cast, public.actors, public.directors, public.rooms
-                    WHERE projections_movie = movies_id AND movies_director = directors_id AND movies_id = cast_movie
-                    AND cast_movie = actors_id AND projections_room = rooms_id""")
+        s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie = movies_id JOIN "
+                 "public.cast ON movies_id = cast_movie JOIN public.actors ON cast_movie = actors_id JOIN "
+                 "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id")
         rs = conn.execute(s)
     proj = rs.fetchall()
     conn.close()
