@@ -135,6 +135,7 @@ def movie_manager():
             return render_template("manager/manager.html", projection=u, date=date, hour=hour)
 
 
+# usato per testare
 @app.route('/manager')
 @login_required
 def projection():
@@ -210,11 +211,17 @@ def add_session():
         return render_template("manager/add_session.html")
 
 
+@app.route('/delete_movie/<title>', methods=['GET', 'POST'])
 @login_required
-def delete_movie():
+def delete_movie(title):
     if not current_user.is_manager:
         abort(403)
-        # TODO
+    if request.method == 'GET':
+        conn = engine.connect()
+        s = text("DELETE FROM public.movies WHERE public.movies.movies_title = :mt")
+        conn.execute(s,mt = title)
+        conn.close()
+        return redirect(url_for('home'))
 
 
 # Functions

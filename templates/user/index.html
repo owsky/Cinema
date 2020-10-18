@@ -20,6 +20,7 @@
                 {% if current_user.is_manager %}
                     <h4>
                         <a href="{{ url_for('update_movie', title=f.movies_title) }}">Edit</a><br>
+                        <a href="{{ url_for('delete_movie', title=f.movies_title) }}">Delete</a><br>
                     </h4>
                 {% endif %}
                 <br><br>
