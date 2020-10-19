@@ -135,21 +135,6 @@ def movie_manager():
             return render_template("manager/manager.html", projection=u, date=date, hour=hour)
 
 
-# usato per testare
-@app.route('/manager')
-@login_required
-def projection():
-    conn = engine.connect()
-    s = text("""
-    SELECT * 
-    FROM public.projections
-    where projections_movie=5""")
-    rs = conn.execute(s)
-    u = rs.fetchall()
-    conn.close()
-    return render_template('manager/manager.html', proj=u)
-
-
 @app.route('/update_movie/<title>')
 @login_required
 def update_movie(title):
