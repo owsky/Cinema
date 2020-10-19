@@ -93,14 +93,21 @@ INSERT INTO public.movies(movies_title, movies_duration, movies_genre, movies_sy
 INSERT INTO public.actors(actors_fullname) VALUES
     ('Leonardo DiCaprio'),
     ('Keir Dullea'),
-    ('Peter Sellers');
+    ('Peter Sellers'),
+    ('fake actor');
 
 -- CAST
 INSERT INTO public.cast(cast_movie, cast_actor) VALUES
     (1, 1),
     (2, 1),
     (3, 2),
-    (4, 3);
+    (4, 3),
+    (5, 4),
+    (6, 4),
+    (7, 4),
+    (8, 4),
+    (9, 4),
+    (10, 4);
 
 -- USERS
 INSERT INTO public.users(users_email, users_name, users_surname, users_pwd, users_is_manager) VALUES
