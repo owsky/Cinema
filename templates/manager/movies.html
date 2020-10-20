@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block body %}
+    Todo Webpage
+    <ul>
+        {% if current_user.is_manager %}
+        To add movies click <a href="{{ url_for('add_movie') }}">here</a><br><br>
+        {% endif %}
+        {% for m in movies %}
+            Title: <a href="{{ url_for('movie_info', title=m.movies_title) }}">{{ m.movies_title }}</a> <br>
+            Duration: {{ m.movies_duration }} <br>
+            Genre: {{ m.movies_genre }} <br>
+            Synopsis: {{ m.movies_synopsis }}<br>
+            <h4>
+                <a href="{{ url_for('update_movie', title=m.movies_title) }}">Edit</a><br>
+                <a href="{{ url_for('delete_movie', title=m.movies_title) }}">Delete</a><br>
+            </h4>
+            <br>
+        {% endfor %}
+    </ul>
+{% endblock %}

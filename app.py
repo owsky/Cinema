@@ -51,8 +51,7 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
-            'pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']) is not None:
             flash("There's already an account set up to use this email address")
@@ -96,6 +95,11 @@ def logout():
 @app.route('/projections')
 def projections():
     return render_template("user/projections.html", projections=get_projections(None))
+
+
+@app.route('/movies')
+def movies():
+    return render_template("manager/movies.html", movies=get_movies(None))
 
 
 @app.route('/<title>', methods=['GET', 'POST'])
@@ -143,10 +147,11 @@ def update_movie(title):
     m = get_movies(title)
     if request.method == "POST":
         conn = engine.connect()
+        director = get_directors(request.form['director'])
         u = movies.update().values(movies_title=request.form['title'], movies_genre=request.form['genre'],
                                    movies_duration=request.form['duration'],
                                    movies_synopsis=request.form['synopsis'],
-                                   movies_director=request.form['director']).where(movies_title=title)
+                                   movies_director=director.c.directors_id).where(movies.c.movies_title == title)
         conn.execute(u)
         conn.close()
         return render_template('manager/movie_manager.html')
@@ -162,10 +167,12 @@ def add_movie():
     if request.method == 'POST':
         conn = engine.connect()
         ins = movies.insert()
+        director = get_directors(request.form['director'])
+        # TODO
         conn.execute(ins, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
              "movies_duration": request.form['duration'],
-             "movies_synopsis": request.form['synopsis'], "movies_director": request.form['director']}
+             "movies_synopsis": request.form['synopsis'], "movies_director": director.directors_id}
         ])
         conn.close()
         return render_template("manager/movie_manager.html")
@@ -180,24 +187,46 @@ def session_manager():
     return render_template("manager/session_manager.html", movies=get_projections(None))
 
 
-@app.route('/session_manager/add_session', methods=['GET', 'POST'])
+@app.route('/add_projection', methods=['GET', 'POST'])
 @login_required
-def add_session():
+def add_projection():
     if not current_user.is_manager:
         abort(403)
-
     if request.method == 'POST':
         conn = engine.connect()
         ins = projections.insert()
         conn.execute(ins, [
             {"projections_movie": request.form['movie'], "projections_date_time": request.form['date'],
-             "projections_room": request.form['room'], "projections_price": request.form['price'],
+             "projections_room": get_rooms_id(request.form['room']), "projections_price": request.form['price'],
              "projections_remain": request.form['capacity']}
         ])
         conn.close()
         return render_template("manager/session_manager.html", movies=get_projections(None))
     else:
-        return render_template("manager/add_session.html")
+        return render_template("manager/add_projection.html")
+
+
+def get_rooms_id(name):
+    conn = engine.connect()
+    s = text("SELECT rooms_id FROM rooms WHERE rooms_name = :n")
+    rs = conn.execute(s, n=name)
+    rid = rs.fetchone()
+    conn.close()
+    return rid
+
+
+def get_directors(name):
+    conn = engine.connect()
+    if name:
+        s = text("SELECT * FROM directors WHERE directors_name = :n")
+        rs = conn.execute(s, n=name)
+        did = rs.fetchone()
+    else:
+        s = text("SELECT * FROM directors")
+        rs = conn.execute()
+        did = rs.fetchall()
+    conn.close()
+    return did
 
 
 @app.route('/delete_movie/<title>', methods=['GET', 'POST'])
@@ -233,7 +262,8 @@ def get_movies(mov):
         rs = conn.execute(s, e1=mov)
         films = rs.fetchone()
     else:
-        rs = conn.execute(select([movies, directors]).where(movies.c.movies_director == directors.c.directors_id))
+        s = text("SELECT * FROM movies JOIN directors ON movies_director = directors_id")
+        rs = conn.execute(s)
         films = rs.fetchall()
     conn.close()
     return films
