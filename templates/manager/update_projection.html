@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block body %}
+    <div class="leftPanel">
+
+    Update the current projection!
+
+    <ul>
+        <form action="/update_projection/{{ movie.movies_title }}" method="POST">
+            Title: {{ movie.movies_title }} <br>:
+        <input name="date_time" type="time" placeholder="TIME" value="{{  projection.projections_date_time }}"><br>
+        <input name="price" type="number" placeholder="PRICE" value="{{  projection.projections_price }}"><br>
+        <input name="room" type="text" placeholder="ROOM" value="{{  room.rooms_name }}"><br>
+            <input type="submit">
+
+        </form>
+
+    </ul>
+    </div>
+{% endblock %}
