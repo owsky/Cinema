@@ -139,24 +139,26 @@ def movie_manager():
             return render_template("manager/manager.html", projection=u, date=date, hour=hour)
 
 
-@app.route('/update_movie/<title>')
+@app.route('/update_movie/<title>', methods=['GET', 'POST'])
 @login_required
 def update_movie(title):
     if not current_user.is_manager:
         abort(403)
     m = get_movies(title)
-    if request.method == "POST":
+    d = get_directors_id(m.movies_director)
+    if request.method == 'POST':
         conn = engine.connect()
-        director = get_directors(request.form['director'])
-        u = movies.update().values(movies_title=request.form['title'], movies_genre=request.form['genre'],
-                                   movies_duration=request.form['duration'],
-                                   movies_synopsis=request.form['synopsis'],
-                                   movies_director=director.c.directors_id).where(movies.c.movies_title == title)
-        conn.execute(u)
+        director = get_directors_name(request.form['director'])
+        new_title = request.form['title']
+        genre = request.form['genre']
+        duration = request.form['duration']
+        synopsis = request.form['synopsis']
+        s = text("UPDATE movies SET movies_title= :t, movies_genre=:g, movies_duration=:d, movies_synopsis=:s, "
+                 "movies_director=:dr WHERE movies_id =:cod")
+        conn.execute(s, t=new_title, g=genre, d=duration, s=synopsis, dr=director.directors_id, cod=m.movies_id)
         conn.close()
         return render_template('manager/movie_manager.html')
-    else:
-        return render_template('manager/update_movie.html', movie_to_update=m)
+    return render_template('manager/update_movie.html', movie_to_update=m, direct=d)
 
 
 @app.route('/add_movie', methods=['GET', 'POST'])
@@ -167,7 +169,7 @@ def add_movie():
     if request.method == 'POST':
         conn = engine.connect()
         ins = movies.insert()
-        director = get_directors(request.form['director'])
+        director = get_directors_name(request.form['director'])
         # TODO
         conn.execute(ins, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
@@ -197,7 +199,7 @@ def add_projection():
         ins = projections.insert()
         conn.execute(ins, [
             {"projections_movie": request.form['movie'], "projections_date_time": request.form['date'],
-             "projections_room": get_rooms_id(request.form['room']), "projections_price": request.form['price'],
+             "projections_room": get_rooms(request.form['room']), "projections_price": request.form['price'],
              "projections_remain": request.form['capacity']}
         ])
         conn.close()
@@ -206,7 +208,7 @@ def add_projection():
         return render_template("manager/add_projection.html")
 
 
-def get_rooms_id(name):
+def get_rooms(name):
     conn = engine.connect()
     s = text("SELECT rooms_id FROM rooms WHERE rooms_name = :n")
     rs = conn.execute(s, n=name)
@@ -215,7 +217,21 @@ def get_rooms_id(name):
     return rid
 
 
-def get_directors(name):
+def get_directors_id(cod):
+    conn = engine.connect()
+    if cod:
+        s = text("SELECT * FROM directors WHERE directors_id = :c")
+        rs = conn.execute(s, c=cod)
+        did = rs.fetchone()
+    else:
+        s = text("SELECT * FROM directors")
+        rs = conn.execute()
+        did = rs.fetchall()
+    conn.close()
+    return did
+
+
+def get_directors_name(name):
     conn = engine.connect()
     if name:
         s = text("SELECT * FROM directors WHERE directors_name = :n")
