@@ -8,7 +8,7 @@
             Hello {{ current_user.name }}!<br><br>
         {% endif %}
     {% endif %}
-        Movies currently available:<br><br>
+        Here's the latest movies:<br><br>
         <ul>
             {% for f in films %}
                 Title: <a href="{{ url_for('movie_info', title=f.movies_title) }}">{{ f.movies_title }}</a> <br>
