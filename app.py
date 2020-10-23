@@ -139,16 +139,17 @@ def movie_manager():
             return render_template("manager/manager.html", projection=u, date=date, hour=hour)
 
 
+# Update
 @app.route('/update_movie/<title>', methods=['GET', 'POST'])
 @login_required
 def update_movie(title):
     if not current_user.is_manager:
         abort(403)
     m = get_movies(title)
-    d = get_directors_id(m.movies_director)
+    d = get_directors_by_id(m.movies_director)
     if request.method == 'POST':
         conn = engine.connect()
-        director = get_directors_name(request.form['director'])
+        director = get_directors_by_name(request.form['director'])
         new_title = request.form['title']
         genre = request.form['genre']
         duration = request.form['duration']
@@ -167,20 +168,21 @@ def update_projection(title):
     if not current_user.is_manager:
         abort(403)
     m = get_movies(title)
-    r = get_rooms_name(get_projections(title).projections_room)
+    r = get_rooms_by_name(get_projections(title).projections_room)
     if request.method == 'POST':
         conn = engine.connect()
         time = request.form['date_time']
-        room = request.form['room']
+        room = get_rooms_by_name(request.form['room'])
         price = request.form['price']
-        s = text("UPDATE projection SET projections_date_time= :t, projections_room=:r, projections_price=:p WHERE "
+        s = text("UPDATE projections SET projections_date_time= :t, projections_room=:r, projections_price=:p WHERE "
                  "projections_movie =:cod")
-        conn.execute(s, t=time, r=r.rooms_id, cod=m.movies_id)
+        conn.execute(s, t=time, r=room.rooms_id, p=price, cod=m.movies_id)
         conn.close()
         return render_template('manager/movie_manager.html')
     return render_template('manager/update_movie.html', movie=m, room=r)
 
 
+# Add
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
 def add_movie():
@@ -189,7 +191,7 @@ def add_movie():
     if request.method == 'POST':
         conn = engine.connect()
         ins = movies.insert()
-        director = get_directors_name(request.form['director'])
+        director = get_directors_by_name(request.form['director'])
         # TODO
         conn.execute(ins, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
@@ -216,62 +218,21 @@ def add_projection():
         abort(403)
     if request.method == 'POST':
         conn = engine.connect()
-        ins = projections.insert()
-        conn.execute(ins, [
-            {"projections_movie": request.form['movie'], "projections_date_time": request.form['date_time'],
-             "projections_room": get_rooms_name(request.form['room']).rooms_id, "projections_price": request.form['price']}])
-        conn.close()
-        return render_template("manager/update_projection.html", movies=get_projections(None))
+        if not get_movies(request.form['title']):
+            flash("This movie has not been added!")
+            return render_template("manager/add_projection.html")
+        else:
+            ins = projections.insert()
+            conn.execute(ins, [
+                {"projections_movie": request.form['title'], "projections_date_time": request.form['date_time'],
+                 "projections_room": get_rooms_by_name(request.form['room']).rooms_id, "projections_price": request.form['price']}])
+            conn.close()
+            return render_template("manager/update_projection.html", movies=get_projections(None))
     else:
         return render_template("manager/add_projection.html")
 
 
-def get_rooms_name(name):
-    conn = engine.connect()
-    s = text("SELECT rooms_id FROM rooms WHERE rooms_name = :n")
-    rs = conn.execute(s, n=name)
-    rid = rs.fetchone()
-    conn.close()
-    return rid
-
-
-def get_rooms_id(cod):
-    conn = engine.connect()
-    s = text("SELECT rooms_id FROM rooms WHERE rooms_id = :c")
-    rs = conn.execute(s, c=cod)
-    rid = rs.fetchone()
-    conn.close()
-    return rid
-
-
-def get_directors_id(cod):
-    conn = engine.connect()
-    if cod:
-        s = text("SELECT * FROM directors WHERE directors_id = :c")
-        rs = conn.execute(s, c=cod)
-        did = rs.fetchone()
-    else:
-        s = text("SELECT * FROM directors")
-        rs = conn.execute()
-        did = rs.fetchall()
-    conn.close()
-    return did
-
-
-def get_directors_name(name):
-    conn = engine.connect()
-    if name:
-        s = text("SELECT * FROM directors WHERE directors_name = :n")
-        rs = conn.execute(s, n=name)
-        did = rs.fetchone()
-    else:
-        s = text("SELECT * FROM directors")
-        rs = conn.execute()
-        did = rs.fetchall()
-    conn.close()
-    return did
-
-
+# Delete
 @app.route('/delete_movie/<title>')
 @login_required
 def delete_movie(title):
@@ -296,6 +257,53 @@ def delete_projection(title):
     # TODO
     conn.close()
     return redirect(url_for('projections'))
+
+
+# Functions
+def get_rooms_by_name(name):
+    conn = engine.connect()
+    s = text("SELECT rooms_id FROM rooms WHERE rooms_name = :n")
+    rs = conn.execute(s, n=name)
+    rid = rs.fetchone()
+    conn.close()
+    return rid
+
+
+def get_rooms_by_id(cod):
+    conn = engine.connect()
+    s = text("SELECT rooms_id FROM rooms WHERE rooms_id = :c")
+    rs = conn.execute(s, c=cod)
+    rid = rs.fetchone()
+    conn.close()
+    return rid
+
+
+def get_directors_by_id(cod):
+    conn = engine.connect()
+    if cod:
+        s = text("SELECT * FROM directors WHERE directors_id = :c")
+        rs = conn.execute(s, c=cod)
+        did = rs.fetchone()
+    else:
+        s = text("SELECT * FROM directors")
+        rs = conn.execute()
+        did = rs.fetchall()
+    conn.close()
+    return did
+
+
+def get_directors_by_name(name):
+    conn = engine.connect()
+    if name:
+        s = text("SELECT * FROM directors WHERE directors_name = :n")
+        rs = conn.execute(s, n=name)
+        did = rs.fetchone()
+    else:
+        s = text("SELECT * FROM directors")
+        rs = conn.execute()
+        did = rs.fetchall()
+    conn.close()
+    return did
 
 
 # Functions
