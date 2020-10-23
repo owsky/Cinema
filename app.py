@@ -37,8 +37,7 @@ def load_user(user_id):
     rs = conn.execute(select([users]).where(users.c.users_id == user_id))
     u = rs.fetchone()
     conn.close()
-    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd,
-                u.users_is_manager)
+    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager)
 
 
 # App routes
@@ -173,7 +172,7 @@ def update_projection(title):
         time = request.form['date_time']
         room = request.form['room']
         price = request.form['price']
-        s = text("UPDATE projection SET projections_date_time= :t, projections_room=:r, projections_price=:p WHERE "
+        s = text("UPDATE projections SET projections_date_time= :t, projections_room=:r, projections_price=:p WHERE "
                  "projections_movie =:cod")
         conn.execute(s, t=time, r=r.rooms_id, cod=m.movies_id)
         conn.close()
