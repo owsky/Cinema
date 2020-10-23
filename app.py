@@ -37,8 +37,7 @@ def load_user(user_id):
     rs = conn.execute(select([users]).where(users.c.users_id == user_id))
     u = rs.fetchone()
     conn.close()
-    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd,
-                u.users_is_manager)
+    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager)
 
 
 # App routes
