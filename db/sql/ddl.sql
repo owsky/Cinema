@@ -16,6 +16,7 @@ CREATE TABLE public.users (
     users_name varchar NOT NULL,
     users_surname varchar NOT NULL,
     users_pwd varchar NOT NULL,
+    users_balance Numeric(12,2) NOT NULL,
     users_is_manager boolean NOT NULL
 );
 
