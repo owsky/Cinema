@@ -25,6 +25,16 @@ class Anonymous(AnonymousUserMixin):
         self.is_manager = False
 
 
+class Projection:
+    def __init__(self, proj_id, date, time, room, price, tickets_left):
+        self.id = proj_id
+        self.date = date
+        self.time = time
+        self.room = room
+        self.price = price
+        self.tickets_left = tickets_left
+
+
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -44,7 +54,7 @@ def load_user(user_id):
 # User side
 @app.route('/')
 def home():
-    return render_template("user/index.html", films=get_movies(None))
+    return render_template("user/index.html", films=get_last_movies())
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -52,7 +62,7 @@ def signup():
     if request.method == 'POST':
         if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
             flash("Missing information")
-        if user_by_email(request.form['email']) is not None:
+        if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
         else:
             conn = engine.connect()
@@ -98,13 +108,13 @@ def projections():
 
 @app.route('/movies')
 def movies():
-    return render_template("manager/movies.html", movies=get_movies(None))
+    return render_template("movies.html", movies=get_movies(None))
 
 
 @app.route('/<title>', methods=['GET', 'POST'])
 def movie_info(title):
     m = get_movies(title)
-    if m is None:
+    if not m:
         abort(404)
     proj = get_projections(title)
     if request.method == 'POST':
@@ -112,12 +122,7 @@ def movie_info(title):
             flash("Ticket reserved successfully")
         else:
             flash("Failed to reserve ticket")
-    for p in proj:
-        date = p.projections_date_time.strftime("%m/%d/%Y")
-        hour = p.projections_date_time.strftime("%H:%M:%S")[:5]
-        tickets_left = how_many_seats_left(p[0])
-        return render_template("user/movie_info.html", movie=m, proj=proj, date=date, hour=hour, tl=tickets_left)
-    return render_template("user/movie_info.html", movie=m, proj=None)
+    return render_template("user/movie_info.html", movie=m, projections=format_projections(proj), cast=get_actors(title))
 
 
 # Manager side
@@ -312,8 +317,9 @@ def user_by_email(user_email):
 def get_movies(mov):
     conn = engine.connect()
     if mov:
-        s = text("SELECT * FROM movies JOIN directors ON movies.movies_director = directors.directors_id WHERE "
-                 "movies_title = :e1")
+        s = text("""SELECT * FROM movies
+                    JOIN directors ON movies.movies_director = directors.directors_id
+                    WHERE movies_title = :e1""")
         rs = conn.execute(s, e1=mov)
         films = rs.fetchone()
     else:
@@ -324,18 +330,41 @@ def get_movies(mov):
     return films
 
 
+def get_actors(mov):
+    conn = engine.connect()
+    s = text("""SELECT actors_fullname FROM movies
+                JOIN directors ON movies.movies_director = directors.directors_id
+                JOIN public.cast ON movies_id = public.cast.cast_movie
+                JOIN actors ON cast_actor = actors_id
+                WHERE movies_title = :e1""")
+    rs = conn.execute(s, e1=mov)
+    act = rs.fetchall()
+    conn.close()
+    return act
+
+
+def get_last_movies():
+    conn = engine.connect()
+    s = text("SELECT * FROM movies JOIN directors ON movies_director = directors_id ORDER BY movies_id DESC LIMIT 5")
+    rs = conn.execute(s)
+    films = rs.fetchall()
+    conn.close()
+    return films
+
+
 def get_projections(mov):
     conn = engine.connect()
-    if mov is not None:
+    if mov:
         s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie = movies_id JOIN "
                  "public.cast ON movies_id = cast_movie JOIN public.actors ON cast_actor = actors_id JOIN "
                  "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id "
-                 "WHERE movies_title = :e1")
+                 "WHERE movies_title = :e1 AND projections_date_time >= current_date")
         rs = conn.execute(s, e1=mov)
     else:
         s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie = movies_id JOIN "
                  "public.cast ON movies_id = cast_movie JOIN public.actors ON cast_actor = actors_id JOIN "
-                 "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id")
+                 "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id "
+                 "WHERE projections_date_time >= current_date")
         rs = conn.execute(s)
     proj = rs.fetchall()
     conn.close()
@@ -369,6 +398,16 @@ def reserve_ticket(proj_id):
         s2 = text("INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
         conn.execute(s2, e1=current_user.id, e2=proj_id, e3=sold[0] + 1)
         return True
+
+
+def format_projections(proj):
+    proj_list = list()
+    for p in proj:
+        date = p.projections_date_time.strftime("%m/%d/%Y")
+        hour = p.projections_date_time.strftime("%H:%M:%S")[:5]
+        proj_list.append(
+            Projection(p.projections_id, date, hour, p.rooms_name, p.projections_price, how_many_seats_left(p[0])))
+    return proj_list
 
 
 if __name__ == '__main__':

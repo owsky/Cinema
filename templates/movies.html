@@ -10,10 +10,12 @@
             Duration: {{ m.movies_duration }} <br>
             Genre: {{ m.movies_genre }} <br>
             Synopsis: {{ m.movies_synopsis }}<br>
+            {% if current_user.is_manager %}
             <h4>
                 <a href="{{ url_for('update_movie', title=m.movies_title) }}">Edit</a><br>
                 <a href="{{ url_for('delete_movie', title=m.movies_title) }}">Delete</a><br>
             </h4>
+            {% endif %}
             <br>
         {% endfor %}
     </ul>
