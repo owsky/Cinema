@@ -7,6 +7,9 @@ SET row_security = off;
 
 CREATE SCHEMA IF NOT EXISTS public;
 
+CREATE TYPE public.genre AS ENUM ('Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Fantasy', 'Historical', 'Horror',
+                           'Romance', 'Sci-Fi', 'Thriller');
+
 CREATE TABLE public.users (
     users_id serial PRIMARY KEY,
     users_email varchar NOT NULL,
@@ -31,7 +34,7 @@ CREATE TABLE public.movies (
     movies_id serial PRIMARY KEY,
     movies_title varchar NOT NULL,
     movies_duration int NOT NULL,
-    movies_genre varchar NOT NULL,
+    movies_genre public.genre NOT NULL,
     movies_synopsis varchar NOT NULL,
     movies_director int REFERENCES public.directors(directors_id) NOT NULL
 );
