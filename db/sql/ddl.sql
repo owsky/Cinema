@@ -13,9 +13,10 @@ CREATE TABLE public.users (
     users_name varchar NOT NULL,
     users_surname varchar NOT NULL,
     users_pwd varchar NOT NULL,
-    users_balance Numeric(12,2) NOT NULL,
+    users_balance Numeric(12,2) DEFAULT 0,
     users_is_manager boolean NOT NULL
 );
+
 
 CREATE TABLE public.rooms (
     rooms_id serial PRIMARY KEY,
@@ -34,6 +35,7 @@ CREATE TABLE public.movies (
     movies_duration int NOT NULL,
     movies_genre varchar NOT NULL,
     movies_synopsis varchar NOT NULL,
+    movies_date date NOT NULL,
     movies_director int REFERENCES public.directors(directors_id) NOT NULL
 );
 

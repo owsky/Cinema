@@ -50,7 +50,8 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
+            'pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']) is not None:
             flash("There's already an account set up to use this email address")
@@ -189,13 +190,12 @@ def add_movie():
         abort(403)
     if request.method == 'POST':
         conn = engine.connect()
-        ins = movies.insert()
-        director = get_directors_by_name(request.form['director'])
-        # TODO
-        conn.execute(ins, [
+        ins1 = movies.insert()
+        dirct = get_directors_by_name(request.form['director'])
+        conn.execute(ins1, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
-             "movies_duration": request.form['duration'],
-             "movies_synopsis": request.form['synopsis'], "movies_director": director.directors_id}
+             "movies_date": request.form['date'], "movies_duration": request.form['duration'],
+             "movies_synopsis": request.form['synopsis'], "movies_director": dirct.directors_id}
         ])
         conn.close()
         return render_template("manager/movie_manager.html")
@@ -224,7 +224,8 @@ def add_projection():
             ins = projections.insert()
             conn.execute(ins, [
                 {"projections_movie": request.form['title'], "projections_date_time": request.form['date_time'],
-                 "projections_room": get_rooms_by_name(request.form['room']).rooms_id, "projections_price": request.form['price']}])
+                 "projections_room": get_rooms_by_name(request.form['room']).rooms_id,
+                 "projections_price": request.form['price']}])
             conn.close()
             return render_template("manager/update_projection.html", movies=get_projections(None))
     else:
@@ -259,9 +260,18 @@ def delete_projection(title):
 
 
 # Functions
+def get_actors_by_name(name):
+    conn = engine.conn()
+    s = text("SELECT * FROM actors WHERE actors_fullname = :n")
+    rs = conn.execute(s, n=name)
+    act = rs.fetchone
+    conn.close()
+    return act
+
+
 def get_rooms_by_name(name):
     conn = engine.connect()
-    s = text("SELECT rooms_id FROM rooms WHERE rooms_name = :n")
+    s = text("SELECT * FROM rooms WHERE rooms_name = :n")
     rs = conn.execute(s, n=name)
     rid = rs.fetchone()
     conn.close()
@@ -270,7 +280,7 @@ def get_rooms_by_name(name):
 
 def get_rooms_by_id(cod):
     conn = engine.connect()
-    s = text("SELECT rooms_id FROM rooms WHERE rooms_id = :c")
+    s = text("SELECT * FROM rooms WHERE rooms_id = :c")
     rs = conn.execute(s, c=cod)
     rid = rs.fetchone()
     conn.close()
