@@ -75,17 +75,17 @@ INSERT INTO public.directors(directors_name) VALUES
 
 
 -- MOVIES
-INSERT INTO public.movies(movies_title, movies_duration, movies_genre, movies_synopsis, movies_director) VALUES
-    ('Shutter Island', 139, 'Thriller', 'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.', 1 ),
-    ('Inception', 162, 'Action', 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 2),
-    ('2001: A Space Odyssey', 164, 'Sci-Fi', 'After discovering a mysterious artifact buried beneath the Lunar surface, mankind sets off on a quest to find its origins with help from intelligent supercomputer H.A.L. 9000.', 3),
-    ('Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb', 102, 'Comedy', 'An insane general triggers a path to nuclear holocaust that a War Room full of politicians and generals frantically tries to stop.', 3),
-    ('Parasite',132, 'Comedy','With an insightful and searing exploration of human behavior, ‘Parasite’ is a masterfully crafted film that is a definite must watch.', 5),
-    ('1917', 119, 'Drama', '‘1917’ is tense, captivating, meticulous, horrifying and stirring.', 6),
-    ('Tenet', 150, 'Action', 'The film’s screenplay keeps underlining and explaining its layered plot about technology that can reverse time.', 7),
-    ('The Outpost', 123, 'Action', '‘The Outpost’ is crafted with precision, expertise and experience. It’s a war drama that transports you to the battlefield in all its cinematic brilliance.', 8),
-    ('Onward', 156, 'Animation', 'The animation is top-notch and visually appealing. The characters are adequately cartoonish and also highly relatable and humane.', 9),
-    ('The Invisible Man', 125, 'Horror', 'One of the rare psychological horror-thrillers that should come with a trigger warning, ‘The Invisible Man’ subverts many genre tropes to keep you looking over your shoulder well after the credits roll.', 10);
+INSERT INTO public.movies(movies_title, movies_duration, movies_genre, movies_synopsis, movies_director, movies_date) VALUES
+    ('Shutter Island', 139, 'Thriller', 'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.', 1, '2010-02-19' ),
+    ('Inception', 162, 'Action', 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 2, '2010-07-16'),
+    ('2001: A Space Odyssey', 164, 'Sci-Fi', 'After discovering a mysterious artifact buried beneath the Lunar surface, mankind sets off on a quest to find its origins with help from intelligent supercomputer H.A.L. 9000.', 3, '1968-04-02'),
+    ('Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb', 102, 'Comedy', 'An insane general triggers a path to nuclear holocaust that a War Room full of politicians and generals frantically tries to stop.', 3, '1964-05-14'),
+    ('Parasite',132, 'Comedy', 'With an insightful and searing exploration of human behavior, ‘Parasite’ is a masterfully crafted film that is a definite must watch.', 5, '2019-11-07'),
+    ('1917', 119, 'Drama', '‘1917’ is tense, captivating, meticulous, horrifying and stirring.', 6, '2020-01-23'),
+    ('Tenet', 150, 'Action', 'The film’s screenplay keeps underlining and explaining its layered plot about technology that can reverse time.', 7, '2020-08-26'),
+    ('The Outpost', 123, 'Action', '‘The Outpost’ is crafted with precision, expertise and experience. It’s a war drama that transports you to the battlefield in all its cinematic brilliance.', 8, '2020-06-24'),
+    ('Onward', 156, 'Animation', 'The animation is top-notch and visually appealing. The characters are adequately cartoonish and also highly relatable and humane.', 9, '2020-03-05'),
+    ('The Invisible Man', 125, 'Horror', 'One of the rare psychological horror-thrillers that should come with a trigger warning, ‘The Invisible Man’ subverts many genre tropes to keep you looking over your shoulder well after the credits roll.', 10, '2019-03-05');
 
 
 

@@ -68,8 +68,7 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
-            'pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
@@ -213,7 +212,8 @@ def add_movie():
         # TODO
         conn.execute(ins, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
-             "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'], "movies_director": director.directors_id}])
+             "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'], "movies_director": director.directors_id,
+             "movies_date": request.form['date']}])
         conn.close()
         return render_template("manager/movie_manager.html")
     return render_template("manager/add_movie.html")
