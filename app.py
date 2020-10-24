@@ -212,7 +212,8 @@ def add_movie():
         # TODO
         conn.execute(ins, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
-             "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'], "movies_director": director.directors_id,
+             "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'],
+             "movies_director": director.directors_id,
              "movies_date": request.form['date']}])
         conn.close()
         return render_template("manager/movie_manager.html")
