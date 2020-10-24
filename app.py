@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
+from pyecharts.charts import Bar, Pie, Line
+from pyecharts import options as opts
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
 from sqlalchemy import select, text, insert
 from flask_wtf import FlaskForm
 from wtforms import SelectField
+from jinja2 import Markup
 import secrets
 from schema import engine, actors, cast, directors, movies, rooms, seats, tickets, users, projections
 
@@ -68,7 +71,8 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
+            'pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
@@ -195,10 +199,6 @@ def update_projection(title):
     return render_template('manager/update_movie.html', movie=m, room=r)
 
 
-class Form(FlaskForm):
-    director = SelectField('director', choices=[])
-
-
 # Add
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
@@ -213,8 +213,7 @@ def add_movie():
         conn.execute(ins, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
              "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'],
-             "movies_director": director.directors_id,
-             "movies_date": request.form['date']}])
+             "movies_date": request.form['day'], "movies_director": director.directors_id}])
         conn.close()
         return render_template("manager/movie_manager.html")
     print(get_genres())
@@ -249,6 +248,62 @@ def add_projection():
             return render_template("manager/update_projection.html", movies=get_projections(None))
     else:
         return render_template("manager/add_projection.html")
+
+
+@app.route('/show_echarts')
+def show_echarts():
+    bar = get_bar()
+    pie = get_pie()
+    line = get_line()
+    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(), line_options=line.dump_options())
+
+
+def get_line() -> Line:
+    conn = engine.connect()
+    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
+             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
+             "projections_movie = movies_id GROUP BY movies_genre")
+    datas = conn.execute(s).fetchall()
+    conn.close()
+    c = (
+        Line()
+            .add_xaxis([data['genre'] for data in datas])
+            .add_yaxis("Quantity", [data['sum'] for data in datas])
+            .set_global_opts(title_opts=opts.TitleOpts(title="Genre"))
+    )
+    return c
+
+
+def get_bar() -> Bar:
+    conn = engine.connect()
+    s = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
+             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
+             "projections_movie = movies_id GROUP BY movies_id, movies_title")
+    datas = conn.execute(s).fetchall()
+    conn.close()
+    c = (
+        Bar()
+            .add_xaxis([data['id'] for data in datas])
+            .add_yaxis("Quantity", [data['sum'] for data in datas])
+            .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+        )
+    return c
+
+
+def get_pie() -> Pie:
+    conn = engine.connect()
+    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
+             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
+             "projections_movie = movies_id GROUP BY movies_genre")
+    datas = conn.execute(s).fetchall()
+    conn.close()
+    c = (
+        Pie()
+            .add("", [(data['genre'], data['sum']) for data in datas])
+            .set_global_opts(title_opts=opts.TitleOpts(title="Genres"))
+            .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+        )
+    return c
 
 
 # Delete

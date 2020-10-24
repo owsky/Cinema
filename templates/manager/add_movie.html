@@ -2,16 +2,16 @@
 {% block body %}
     Compile the following data to add a movie!
         <form action="{{ url_for("add_movie") }}" method="POST">
-            <input name="title" type="text" placeholder="TITLE"><br>
-            <select name="genre">
-                {% for g in gen %}
-                    <option value="{{ g.genre }}">{{ g.genre }}</option>
-                {% endfor %}
-            </select><br>
-            <input name="date" type="date" placeholder="DATE"><br>
-            <input name="duration" type="number" placeholder="DURATION"><br>
-            <input name="synopsis" type="text" placeholder="SYNOPSIS"><br>
-            <input name="director" type="text" placeholder="DIRECTOR"><br>
+        <input name="title" type="text" placeholder="TITLE"><br>
+        <select name="genre">
+            {% for g in gen %}
+                <option value="{{ g.genre }}">{{ g.genre }}</option>
+            {% endfor %}
+        </select><br>
+        <input name="duration" type="int" placeholder="DURATION"><br>
+        <input name="synopsis" type="text" placeholder="SYNOPSIS"><br>
+        <input name="director" type="text" placeholder="DIRECTOR"><br>
+        <input name="day" type="date" placeholder="DAY" value="yyyy-mm-dd"><br>
             <input type="submit">
         </form>
 

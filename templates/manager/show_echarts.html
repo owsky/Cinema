@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block body %}
+
+    <script src="/static/echarts.min.js"></script>
+<body>
+    <h1>Most popular movies</h1>
+    <div id="bar" style="width: 600px; height:400px"></div>
+    <h1>Most popular genres</h1>
+    <div id="pie" style="width: 600px; height:400px"></div>
+    <h1>Line</h1>
+    <div id="line" style="width: 600px; height:400px"></div>
+    <script type="text/javascript">
+
+        var barChart = echarts.init(document.getElementById('bar'));
+        var pieChart = echarts.init(document.getElementById('pie'));
+        var lineChart = echarts.init(document.getElementById('line'));
+
+        barChart.setOption({{ bar_options | safe }})
+        pieChart.setOption({{ pie_options | safe }})
+        lineChart.setOption({{ line_options | safe }})
+    </script>
+
+</body>
+{% endblock %}
