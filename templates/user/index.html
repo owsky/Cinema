@@ -1,13 +1,6 @@
 {% extends "base.html" %}
 {% block body %}
     <div class="leftPanel">
-    {% if current_user.is_manager %}
-        Hello Manager {{ current_user.name }}!<br><br>
-    {% else %}
-        {% if current_user.name %}
-            Hello {{ current_user.name }}!<br><br>
-        {% endif %}
-    {% endif %}
         Here's the latest movies:<br><br>
         <ul>
             {% for f in films %}
