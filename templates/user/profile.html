@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block body %}
+    {{ current_user.name }} <br>
+    {{ current_user.surname }} <br>
+    {{ current_user.email }} <br><br>
+    Orders: <br>
+    <ul>
+        {% for i in info %}
+            Movie: {{ i.movies_title }}<br>
+            Date: {{ i.projections_date_time }}<br>
+            Room: {{ i.rooms_name }}<br>
+            Seat: {{ i.seats_name }}<br>
+            <br>
+        {% endfor %}
+    </ul>
+{% endblock %}

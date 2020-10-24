@@ -71,8 +71,7 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
-            'pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
@@ -111,6 +110,12 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template("user/profile.html", info=get_orders(current_user.id))
 
 
 @app.route('/projections')
@@ -218,9 +223,15 @@ def add_movie():
                  "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
         conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
         conn.close()
+<<<<<<< HEAD
         flash("Movie added successfully!")
         return render_template("movies.html")
     return render_template("manager/add_movie.html")
+=======
+        return render_template("manager/movie_manager.html")
+    print(get_genres())
+    return render_template("manager/add_movie.html", gen=get_genres())
+>>>>>>> 4e337e14117b9d38e876c7df72b2e26c5d793a46
 
 
 @app.route('/add_director', methods=['GET', 'POST'])
@@ -276,7 +287,8 @@ def show_echarts():
     bar = get_bar()
     pie = get_pie()
     line = get_line()
-    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(), line_options=line.dump_options())
+    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
+                           line_options=line.dump_options())
 
 
 def get_line() -> Line:
@@ -307,7 +319,7 @@ def get_bar() -> Bar:
             .add_xaxis([data['id'] for data in datas])
             .add_yaxis("Quantity", [data['sum'] for data in datas])
             .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
-        )
+    )
     return c
 
 
@@ -323,7 +335,7 @@ def get_pie() -> Pie:
             .add("", [(data['genre'], data['sum']) for data in datas])
             .set_global_opts(title_opts=opts.TitleOpts(title="Genres"))
             .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
-        )
+    )
     return c
 
 
@@ -516,6 +528,27 @@ def format_projections(proj):
         proj_list.append(
             Projection(p.projections_id, date, hour, p.rooms_name, p.projections_price, how_many_seats_left(p[0])))
     return proj_list
+
+
+def get_genres():
+    conn = engine.connect()
+    s = text("SELECT unnest(enum_range(NULL::public.genre)) AS genre")
+    rs = conn.execute(s)
+    gen = rs.fetchall()
+    return gen
+
+
+def get_orders(uid):
+    conn = engine.connect()
+    s = text("""SELECT movies_title, projections_date_time, rooms_name, seats_name FROM tickets
+                JOIN seats ON seats_id=tickets_seat
+                JOIN rooms ON rooms_id=seats_room
+                JOIN projections ON tickets_projection=projections_id
+                JOIN movies ON movies_id=projections_movie
+                WHERE tickets_user=:e1""")
+    rs = conn.execute(s, e1=uid)
+    orders = rs.fetchall()
+    return orders
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Boolean, DateTime, Float
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Boolean, DateTime, Float, Enum
 
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 metadata = MetaData(engine)
@@ -20,7 +20,7 @@ movies = Table('movies', metadata,
                Column('movies_id', Integer, primary_key=True),
                Column('movies_title', String),
                Column('movies_duration', Integer),
-               Column('movies_genre', String),
+               Column('movies_genre', Enum),
                Column('movies_synopsis', String),
                Column('movies_director', Integer)
                )
