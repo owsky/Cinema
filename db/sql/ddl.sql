@@ -38,7 +38,6 @@ CREATE TABLE public.movies (
     movies_duration int NOT NULL,
     movies_genre public.genre NOT NULL,
     movies_synopsis varchar NOT NULL,
-    movies_date date NOT NULL,
     movies_director int REFERENCES public.directors(directors_id) NOT NULL
 );
 

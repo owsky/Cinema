@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, abort, fla
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
 from sqlalchemy import select, text
+from flask_wtf import FlaskForm
+from wtforms import SelectField
 import secrets
 from schema import engine, actors, cast, directors, movies, rooms, seats, tickets, users, projections
 
@@ -33,6 +35,12 @@ class Projection:
         self.room = room
         self.price = price
         self.tickets_left = tickets_left
+
+
+class Director:
+    def __init__(self, direct_id, name):
+        self.id = direct_id
+        self.name = name
 
 
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
@@ -123,7 +131,8 @@ def movie_info(title):
             flash("Ticket reserved successfully")
         else:
             flash("Failed to reserve ticket")
-    return render_template("user/movie_info.html", movie=m, projections=format_projections(proj), cast=get_actors(title))
+    return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
+                           cast=get_actors(title))
 
 
 # Manager side
@@ -187,6 +196,10 @@ def update_projection(title):
     return render_template('manager/update_movie.html', movie=m, room=r)
 
 
+class Form(FlaskForm):
+    director = SelectField('director', choices=[])
+
+
 # Add
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
@@ -195,13 +208,12 @@ def add_movie():
         abort(403)
     if request.method == 'POST':
         conn = engine.connect()
-        ins1 = movies.insert()
-        dirct = get_directors_by_name(request.form['director'])
-        conn.execute(ins1, [
+        ins = movies.insert()
+        director = get_directors_by_name(request.form['director'])
+        # TODO
+        conn.execute(ins, [
             {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
-             "movies_date": request.form['date'], "movies_duration": request.form['duration'],
-             "movies_synopsis": request.form['synopsis'], "movies_director": dirct.directors_id}
-        ])
+             "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'], "movies_director": director.directors_id}])
         conn.close()
         return render_template("manager/movie_manager.html")
     return render_template("manager/add_movie.html")
