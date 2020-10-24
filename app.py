@@ -71,7 +71,8 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
+            'pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
@@ -205,7 +206,7 @@ def update_projection(title):
     return render_template('manager/update_movie.html', movie=m, room=r)
 
 
-# Add
+# (Manager) aggiungere un film
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
 def add_movie():
@@ -219,21 +220,22 @@ def add_movie():
         synopsis = request.form['synopsis']
         date = request.form['day']
         director = get_directors_by_name(request.form['director'])
+        actors = request.form['actors']
+        list = actors.split(',' | ', ')
+        addact = text("INSERT INTO actors (actors_fullname) VALUES (:n)")
+        for l in list:
+            conn.execute(addact,n=l)
         s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
                  "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
         conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
         conn.close()
-<<<<<<< HEAD
         flash("Movie added successfully!")
         return render_template("movies.html")
-    return render_template("manager/add_movie.html")
-=======
-        return render_template("manager/movie_manager.html")
     print(get_genres())
     return render_template("manager/add_movie.html", gen=get_genres())
->>>>>>> 4e337e14117b9d38e876c7df72b2e26c5d793a46
 
 
+# (Manager) aggiungere un regista nel caso non è tra le scelte possibili (non è già presente nel DB)
 @app.route('/add_director', methods=['GET', 'POST'])
 @login_required
 def add_director():
@@ -241,7 +243,7 @@ def add_director():
         abort(403)
     if request.method == 'POST':
         if get_directors_by_name(request.form['name']) is not None:
-            flash ("Director has already been added")
+            flash("Director has already been added")
         else:
             conn = engine.connect()
             name = request.form['name']
@@ -252,14 +254,8 @@ def add_director():
     return render_template("manager/add_director.html")
 
 
-@app.route('/session_manager')
-@login_required
-def session_manager():
-    if not current_user.is_manager:
-        abort(403)
-    return render_template("manager/update_projection.html", movies=get_projections(None))
-
-
+# (Manager) aggiungere una proiezione controllando con un trigger che non sia stata il range di tempo non sia stato
+# occupato da altre proiezioni.
 @app.route('/add_projection', methods=['GET', 'POST'])
 @login_required
 def add_projection():
@@ -282,15 +278,19 @@ def add_projection():
         return render_template("manager/add_projection.html")
 
 
+# statistiche
 @app.route('/show_echarts')
+@login_required
 def show_echarts():
+    if not current_user.is_manager:
+        abort(403)
     bar = get_bar()
     pie = get_pie()
     line = get_line()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
                            line_options=line.dump_options())
 
-
+# grafico a linee: può non essere inserita
 def get_line() -> Line:
     conn = engine.connect()
     s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
@@ -306,7 +306,7 @@ def get_line() -> Line:
     )
     return c
 
-
+# grafico a barre: seleziona i film in base ai biglietti venduti
 def get_bar() -> Bar:
     conn = engine.connect()
     s = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
@@ -322,7 +322,7 @@ def get_bar() -> Bar:
     )
     return c
 
-
+# grafico a cerchio: seleziona i generi più preferiti dalle persone
 def get_pie() -> Pie:
     conn = engine.connect()
     s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
