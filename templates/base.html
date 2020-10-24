@@ -36,7 +36,11 @@
             <a href="{{ url_for('projections') }}" class="navbar-item">
                 Projections
             </a>
-
+            {% if current_user.is_manager %}
+            <a href="{{ url_for('statistic') }}" class="navbar-item">
+                Statistic
+            </a>
+            {% endif %}
 
             <!--
             Menu dropdown
