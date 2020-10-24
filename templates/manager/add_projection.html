@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block body %}
-    Compile the following data to add a projection!
+    Compile the following data to add a projection!<br><br>
     <ul>
         <form action="/add_projection" method="POST">
-        <input name="title" type="text" placeholder="TITLE"><br>
-        <input name="date_time" type="datetime" placeholder="DATATIME"><br>
-        <input name="room" type="text" placeholder="ROOM"><br>
-        <input name="price" type="number" step="0.01" placeholder="PRICE"><br>
+            Title:<br>
+        <input name="title" type="text" placeholder="TITLE"><br><br>
+            Data and Time:<br>
+        <input name="date_time" type="datetime" placeholder="DATATIME"><br><br>
+            Room:<br>
+        <input name="room" type="text" placeholder="ROOM"><br><br>
+            Price:<br>
+        <input name="price" type="number" step="0.01" placeholder="PRICE"><br><br>
             <input type="submit">
 
     </form>

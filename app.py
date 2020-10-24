@@ -195,7 +195,8 @@ def update_projection(title):
                  "projections_movie =:cod")
         conn.execute(s, t=time, r=room.rooms_id, p=price, cod=m.movies_id)
         conn.close()
-        return render_template('manager/movie_manager.html')
+        director = get_directors_by_name(request.form['director'])
+        return render_template('movies.html')
     return render_template('manager/update_movie.html', movie=m, room=r)
 
 
@@ -207,16 +208,37 @@ def add_movie():
         abort(403)
     if request.method == 'POST':
         conn = engine.connect()
-        ins = movies.insert()
+        title = request.form['title']
+        genre = request.form['genre']
+        duration = request.form['duration']
+        synopsis = request.form['synopsis']
+        date = request.form['day']
         director = get_directors_by_name(request.form['director'])
-        # TODO
-        conn.execute(ins, [
-            {"movies_title": request.form['title'], "movies_genre": request.form['genre'],
-             "movies_duration": request.form['duration'], "movies_synopsis": request.form['synopsis'],
-             "movies_date": request.form['day'], "movies_director": director.directors_id}])
+        s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
+                 "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
+        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
         conn.close()
-        return render_template("manager/movie_manager.html")
+        flash("Movie added successfully!")
+        return render_template("movies.html")
     return render_template("manager/add_movie.html")
+
+
+@app.route('/add_director', methods=['GET', 'POST'])
+@login_required
+def add_director():
+    if not current_user.is_manager:
+        abort(403)
+    if request.method == 'POST':
+        if get_directors_by_name(request.form['name']) is not None:
+            flash ("Director has already been added")
+        else:
+            conn = engine.connect()
+            name = request.form['name']
+            s = text("INSERT INTO directors (directors_name) VALUES (:n)")
+            conn.execute(s, n=name)
+            conn.close()
+            return redirect(url_for('add_movie'))
+    return render_template("manager/add_director.html")
 
 
 @app.route('/session_manager')

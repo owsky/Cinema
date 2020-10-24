@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block body %}
-    Todo Webpage
     <ul>
         {% if current_user.is_manager %}
         To add movies click <a href="{{ url_for('add_movie') }}">here</a><br><br>
