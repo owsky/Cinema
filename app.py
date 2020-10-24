@@ -217,7 +217,8 @@ def add_movie():
              "movies_date": request.form['date']}])
         conn.close()
         return render_template("manager/movie_manager.html")
-    return render_template("manager/add_movie.html")
+    print(get_genres())
+    return render_template("manager/add_movie.html", gen=get_genres())
 
 
 @app.route('/session_manager')
@@ -439,6 +440,14 @@ def format_projections(proj):
         proj_list.append(
             Projection(p.projections_id, date, hour, p.rooms_name, p.projections_price, how_many_seats_left(p[0])))
     return proj_list
+
+
+def get_genres():
+    conn = engine.connect()
+    s = text("SELECT unnest(enum_range(NULL::public.genre)) AS genre")
+    rs = conn.execute(s)
+    gen = rs.fetchall()
+    return gen
 
 
 if __name__ == '__main__':
