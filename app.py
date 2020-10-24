@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
-from sqlalchemy import select, text
+from sqlalchemy import select, text, insert
 from flask_wtf import FlaskForm
 from wtforms import SelectField
 import secrets
@@ -115,7 +115,7 @@ def projections():
 
 
 @app.route('/movies')
-def movies():
+def movies_route():
     return render_template("movies.html", movies=get_movies(None))
 
 
@@ -260,7 +260,7 @@ def delete_movie(title):
     s = text("DELETE FROM public.movies WHERE movies_title = :mt")
     conn.execute(s, mt=title)
     conn.close()
-    return redirect(url_for('movies'))
+    return redirect(url_for('movies_route'))
 
 
 @app.route('/delete_projection/<title>')
