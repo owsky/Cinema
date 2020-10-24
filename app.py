@@ -71,8 +71,7 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
-            'pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form['pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
@@ -111,6 +110,12 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template("user/profile.html", info=get_orders(current_user.id))
 
 
 @app.route('/projections')
@@ -255,7 +260,8 @@ def show_echarts():
     bar = get_bar()
     pie = get_pie()
     line = get_line()
-    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(), line_options=line.dump_options())
+    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
+                           line_options=line.dump_options())
 
 
 def get_line() -> Line:
@@ -286,7 +292,7 @@ def get_bar() -> Bar:
             .add_xaxis([data['id'] for data in datas])
             .add_yaxis("Quantity", [data['sum'] for data in datas])
             .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
-        )
+    )
     return c
 
 
@@ -302,7 +308,7 @@ def get_pie() -> Pie:
             .add("", [(data['genre'], data['sum']) for data in datas])
             .set_global_opts(title_opts=opts.TitleOpts(title="Genres"))
             .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
-        )
+    )
     return c
 
 
@@ -503,6 +509,19 @@ def get_genres():
     rs = conn.execute(s)
     gen = rs.fetchall()
     return gen
+
+
+def get_orders(uid):
+    conn = engine.connect()
+    s = text("""SELECT movies_title, projections_date_time, rooms_name, seats_name FROM tickets
+                JOIN seats ON seats_id=tickets_seat
+                JOIN rooms ON rooms_id=seats_room
+                JOIN projections ON tickets_projection=projections_id
+                JOIN movies ON movies_id=projections_movie
+                WHERE tickets_user=:e1""")
+    rs = conn.execute(s, e1=uid)
+    orders = rs.fetchall()
+    return orders
 
 
 if __name__ == '__main__':
