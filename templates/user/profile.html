@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 {% block body %}
-    {{ current_user.name }} <br>
-    {{ current_user.surname }} <br>
-    {{ current_user.email }} <br><br>
+    Name: {{ current_user.name }} <br>
+    Surname: {{ current_user.surname }} <br>
+    Email: {{ current_user.email }} <br>
+    Balance: {{ current_user.balance }}<br><br>
     Orders: <br>
     <ul>
         {% for i in info %}
