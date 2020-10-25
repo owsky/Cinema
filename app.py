@@ -3,25 +3,23 @@ from pyecharts.charts import Bar, Pie, Line
 from pyecharts import options as opts
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
-from sqlalchemy import select, text, insert
-from flask_wtf import FlaskForm
-from wtforms import SelectField
-from jinja2 import Markup
+from sqlalchemy import select, text
 import secrets
-from schema import engine, actors, cast, directors, movies, rooms, seats, tickets, users, projections
+from schema import engine, users, projections
 
 app = Flask(__name__)
 
 
 # Login Manager
 class User(UserMixin):
-    def __init__(self, user_id, email, name, surname, pwd, is_manager):
+    def __init__(self, user_id, email, name, surname, pwd, is_manager, balance):
         self.id = user_id
         self.email = email
         self.name = name
         self.surname = surname
         self.pwd = pwd
         self.is_manager = is_manager
+        self.balance = balance
 
 
 class Anonymous(AnonymousUserMixin):
@@ -52,7 +50,8 @@ def load_user(user_id):
     rs = conn.execute(select([users]).where(users.c.users_id == user_id))
     u = rs.fetchone()
     conn.close()
-    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager)
+    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager,
+                u.users_balance)
 
 
 # App routes
@@ -65,8 +64,8 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] or not request.form[
-            'pwd']:
+        if not request.form['name'] or not request.form['surname'] or not request.form['email'] \
+                or not request.form['pwd']:
             flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
@@ -123,19 +122,28 @@ def movies_route():
     return render_template("movies.html", movies=get_movies(None))
 
 
-@app.route('/<title>', methods=['GET', 'POST'])
+@app.route('/<title>')
 def movie_info(title):
     m = get_movies(title)
     if not m:
         abort(404)
     proj = get_projections(title)
-    if request.method == 'POST':
-        if reserve_ticket(request.form.get('proj')):
-            flash("Ticket reserved successfully")
-        else:
-            flash("Failed to reserve ticket")
     return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
                            cast=get_actors(title))
+
+
+@app.route('/<title>/<projection>', methods=['GET', 'POST'])
+@login_required
+def purchase_ticket(title, projection):
+    m = get_movies(title)
+    if not m:
+        abort(404)
+    if request.method == 'POST':
+        if purchase(projection, request.form.getlist('seat')):
+            flash("Successfully purchased seats: " + ', '.join(request.form.getlist('seat')))
+        else:
+            flash("Error")
+    return render_template("user/purchase.html", seats=free_seats(projection), mov=m.movies_title, proj=projection)
 
 
 # Manager side
@@ -194,7 +202,7 @@ def update_projection(title):
                  "projections_movie =:cod")
         conn.execute(s, t=time, r=room.rooms_id, p=price, cod=m.movies_id)
         conn.close()
-        director = get_directors_by_name(request.form['director'])
+        # director = get_directors_by_name(request.form['director'])
         return render_template('movies.html')
     return render_template('manager/update_projections.html', movie=m, room=r)
 
@@ -208,6 +216,7 @@ def add_movie():
     if request.method == 'POST':
         conn = engine.connect()
         title = request.form['title']
+<<<<<<< HEAD
         # controllo che non ci sia già il film
         if get_movies(title) is not None:
             flash("This movie has already been added")
@@ -251,6 +260,26 @@ def add_projection():
             return render_template("manager/update_projection.html", movies=get_projections(None))
     else:
         return render_template("manager/add_projection.html", mov=get_movies(None), room=get_rooms_by_id(None))
+=======
+        genre = request.form['genre']
+        duration = request.form['duration']
+        synopsis = request.form['synopsis']
+        date = request.form['day']
+        director = get_directors_by_name(request.form['director'])
+        act = request.form['actors']
+        act_list = act.split(',' or ', ')
+        addact = text("INSERT INTO actors (actors_fullname) VALUES (:n)")
+        for li in act_list:
+            conn.execute(addact, n=li)
+        s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
+                 "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
+        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
+        conn.close()
+        flash("Movie added successfully!")
+        return render_template("movies.html")
+    print(get_genres())
+    return render_template("manager/add_movie.html", gen=get_genres())
+>>>>>>> fd28f962039e3a9f8374fcde82720e9ceb16e30b
 
 
 # (Manager) aggiungere un regista nel caso non è tra le scelte possibili (non è già presente nel DB)
@@ -310,6 +339,7 @@ def show_echarts():
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
 
 
+
 # grafico a linee: può non essere inserita
 def get_line() -> Line:
     conn = engine.connect()
@@ -319,10 +349,7 @@ def get_line() -> Line:
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
-        Line()
-            .add_xaxis([data['genre'] for data in datas])
-            .add_yaxis("Quantity", [data['sum'] for data in datas])
-            .set_global_opts(title_opts=opts.TitleOpts(title="Genre"))
+        Line().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity", [data['sum'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Genre"))
     )
     return c
 
@@ -336,10 +363,7 @@ def get_bar() -> Bar:
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
-        Bar()
-            .add_xaxis([data['id'] for data in datas])
-            .add_yaxis("Quantity", [data['sum'] for data in datas])
-            .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sum'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
     )
     return c
 
@@ -353,10 +377,7 @@ def get_pie() -> Pie:
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
-        Pie()
-            .add("", [(data['genre'], data['sum']) for data in datas])
-            .set_global_opts(title_opts=opts.TitleOpts(title="Genres"))
-            .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+        Pie().add("", [(data['genre'], data['sum']) for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
     )
     return c
 
@@ -470,7 +491,8 @@ def user_by_email(user_email):
     u = rs.fetchone()
     conn.close()
     if u:
-        return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager)
+        return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager,
+                    u.users_balance)
     else:
         return None
 
@@ -534,31 +556,54 @@ def get_projections(mov):
 
 def how_many_seats_left(proj_id):
     conn = engine.connect()
-    s1 = text("""SELECT COUNT(seats_id) FROM public.projections, public.movies, public.rooms, public.seats
-                 WHERE projections_movie = movies_id AND projections_room = rooms_id AND seats_room = rooms_id
-                 AND projections_id = :e1""")
-    rs1 = conn.execute(s1, e1=proj_id)
-    total = rs1.fetchone()
-    s2 = text("""SELECT COUNT(tickets_id) FROM public.projections, public.tickets
-                 WHERE tickets_projection = projections_id AND projections_id = :e1""")
-    rs2 = conn.execute(s2, e1=proj_id)
-    sold = rs2.fetchone()
-    return total[0] - sold[0]
+    s = text("""SELECT COUNT(seats_id) as s
+                     FROM seats
+                     WHERE seats_id NOT IN (
+                        SELECT seats_id
+                        FROM public.projections
+                        JOIN public.tickets ON tickets_projection = projections_id
+                        JOIN public.seats ON tickets_seat = seats_id
+                        WHERE projections_id = :e1)""")
+    rs = conn.execute(s, e1=proj_id)
+    f = rs.fetchone()
+    return f.s
 
 
-def reserve_ticket(proj_id):
+def free_seats(proj_id):
     conn = engine.connect()
-    if how_many_seats_left(proj_id) == 0:
-        return False
-    else:
-        s1 = text("""SELECT COUNT(tickets_id) FROM public.projections, public.tickets
-                         WHERE tickets_projection = projections_id AND projections_id = :e1""")
-        rs1 = conn.execute(s1, e1=proj_id)
-        sold = rs1.fetchone()
+    s = text("""SELECT *
+                 FROM seats
+                 WHERE seats_id NOT IN (
+                    SELECT seats_id
+                    FROM public.projections
+                    JOIN public.tickets ON tickets_projection = projections_id
+                    JOIN public.seats ON tickets_seat = seats_id
+                    WHERE projections_id = :e1)""")
+    rs = conn.execute(s, e1=proj_id)
+    f = rs.fetchall()
+    return f
 
-        s2 = text("INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
-        conn.execute(s2, e1=current_user.id, e2=proj_id, e3=sold[0] + 1)
-        return True
+
+def purchase(proj_id, selected_seats):
+    with engine.begin() as connection:
+        s1 = text("SELECT users_balance FROM public.users WHERE users_id = :e1")
+        rs1 = connection.execute(s1, e1=current_user.id)
+        balance = rs1.fetchone()
+
+        s2 = text("SELECT projections_price FROM public.projections WHERE projections_id = :e2")
+        rs2 = connection.execute(s2, e2=proj_id)
+        tprice = rs2.fetchone()
+        total = balance.users_balance - (tprice.projections_price * len(selected_seats))
+        if total < 0:
+            return False
+
+        for x in selected_seats:
+            s = text(
+                "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
+            connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
+        s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
+        connection.execute(s, e1=total, e2=current_user.id)
+    return True
 
 
 def format_projections(proj):
