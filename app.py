@@ -40,12 +40,6 @@ class Projection:
         self.tickets_left = tickets_left
 
 
-class Director:
-    def __init__(self, direct_id, name):
-        self.id = direct_id
-        self.name = name
-
-
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -173,16 +167,15 @@ def update_movie(title):
     if request.method == 'POST':
         conn = engine.connect()
         director = get_directors_by_name(request.form['director'])
-        new_title = request.form['title']
         genre = request.form['genre']
         duration = request.form['duration']
         synopsis = request.form['synopsis']
-        s = text("UPDATE movies SET movies_title= :t, movies_genre=:g, movies_duration=:d, movies_synopsis=:s, "
+        s = text("UPDATE movies SET movies_genre=:g, movies_duration=:d, movies_synopsis=:s, "
                  "movies_director=:dr WHERE movies_id =:cod")
-        conn.execute(s, t=new_title, g=genre, d=duration, s=synopsis, dr=director.directors_id, cod=m.movies_id)
+        conn.execute(s, g=genre, d=duration, s=synopsis, dr=director.directors_id, cod=m.movies_id)
         conn.close()
         return render_template('manager/movie_manager.html')
-    return render_template('manager/update_movie.html', movie_to_update=m, direct=d)
+    return render_template('manager/update_movie.html', movie_to_update=m, direct=d, gen=get_genres(), dir=get_directors_by_name(None),c=get_actors(title))
 
 
 @app.route('/update_movie/<title>', methods=['GET', 'POST'])
@@ -203,7 +196,7 @@ def update_projection(title):
         conn.close()
         director = get_directors_by_name(request.form['director'])
         return render_template('movies.html')
-    return render_template('manager/update_movie.html', movie=m, room=r)
+    return render_template('manager/update_projections.html', movie=m, room=r)
 
 
 # (Manager) aggiungere un film
@@ -215,43 +208,25 @@ def add_movie():
     if request.method == 'POST':
         conn = engine.connect()
         title = request.form['title']
-        genre = request.form['genre']
-        duration = request.form['duration']
-        synopsis = request.form['synopsis']
-        date = request.form['day']
-        director = get_directors_by_name(request.form['director'])
-        actors = request.form['actors']
-        list = actors.split(',' | ', ')
-        addact = text("INSERT INTO actors (actors_fullname) VALUES (:n)")
-        for l in list:
-            conn.execute(addact,n=l)
-        s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
-                 "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
-        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
-        conn.close()
-        flash("Movie added successfully!")
-        return render_template("movies.html")
-    print(get_genres())
-    return render_template("manager/add_movie.html", gen=get_genres())
-
-
-# (Manager) aggiungere un regista nel caso non è tra le scelte possibili (non è già presente nel DB)
-@app.route('/add_director', methods=['GET', 'POST'])
-@login_required
-def add_director():
-    if not current_user.is_manager:
-        abort(403)
-    if request.method == 'POST':
-        if get_directors_by_name(request.form['name']) is not None:
-            flash("Director has already been added")
-        else:
-            conn = engine.connect()
-            name = request.form['name']
-            s = text("INSERT INTO directors (directors_name) VALUES (:n)")
-            conn.execute(s, n=name)
-            conn.close()
+        # controllo che non ci sia già il film
+        if get_movies(title) is not None:
+            flash("This movie has already been added")
             return redirect(url_for('add_movie'))
-    return render_template("manager/add_director.html")
+        else:
+            genre = request.form['genre']
+            duration = request.form['duration']
+            synopsis = request.form['synopsis']
+            date = request.form['day']
+            director = get_directors_by_name(request.form['director'])
+
+            # inserisco il film nel DB
+            s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
+                     "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
+            conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
+            conn.close()
+            flash("Movie added successfully!")
+            return redirect(url_for('movies_route'))
+    return render_template("manager/add_movie.html", gen=get_genres(), dir=get_directors_by_name(None))
 
 
 # (Manager) aggiungere una proiezione controllando con un trigger che non sia stata il range di tempo non sia stato
@@ -275,7 +250,53 @@ def add_projection():
             conn.close()
             return render_template("manager/update_projection.html", movies=get_projections(None))
     else:
-        return render_template("manager/add_projection.html")
+        return render_template("manager/add_projection.html", mov=get_movies(None), room=get_rooms_by_id(None))
+
+
+# (Manager) aggiungere un regista nel caso non è tra le scelte possibili (non è già presente nel DB)
+@app.route('/add_director', methods=['GET', 'POST'])
+@login_required
+def add_director():
+    if not current_user.is_manager:
+        abort(403)
+    if request.method == 'POST':
+        if get_directors_by_name(request.form['name']) is not None:
+            flash("Director has already been added")
+        else:
+            conn = engine.connect()
+            name = request.form['name']
+            s = text("INSERT INTO directors (directors_name) VALUES (:n)")
+            conn.execute(s, n=name)
+            conn.close()
+            return redirect(url_for('add_movie'))
+    return render_template("manager/add_director.html")
+
+
+# (Manager) connettere attori a un film (uno alla volta)
+@app.route('/<title>/add_actor', methods=['GET', 'POST'])
+@login_required
+def add_actor(title):
+    if not current_user.is_manager:
+        abort(403)
+    m = get_movies(title)
+    if request.method == 'POST':
+        conn = engine.connect()
+        actor = request.form['actor']
+        # aggiungo l'attore se non c'era già nel DB
+        if get_actors_by_name(actor) is None:
+            addact = text("INSERT INTO actors(actors_fullname) VALUES (:a)")
+            conn.execute(addact, a=actor)
+        a = get_actors_by_name(actor)
+        # connetto gli attori al film corrispondente inserendoli nel cast
+        if check_cast(m.movies_id, a.actors_id) is None:
+            addcast = text("INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)")
+            conn.execute(addcast, m=m.movies_id, a=get_actors_by_name(actor).actors_id)
+            flash("Actor added successfully!")
+        else:
+            flash("Actor has already been added!")
+        conn.close()
+        return redirect(url_for('movies_route'))
+    return render_template('manager/add_actor.html', movie_to_update=m)
 
 
 # statistiche
@@ -286,9 +307,8 @@ def show_echarts():
         abort(403)
     bar = get_bar()
     pie = get_pie()
-    line = get_line()
-    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
-                           line_options=line.dump_options())
+    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
+
 
 # grafico a linee: può non essere inserita
 def get_line() -> Line:
@@ -306,6 +326,7 @@ def get_line() -> Line:
     )
     return c
 
+
 # grafico a barre: seleziona i film in base ai biglietti venduti
 def get_bar() -> Bar:
     conn = engine.connect()
@@ -321,6 +342,7 @@ def get_bar() -> Bar:
             .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
     )
     return c
+
 
 # grafico a cerchio: seleziona i generi più preferiti dalle persone
 def get_pie() -> Pie:
@@ -368,30 +390,49 @@ def delete_projection(title):
 
 # Functions
 def get_actors_by_name(name):
-    conn = engine.conn()
+    conn = engine.connect()
     s = text("SELECT * FROM actors WHERE actors_fullname = :n")
     rs = conn.execute(s, n=name)
-    act = rs.fetchone
+    act = rs.fetchone()
     conn.close()
     return act
 
 
 def get_rooms_by_name(name):
     conn = engine.connect()
-    s = text("SELECT * FROM rooms WHERE rooms_name = :n")
-    rs = conn.execute(s, n=name)
-    rid = rs.fetchone()
+    if name:
+        s = text("SELECT * FROM rooms WHERE rooms_name = :n")
+        rs = conn.execute(s, n=name)
+        rid = rs.fetchone()
+    else:
+        s = text("SELECT * FROM rooms")
+        rs = conn.execute(s)
+        rid = rs.fetchall()
     conn.close()
     return rid
 
 
 def get_rooms_by_id(cod):
     conn = engine.connect()
-    s = text("SELECT * FROM rooms WHERE rooms_id = :c")
-    rs = conn.execute(s, c=cod)
-    rid = rs.fetchone()
+    if cod:
+        s = text("SELECT * FROM rooms WHERE rooms_id = :c")
+        rs = conn.execute(s, c=cod)
+        rid = rs.fetchone()
+    else:
+        s = text("SELECT * FROM rooms")
+        rs = conn.execute(s)
+        rid = rs.fetchall()
     conn.close()
     return rid
+
+
+def check_cast(movid,actid):
+    conn = engine.connect()
+    s = text("SELECT * FROM public.cast WHERE cast_actor=:a AND cast_movie=:m")
+    rs = conn.execute(s, a=actid, m=movid)
+    check = rs.fetchone()
+    conn.close()
+    return check
 
 
 def get_directors_by_id(cod):
@@ -402,7 +443,7 @@ def get_directors_by_id(cod):
         did = rs.fetchone()
     else:
         s = text("SELECT * FROM directors")
-        rs = conn.execute()
+        rs = conn.execute(s)
         did = rs.fetchall()
     conn.close()
     return did
@@ -416,7 +457,7 @@ def get_directors_by_name(name):
         did = rs.fetchone()
     else:
         s = text("SELECT * FROM directors")
-        rs = conn.execute()
+        rs = conn.execute(s)
         did = rs.fetchall()
     conn.close()
     return did

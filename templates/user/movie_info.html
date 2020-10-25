@@ -6,10 +6,20 @@
         Synopsis: {{ movie.movies_synopsis }} <br>
         Director: {{ movie.directors_name }} <br>
         Length: {{ (movie.movies_duration/60) | round(1) }} hours <br>
-        Cast:
+            {% if current_user.is_manager %}
+            <h4>
+                <a href="{{ url_for('update_movie', title=movie.movies_title) }}">Edit</a><br><br>
+            </h4>
+            {% endif %}
+        Cast:<br>
         {% for c in cast %}
-            {{ c.actors_fullname }}
-        {% endfor %} <br>
+            {{ c.actors_fullname }}<br>
+        {% endfor %}
+                {% if current_user.is_manager %}
+            <h4>
+                <a href="{{ url_for('add_actor', title=movie.movies_title) }}">Add</a> a new actor.<br><br>
+            </h4>
+            {% endif %}
         <br>
     </ul>
     Projections schedule: <br>
@@ -21,6 +31,11 @@
             Room: {{ p.room }}<br>
             Price: {{ p.price }}<br>
             Tickets: {{ p.tickets_left }} <br>
+            {% if current_user.is_manager %}
+            <h4>
+                <a href="{{ url_for('update_projection', title=p.movies_title) }}">Edit</a><br>
+            </h4>
+            {% endif %}
             <br>
             {% if p.tickets_left > 0 and current_user.is_authenticated %}
             Do you want to reserve a ticket?

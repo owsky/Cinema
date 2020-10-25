@@ -5,12 +5,24 @@
     Update the current movie!
 
     <ul>
-        <form action="/update_movie/{{ movie_to_update.movies_title }}" method="POST">
-        <input name="title" type="text" placeholder="TITLE" value="{{  movie_to_update.movies_title }}"><br>
-        <input name="genre" type="text" placeholder="GENRE" value="{{  movie_to_update.movies_genre }}"><br>
+        <form action="/update_movie/{{ movie_to_update.movies_title }}" method="POST"><br>
+        Title: {{  movie_to_update.movies_title }}<br>
+        Genre:<br>
+            <select name="genre">
+            {% for g in gen %}
+                <option value="{{ movie_to_update.movies_genre }}">{{ g.genre }}</option>
+            {% endfor %}
+            </select><br>
+        Duration:<br>
         <input name="duration" type="int" placeholder="DURATION" value="{{  movie_to_update.movies_duration }}"><br>
+        Synopsis:<br>
         <input name="synopsis" type="text" placeholder="SYNOPSIS" value="{{  movie_to_update.movies_synopsis }}"><br>
-        <input name="director" type="text" placeholder="DIRECTOR" value="{{  direct.directors_name }}"><br>
+        Director:<br>
+            <select name="director">
+            {% for d in dir %}
+                <option value="{{ direct.directors_name }}">{{ d.directors_name }}</option>
+            {% endfor %}
+            </select><br>
             <input type="submit">
 
         </form>

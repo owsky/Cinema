@@ -9,11 +9,6 @@
             Timestamp: {{ p.projections_date_time }} <br>
             Price: {{ p.projections_price }} <br>
             Rooms: {{ p.rooms_name }}
-            {% if current_user.is_manager %}
-            <h4>
-                <a href="{{ url_for('update_projection', title=p.movies_title) }}">Edit</a><br>
-            </h4>
-            {% endif %}
             <br><br>
         {% endfor %}
     </ul>

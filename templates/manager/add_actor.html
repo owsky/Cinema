@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block body %}
+        Insert the actor's name:
+    <ul>
+        <form action="{{ url_for("add_actor", title=movie_to_update.movies_title) }}" method="POST">
+        <input name="actor" type="text" placeholder="FULLNAME" pattern="[a-zA-Z][a-zA-Z\s]*[a-z]$" title="Must end and start without any space"><br>
+            <input type="submit">
+        </form>
+    </ul>
+
+{% endblock %}
