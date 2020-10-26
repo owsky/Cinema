@@ -139,10 +139,11 @@ def purchase_ticket(title, projection):
     if not m:
         abort(404)
     if request.method == 'POST':
-        if purchase(projection, request.form.getlist('seat')):
-            flash("Successfully purchased seats: " + ', '.join(request.form.getlist('seat')))
-        else:
-            flash("Error")
+        try:
+            purchase(projection, request.form.getlist('seat'))
+            flash("Successfully purchased tickets")
+        except InsufficientBalanceException as e:
+            flash(e.message)
     return render_template("user/purchase.html", seats=free_seats(projection), mov=m.movies_title, proj=projection)
 
 
@@ -594,6 +595,16 @@ def free_seats(proj_id):
     return f
 
 
+class InsufficientBalanceException(Exception):
+    def __init__(self, balance, message="Insufficient funds"):
+        self.balance = balance
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f'{self.balance} -> {self.message}'
+
+
 def purchase(proj_id, selected_seats):
     with engine.begin() as connection:
         s1 = text("SELECT users_balance FROM public.users WHERE users_id = :e1")
@@ -605,15 +616,15 @@ def purchase(proj_id, selected_seats):
         tprice = rs2.fetchone()
         total = balance.users_balance - (tprice.projections_price * len(selected_seats))
         if total < 0:
-            return False
-
+            raise InsufficientBalanceException(balance.users_balance)
+            return
         for x in selected_seats:
             s = text(
                 "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
             connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
         s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
         connection.execute(s, e1=total, e2=current_user.id)
-    return True
+    return
 
 
 def format_projections(proj):
