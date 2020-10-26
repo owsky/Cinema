@@ -4,7 +4,7 @@
     <ul>
         <form action="{{ url_for("add_movie") }}" method="POST">
             Title:<br>
-        <input name="title" type="text" placeholder="TITLE"><br>
+        <input name="title" type="text" placeholder="TITLE" requered><br>
             Genre:<br>
         <select name="genre">
             {% for g in gen %}
@@ -12,9 +12,9 @@
             {% endfor %}
         </select><br>
             Duration:<br>
-        <input name="duration" type="int" placeholder="DURATION" pattern="^[1-9][0-9]*"><br>
+        <input name="duration" type="int" placeholder="DURATION" pattern="^[1-9][0-9]*" requered><br>
             Synopsis:<br>
-        <input name="synopsis" type="text" placeholder="SYNOPSIS"><br>
+        <input name="synopsis" type="text" placeholder="SYNOPSIS" requered><br>
             Director:<br>
         <select name="director">
             {% for d in dir %}
@@ -22,9 +22,9 @@
             {% endfor %}
         </select><br>
             Release Date:<br>
-        <input name="day" type="date" placeholder="DAY" pattern="^[12][0-9]{3}-[01][0-9]-[0123][0-9]$"><br>
+        <input name="day" type="date" placeholder="DAY" pattern="^[12][0-9]{3}-[01][0-9]-[0123][0-9]$" requered><br>
             Actors' name:<br>
-        <input name="actors" type="text" placeholder="ACTORS" pattern="[a-zA-Z]([a-zA-Z\s\\,])*[a-z]$"><br>
+        <input name="actors" type="text" placeholder="ACTORS" pattern="[a-zA-Z]([a-zA-Z\s\\,])*[a-z]$" requered><br>
             <input type="submit"><br>
         Can't find the director? <a href="{{ url_for('add_director') }}">Add</a><br><br>
 

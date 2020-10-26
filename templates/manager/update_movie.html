@@ -14,9 +14,9 @@
             {% endfor %}
             </select><br>
         Duration:<br>
-        <input name="duration" type="int" placeholder="DURATION" value="{{  movie_to_update.movies_duration }}"><br>
+        <input name="duration" type="int" placeholder="DURATION" value="{{  movie_to_update.movies_duration }}" requered><br>
         Synopsis:<br>
-        <input name="synopsis" type="text" placeholder="SYNOPSIS" value="{{  movie_to_update.movies_synopsis }}"><br>
+        <input name="synopsis" type="text" placeholder="SYNOPSIS" value="{{  movie_to_update.movies_synopsis }}" requered><br>
         Director:<br>
             <select name="director">
             {% for d in dir %}

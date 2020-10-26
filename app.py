@@ -239,16 +239,15 @@ def add_movie():
     return render_template("manager/add_movie.html", gen=get_genres(), dir=get_directors_by_name(None))
 
 
-# (Manager) aggiungere una proiezione controllando con un trigger che non sia stata il range di tempo non sia stato
-# occupato da altre proiezioni.
-@app.route('/add_projection', methods=['GET', 'POST'])
+# (Manager) aggiungere una proiezione controllando che non ci siano interferenze nelle sale
+@app.route('/<title>/add_projection', methods=['GET', 'POST'])
 @login_required
-def add_projection():
+def add_projection(title):
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
         conn = engine.connect()
-        mov = get_movies(request.form['title'])
+        mov = get_movies(title)
         room = get_rooms_by_name(request.form['room'])
 
         # inserisco la nuova proiezione
@@ -263,21 +262,19 @@ def add_projection():
                  "JOIN public.movies ON projections_movie=movies_id WHERE projections_movie=:m AND "
                  "projections_room=:r AND projections_date_time=:t")
         proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
-        print(proj_info)
-        # faccio un check che non ci siano altri film in proiezione alla stessa data e nella stessa sala
+
+        # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
         if check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None:
             flash("Projection added successfully")
-            conn.close()
-            return redirect(url_for('projections'))
         else:
             flash("Time not available")
             s2 = text("DELETE FROM projections WHERE projections_id=:p")
             conn.execute(s2, p=proj_info.mov_proj)
-            conn.close()
-            return redirect(url_for('projections'))
-
+        conn.close()
+        return render_template('user/movie_info.html', movie=mov, projections=format_projections(get_projections(title)),
+                               cast=get_actors(title))
     else:
-        return render_template("manager/add_projection.html", mov=get_movies(None), room=get_rooms_by_id(None))
+        return render_template("manager/add_projection.html", m=get_movies(title), room=get_rooms_by_id(None))
 
 
 # (Manager) aggiungere un regista nel caso non è tra le scelte possibili (non è già presente nel DB)
@@ -299,7 +296,7 @@ def add_director():
     return render_template("manager/add_director.html")
 
 
-# (Manager) connettere attori a un film (uno alla volta)
+# (Manager) connettere un attore a un film
 @app.route('/<title>/add_actor', methods=['GET', 'POST'])
 @login_required
 def add_actor(title):
@@ -321,8 +318,7 @@ def add_actor(title):
             flash("Actor added successfully!")
         else:
             flash("Actor has already been added!")
-        conn.close()
-        return redirect(url_for('movies_route'))
+        return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)), cast=get_actors(title))
     return render_template('manager/add_actor.html', movie_to_update=m)
 
 
@@ -397,18 +393,18 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
-@app.route('/delete_projection/<title>')
+@app.route('/<title>/delete_projection/<int:id>')
 @login_required
-def delete_projection(title):
+def delete_projection(title, id):
     if not current_user.is_manager:
         abort(403)
     conn = engine.connect()
-    p = get_projections(title)
-    s = text("DELETE FROM public.projections WHERE projections_movie = :m AND projections_date_time = :t")
-    conn.execute(s, m=p.projections_movie, t=p.projections_date_time)
-    # TODO
+    s = text("DELETE FROM public.projections WHERE projections_id=:p")
+    conn.execute(s, p=id)
+    flash("Projection deleted successfully!")
     conn.close()
-    return redirect(url_for('projections'))
+    return render_template('user/movie_info.html', movie=get_movies(title), projections=format_projections(get_projections(title)),
+                           cast=get_actors(title))
 
 
 # Functions

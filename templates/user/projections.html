@@ -1,9 +1,6 @@
 {% extends "base.html" %}
 {% block body %}
     <ul>
-        {% if current_user.is_manager %}
-        To add projections click <a href="{{ url_for('add_projection') }}">here</a><br><br>
-        {% endif %}
         {% for p in projections %}
             Title: <a href="{{ url_for('movie_info', title=p.movies_title) }}">{{ p.movies_title }}</a> <br>
             Timestamp: {{ p.projections_date_time }} <br>

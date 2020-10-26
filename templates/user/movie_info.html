@@ -22,6 +22,9 @@
             {% endif %}
         <br>
     </ul>
+    {% if current_user.is_manager %}
+        To add projections click <a href="{{ url_for('add_projection', title=movie.movies_title)}}">here</a><br>
+    {% endif %}
     Projections schedule: <br>
     {% if projections %}
         <ul>
@@ -33,7 +36,7 @@
             Tickets: {{ p.tickets_left }} <br>
             {% if current_user.is_manager %}
             <h4>
-                <a href="{{ url_for('update_projection', title=p.movies_title) }}">Edit</a><br>
+                <a href="{{ url_for('delete_projection', title=movie.movies_title, id=p.id) }}">Delete</a><br>
             </h4>
             {% endif %}
             <br>
