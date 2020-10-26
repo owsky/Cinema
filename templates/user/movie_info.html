@@ -30,7 +30,6 @@
             Time: {{ p.time }} <br>
             Room: {{ p.room }}<br>
             Price: {{ p.price }}<br>
-<<<<<<< HEAD
             Tickets: {{ p.tickets_left }} <br>
             {% if current_user.is_manager %}
             <h4>
@@ -38,9 +37,7 @@
             </h4>
             {% endif %}
             <br>
-=======
             Tickets remaining: {{ p.tickets_left }} <br>
->>>>>>> fd28f962039e3a9f8374fcde82720e9ceb16e30b
             {% if p.tickets_left > 0 and current_user.is_authenticated %}
                 <a href="{{ url_for('purchase_ticket', title=movie.movies_title, projection=p.id) }}">Buy ticket</a><br><br>
             {% else %}

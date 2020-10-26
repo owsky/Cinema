@@ -183,7 +183,8 @@ def update_movie(title):
         conn.execute(s, g=genre, d=duration, s=synopsis, dr=director.directors_id, cod=m.movies_id)
         conn.close()
         return render_template('manager/movie_manager.html')
-    return render_template('manager/update_movie.html', movie_to_update=m, direct=d, gen=get_genres(), dir=get_directors_by_name(None),c=get_actors(title))
+    return render_template('manager/update_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
+                           dir=get_directors_by_name(None), c=get_actors(title))
 
 
 @app.route('/update_movie/<title>', methods=['GET', 'POST'])
@@ -216,7 +217,7 @@ def add_movie():
     if request.method == 'POST':
         conn = engine.connect()
         title = request.form['title']
-<<<<<<< HEAD
+
         # controllo che non ci sia già il film
         if get_movies(title) is not None:
             flash("This movie has already been added")
@@ -247,39 +248,36 @@ def add_projection():
         abort(403)
     if request.method == 'POST':
         conn = engine.connect()
-        if not get_movies(request.form['title']):
-            flash("This movie has not been added!")
-            return render_template("manager/add_projection.html")
-        else:
-            ins = projections.insert()
-            conn.execute(ins, [
-                {"projections_movie": request.form['title'], "projections_date_time": request.form['date_time'],
-                 "projections_room": get_rooms_by_name(request.form['room']).rooms_id,
-                 "projections_price": request.form['price']}])
+        mov = get_movies(request.form['title'])
+        room = get_rooms_by_name(request.form['room'])
+
+        # inserisco la nuova proiezione
+        s1 = text("INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
+                  "projections_price) VALUES (:m,:t,:r,:p)")
+        conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id, p=request.form['price'])
+
+        # seleziono la proiezione che ho appena inserito
+        s = text("SELECT projections_id AS mov_proj, movies_id AS mov_id, projections_room AS mov_room, "
+                 "projections_date_time AS mov_start, "
+                 "projections_date_time + (movies_duration * interval '1 minute') AS mov_end FROM public.projections "
+                 "JOIN public.movies ON projections_movie=movies_id WHERE projections_movie=:m AND "
+                 "projections_room=:r AND projections_date_time=:t")
+        proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
+        print(proj_info)
+        # faccio un check che non ci siano altri film in proiezione alla stessa data e nella stessa sala
+        if check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None:
+            flash("Projection added successfully")
             conn.close()
-            return render_template("manager/update_projection.html", movies=get_projections(None))
+            return redirect(url_for('projections'))
+        else:
+            flash("Time not available")
+            s2 = text("DELETE FROM projections WHERE projections_id=:p")
+            conn.execute(s2, p=proj_info.mov_proj)
+            conn.close()
+            return redirect(url_for('projections'))
+
     else:
         return render_template("manager/add_projection.html", mov=get_movies(None), room=get_rooms_by_id(None))
-=======
-        genre = request.form['genre']
-        duration = request.form['duration']
-        synopsis = request.form['synopsis']
-        date = request.form['day']
-        director = get_directors_by_name(request.form['director'])
-        act = request.form['actors']
-        act_list = act.split(',' or ', ')
-        addact = text("INSERT INTO actors (actors_fullname) VALUES (:n)")
-        for li in act_list:
-            conn.execute(addact, n=li)
-        s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
-                 "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
-        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
-        conn.close()
-        flash("Movie added successfully!")
-        return render_template("movies.html")
-    print(get_genres())
-    return render_template("manager/add_movie.html", gen=get_genres())
->>>>>>> fd28f962039e3a9f8374fcde82720e9ceb16e30b
 
 
 # (Manager) aggiungere un regista nel caso non è tra le scelte possibili (non è già presente nel DB)
@@ -339,7 +337,6 @@ def show_echarts():
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
 
 
-
 # grafico a linee: può non essere inserita
 def get_line() -> Line:
     conn = engine.connect()
@@ -349,7 +346,9 @@ def get_line() -> Line:
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
-        Line().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity", [data['sum'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Genre"))
+        Line().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity",
+                                                                      [data['sum'] for data in datas]).set_global_opts(
+            title_opts=opts.TitleOpts(title="Genre"))
     )
     return c
 
@@ -363,7 +362,9 @@ def get_bar() -> Bar:
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
-        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sum'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity",
+                                                                  [data['sum'] for data in datas]).set_global_opts(
+            title_opts=opts.TitleOpts(title="Movies"))
     )
     return c
 
@@ -377,7 +378,8 @@ def get_pie() -> Pie:
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
-        Pie().add("", [(data['genre'], data['sum']) for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+        Pie().add("", [(data['genre'], data['sum']) for data in datas]).set_global_opts(
+            title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
     )
     return c
 
@@ -447,7 +449,19 @@ def get_rooms_by_id(cod):
     return rid
 
 
-def check_cast(movid,actid):
+def check_time(proj, start, end, room):
+    conn = engine.connect()
+    s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie=movies_id WHERE "
+             "projections_room = :r AND projections_id <>:p AND (:st BETWEEN projections_date_time AND "
+             "projections_date_time + (movies_duration * interval '1 minute') OR :e BETWEEN projections_date_time AND "
+             "projections_date_time + (movies_duration * interval '1 minute'))")
+    rs = conn.execute(s, p=proj, r=room, st=start, e=end)
+    ris = rs.fetchone()
+    conn.close()
+    return ris
+
+
+def check_cast(movid, actid):
     conn = engine.connect()
     s = text("SELECT * FROM public.cast WHERE cast_actor=:a AND cast_movie=:m")
     rs = conn.execute(s, a=actid, m=movid)
