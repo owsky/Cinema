@@ -555,10 +555,15 @@ def get_projections(mov):
                  "WHERE movies_title = :e1 AND projections_date_time >= current_date")
         rs = conn.execute(s, e1=mov)
     else:
-        s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie = movies_id JOIN "
-                 "public.cast ON movies_id = cast_movie JOIN public.actors ON cast_actor = actors_id JOIN "
-                 "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id "
-                 "WHERE projections_date_time >= current_date")
+        s = text("""SELECT movies_title, projections_date_time, projections_price, rooms_name
+                    FROM public.projections
+                    JOIN public.movies ON projections_movie = movies_id
+                    JOIN public.cast ON movies_id = cast_movie
+                    JOIN public.actors ON cast_actor = actors_id
+                    JOIN public.directors ON movies_director = directors_id
+                    JOIN public.rooms ON projections_room = rooms_id
+                    WHERE projections_date_time >= current_date
+                    ORDER BY projections_date_time, movies_title, rooms_name""")
         rs = conn.execute(s)
     proj = rs.fetchall()
     conn.close()
