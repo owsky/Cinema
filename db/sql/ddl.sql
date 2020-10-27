@@ -10,13 +10,13 @@ CREATE SCHEMA IF NOT EXISTS public;
 CREATE TYPE public.genre AS ENUM ('Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Fantasy', 'Historical', 'Horror',
                            'Romance', 'Sci-Fi', 'Thriller');
 
-CREATE TYPE public.sex AS ENUM ('F', 'M', 'U');
+CREATE TYPE public.gender AS ENUM ('F', 'M', 'U');
 
 CREATE TABLE public.users (
     users_id serial PRIMARY KEY,
     users_email varchar NOT NULL,
     users_name varchar NOT NULL,
-    users_sex public.sex NOT NULL,
+    users_sex public.gender NOT NULL,
     users_surname varchar NOT NULL,
     users_pwd varchar NOT NULL,
     users_balance Numeric(12,2) DEFAULT 0 CHECK ( users_balance>=0 ),
@@ -112,7 +112,12 @@ CREATE TABLE public.cast (
         ON DELETE CASCADE
 );
 
-CREATE VIEW public.projections_info AS
-SELECT movies_title, movies_genre, movies_synopsis, movies_director, projections_date_time, projections_room
-FROM public.movies, public.projections
-WHERE movies_id = projections_movie;
+
+CREATE VIEW public.sumtickets AS
+    SELECT SUM(tickets_id) AS sum_tickets
+    FROM public.tickets t JOIN public.projections p on t.tickets_projection = p.projections_id;
+
+CREATE VIEW public.sumgenres AS
+    SELECT movies_id AS movie, movies_genre AS genre, SUM(tickets_id) AS sum_genres
+    FROM public.tickets JOIN public.projections on tickets_projection = projections_id JOIN public.movies on projections_movie = movies_id
+    GROUP BY movies_genre, movies_id;
