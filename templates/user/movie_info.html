@@ -17,13 +17,13 @@
         {% endfor %}
                 {% if current_user.is_manager %}
             <h4>
-                <a href="{{ url_for('add_actor', title=movie.movies_title) }}">Add</a> a new actor.<br><br>
+                <a href="{{ url_for('add_actor', title=movie.movies_title) }}">Add</a> a new actor<br><br>
             </h4>
             {% endif %}
         <br>
     </ul>
     {% if current_user.is_manager %}
-        To add projections click <a href="{{ url_for('add_projection', title=movie.movies_title)}}">here</a><br>
+        <a href="{{ url_for('add_projection', title=movie.movies_title)}}">Add</a>a new projection <br>
     {% endif %}
     Projections schedule: <br>
     {% if projections %}

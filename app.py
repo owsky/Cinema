@@ -148,23 +148,6 @@ def purchase_ticket(title, projection):
 
 
 # Manager side
-@app.route('/manager/')
-@login_required
-def movie_manager():
-    if not current_user.is_manager:
-        abort(403)
-    else:
-        conn = engine.connect()
-        s = text("SELECT * FROM public.projections JOIN public.movies ON (projections_movie=movies_id)")
-        rs = conn.execute(s)
-        u = rs.fetchall()
-        conn.close()
-        for p in u:
-            date = p.projections_date_time.strftime("%m/%d/%Y")
-            hour = p.projections_date_time.strftime("%H:%M:%S")[:5]
-            return render_template("manager/manager.html", projection=u, date=date, hour=hour)
-
-
 # Update
 @app.route('/update_movie/<title>', methods=['GET', 'POST'])
 @login_required
@@ -186,27 +169,6 @@ def update_movie(title):
         return render_template('manager/movie_manager.html')
     return render_template('manager/update_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
                            dir=get_directors_by_name(None), c=get_actors(title))
-
-
-@app.route('/update_movie/<title>', methods=['GET', 'POST'])
-@login_required
-def update_projection(title):
-    if not current_user.is_manager:
-        abort(403)
-    m = get_movies(title)
-    r = get_rooms_by_name(get_projections(title).projections_room)
-    if request.method == 'POST':
-        conn = engine.connect()
-        time = request.form['date_time']
-        room = get_rooms_by_name(request.form['room'])
-        price = request.form['price']
-        s = text("UPDATE projections SET projections_date_time= :t, projections_room=:r, projections_price=:p WHERE "
-                 "projections_movie =:cod")
-        conn.execute(s, t=time, r=room.rooms_id, p=price, cod=m.movies_id)
-        conn.close()
-        # director = get_directors_by_name(request.form['director'])
-        return render_template('movies.html')
-    return render_template('manager/update_projections.html', movie=m, room=r)
 
 
 # (Manager) aggiungere un film

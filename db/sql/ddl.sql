@@ -10,13 +10,16 @@ CREATE SCHEMA IF NOT EXISTS public;
 CREATE TYPE public.genre AS ENUM ('Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Fantasy', 'Historical', 'Horror',
                            'Romance', 'Sci-Fi', 'Thriller');
 
+CREATE TYPE public.sex AS ENUM ('F', 'M', 'U');
+
 CREATE TABLE public.users (
     users_id serial PRIMARY KEY,
     users_email varchar NOT NULL,
     users_name varchar NOT NULL,
+    users_sex sex NOT NULL DEFAULT 'U',
     users_surname varchar NOT NULL,
     users_pwd varchar NOT NULL,
-    users_balance Numeric(12,2) DEFAULT 0,
+    users_balance Numeric(12,2) DEFAULT 0 CHECK ( users_balance>=0 ),
     users_is_manager boolean NOT NULL
 );
 
@@ -24,7 +27,7 @@ CREATE TABLE public.users (
 CREATE TABLE public.rooms (
     rooms_id serial PRIMARY KEY,
     rooms_name varchar UNIQUE NOT NULL,
-    rooms_capacity int NOT NULL
+    rooms_capacity int NOT NULL CHECK ( rooms_capacity>0 )
 );
 
 CREATE TABLE public.directors (
@@ -35,7 +38,7 @@ CREATE TABLE public.directors (
 CREATE TABLE public.movies (
     movies_id serial PRIMARY KEY,
     movies_title varchar NOT NULL,
-    movies_duration int NOT NULL,
+    movies_duration int NOT NULL CHECK ( movies_duration>0 ),
     movies_genre varchar NOT NULL,
     movies_synopsis varchar NOT NULL,
     movies_date date NOT NULL,
@@ -50,9 +53,9 @@ CREATE TABLE public.actors (
 CREATE TABLE public.projections (
     projections_id serial PRIMARY KEY,
     projections_movie int NOT NULL,
-    projections_date_time timestamp without time zone NOT NULL,
+    projections_date_time timestamp without time zone NOT NULL CHECK ( projections_date_time>=current_date ),
     projections_room int REFERENCES public.rooms(rooms_id) NOT NULL,
-    projections_price Numeric(12,2) NOT NULL,
+    projections_price Numeric(12,2) NOT NULL CHECK ( projections_price>=0 ),
     CONSTRAINT projections_movie_fkey
         FOREIGN KEY(projections_movie)
         REFERENCES public.movies(movies_id)
