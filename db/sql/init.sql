@@ -118,11 +118,11 @@ INSERT INTO public.cast(cast_id, cast_movie, cast_actor) VALUES
 SELECT setval('cast_cast_id_seq', (SELECT MAX(cast_id) from "cast"));
 
 -- USERS
-INSERT INTO public.users(users_id, users_email, users_sex, users_name, users_surname, users_pwd, users_balance, users_is_manager) VALUES
+INSERT INTO public.users(users_id, users_email, users_name, users_sex, users_surname, users_pwd, users_balance, users_is_manager) VALUES
     (1, 'jack@aol.com', 'Jack', 'M', 'Boeing', 'passwordsicura', 100, False),
     (2, 'jane@hotmail.com', 'Jane', 'F', 'Accounting', 'bookkeepingaf', 200, False),
     (3, 'anonymous@gmail.com', 'Anon', 'M', 'Chan', 'scriptkiddie', 150, False),
-    (4, 'manager', 'manager', 'manager', 'manager', NULL, True),
+    (4, 'manager', 'manager', 'U', 'manager', 'manager', NULL, True),
     (5, 'user', 'user', 'F', 'user', 'user', 50, False);
 
  SELECT setval('users_users_id_seq', (SELECT MAX(users_id) from "users"));

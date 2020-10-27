@@ -234,7 +234,8 @@ def add_projection(title):
             s2 = text("DELETE FROM projections WHERE projections_id=:p")
             conn.execute(s2, p=proj_info.mov_proj)
         conn.close()
-        return render_template('user/movie_info.html', movie=mov, projections=format_projections(get_projections(title)),
+        return render_template('user/movie_info.html', movie=mov,
+                               projections=format_projections(get_projections(title)),
                                cast=get_actors(title))
     else:
         return render_template("manager/add_projection.html", m=get_movies(title), room=get_rooms_by_id(None))
@@ -281,7 +282,8 @@ def add_actor(title):
             flash("Actor added successfully!")
         else:
             flash("Actor has already been added!")
-        return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)), cast=get_actors(title))
+        return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)),
+                               cast=get_actors(title))
     return render_template('manager/add_actor.html', movie_to_update=m)
 
 
@@ -315,9 +317,16 @@ def get_line() -> Line:
 # grafico a barre: seleziona i film in base ai biglietti venduti
 def get_bar() -> Bar:
     conn = engine.connect()
-    s = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
-             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
-             "projections_movie = movies_id GROUP BY movies_id, movies_title")
+    s = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
+             "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
+             "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='M' "
+             "GROUP BY movies_id, movies_title")
+
+    s1 = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
+              "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
+              "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='F' "
+              "GROUP BY movies_id, movies_title")
+
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
@@ -366,7 +375,8 @@ def delete_projection(title, id):
     conn.execute(s, p=id)
     flash("Projection deleted successfully!")
     conn.close()
-    return render_template('user/movie_info.html', movie=get_movies(title), projections=format_projections(get_projections(title)),
+    return render_template('user/movie_info.html', movie=get_movies(title),
+                           projections=format_projections(get_projections(title)),
                            cast=get_actors(title))
 
 
@@ -602,6 +612,15 @@ def format_projections(proj):
         proj_list.append(
             Projection(p.projections_id, date, hour, p.rooms_name, p.projections_price, how_many_seats_left(p[0])))
     return proj_list
+
+
+# ritorna un array di possibili scelte
+def get_sex():
+    conn = engine.connect()
+    s = text("SELECT enum_range(NULL::public.sex) AS sex")
+    rs = conn.execute(s)
+    sex = rs.fetchall()
+    return sex
 
 
 def get_genres():
