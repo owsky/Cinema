@@ -208,7 +208,7 @@ def get_rooms():
     return dire
 
 
-# (Manager) aggiungere un film
+# (Manager) aggiunge un film
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
 def add_movie():
@@ -239,7 +239,7 @@ def add_movie():
     return render_template("manager/add_movie.html", gen=get_genres(), dir=get_directors_by_name(None))
 
 
-# (Manager) aggiungere una proiezione controllando che non ci siano interferenze nelle sale
+# (Manager) aggiunge una proiezione controllando che non ci siano interferenze nelle sale
 @app.route('/<title>/add_projection', methods=['GET', 'POST'])
 @login_required
 def add_projection(title):
@@ -253,12 +253,12 @@ def add_projection(title):
         if (request.form['date_time']<=datetime.now()):
             flash("Can not add a projection in the past")
         else:
-        # inserisco la nuova proiezione
+        # inserisce la nuova proiezione
             s1 = text("INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
                       "projections_price) VALUES (:m,:t,:r,:p)")
             conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id, p=request.form['price'])
 
-            # seleziono la proiezione che ho appena inserito
+            # seleziona la proiezione che ho appena inserito
             s = text("SELECT projections_id AS mov_proj, movies_id AS mov_id, projections_room AS mov_room, "
                      "projections_date_time AS mov_start, "
                      "projections_date_time + (movies_duration * interval '1 minute') AS mov_end FROM public.projections "
@@ -266,11 +266,12 @@ def add_projection(title):
                      "projections_room=:r AND projections_date_time=:t")
             proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
 
-        # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
+            # fa un check che non ci siano altri film in proiezione nello stesso orario e nella stessa sala
             if check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None and \
                     check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None:
                 flash("Projection added successfully")
             else:
+                # orario non disponibile, effettua una delete della proiezione appena inserita
                 flash("Time not available")
                 s2 = text("DELETE FROM projections WHERE projections_id=:p")
                 conn.execute(s2, p=proj_info.mov_proj)
@@ -282,15 +283,18 @@ def add_projection(title):
         return render_template("manager/add_projection.html", m=get_movies(title), room=get_rooms_by_id(None))
 
 
-# (Manager) aggiungere un regista nel caso non è tra le scelte possibili (non è già presente nel DB)
+# (Manager) aggiunge un regista se non è già presente nel database
 @app.route('/add_director', methods=['GET', 'POST'])
 @login_required
 def add_director():
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
+        #se il regista è già presente ritorna un messaggio
         if get_directors_by_name(request.form['name']) is not None:
             flash("Director has already been added")
+
+        #altrimenti il regista viene inserito nel database
         else:
             conn = engine.connect()
             name = request.form['name']
@@ -301,13 +305,19 @@ def add_director():
     return render_template("manager/add_director.html")
 
 
+# (Manager) aggiornamento sul nome del regista
 @app.route('/edit_director/<director_id>', methods=['GET', 'POST'])
 @login_required
 def edit_director(director_id):
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-        if request.form['name']:
+        # se il nome del regista inserito è ridondante ritorna un messaggio
+        if get_directors_by_name(request.form['name']) is not None:
+            flash("Director already exists")
+
+        # altrimenti procede con l'aggiornamento
+        else:
             conn = engine.connect()
             s = text("UPDATE public.directors SET directors_name = :e1 WHERE directors_id = :e2")
             conn.execute(s, e1=request.form['name'], e2=director_id)
@@ -316,7 +326,7 @@ def edit_director(director_id):
     return render_template('manager/edit_director.html', dir=get_directors_by_id(director_id))
 
 
-# (Manager) connettere un attore a un film
+# (Manager) aggiunge una relazione tra un film e un attore
 @app.route('/<title>/add_cast', methods=['GET', 'POST'])
 @login_required
 def add_cast(title):
@@ -326,25 +336,33 @@ def add_cast(title):
     if request.method == 'POST':
         conn = engine.connect()
         a = get_actor_by_name(request.form['actor'])
-        # connetto gli attori al film corrispondente inserendoli nel cast
+
+        # controllo che la relazione tra il film e l'attore non esista già
         if not check_cast(m.movies_id, a.actors_id):
+            # procede con l'inserimento nella tabella cast
             addcast = text("INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)")
             conn.execute(addcast, m=m.movies_id, a=a.actors_id)
             flash("Actor added successfully!")
+        # la relazione è ridondante
         else:
             flash("Actor has already been added!")
         return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)),
                                cast=get_actors(title))
     return render_template('manager/add_cast.html', movie=m, act=get_actor_by_name(None))
 
+
+# (Manager) aggiunge un nuovo attore
 @app.route('/add_actor', methods=['GET', 'POST'])
 @login_required
 def add_actor():
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
+        # controlla se il nome dell'attore è ridondante, se sì ritorna un messaggio
         if get_actor_by_name(request.form['actor']) is not None:
             flash("Actor already exists")
+
+        # in caso contrario procede con l'inserimento nel database
         else:
             conn = engine.connect()
             s = text("INSERT INTO public.actors (actors_fullname) VALUES (:n)")
@@ -354,13 +372,18 @@ def add_actor():
     return render_template('manager/add_actor.html')
 
 
+# (Manager) aggiornamento dell'attore
 @app.route('/edit_actor/<actor_id>', methods=['GET', 'POST'])
 @login_required
 def edit_actor(actor_id):
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-        if request.form['name']:
+        # controlla se il nome dell'attore è ridondante, se sì ritorna un messaggio
+        if get_actor_by_name(request.form['name']) is not None:
+            flash("Actor already exists")
+        # in caso contrario procede con l'aggiornamento nel database
+        else:
             conn = engine.connect()
             s = text("""UPDATE public.actors
                         SET actors_fullname = :e1
@@ -371,7 +394,7 @@ def edit_actor(actor_id):
     return render_template('manager/edit_actor.html', act=get_actor_by_id(actor_id))
 
 
-# Delete
+# (Manager) elimina un film dal database
 @app.route('/delete_movie/<title>')
 @login_required
 def delete_movie(title):
@@ -390,12 +413,14 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
+# (Manager) elimina una proiezione
 @app.route('/<title>/delete_projection/<int:id>')
 @login_required
 def delete_projection(title, id):
     if not current_user.is_manager:
         abort(403)
     conn = engine.connect()
+    # elimina una proiezione
     s = text("DELETE FROM public.projections WHERE projections_id=:p")
     conn.execute(s, p=id)
     flash("Projection deleted successfully!")
@@ -464,14 +489,17 @@ def add_seat(room_id):
     return render_template('manager/add_seat.html', room=room_id)
 
 
+# (Manager) aggiunge una sala
 @app.route('/add_room', methods=['GET', 'POST'])
 @login_required
 def add_room():
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
+        # controlla se il nome della 'room' sia ridondante, se sì ritorna un messaggio
         if get_rooms_by_name(request.form['name']) is not None:
             flash("Room already exists")
+        # altrimenti procede con l'inserimento
         else:
             conn = engine.connect()
             s = text ("INSERT INTO public.rooms(rooms_name, rooms_capacity) VALUES (:n, :c)")
@@ -481,13 +509,15 @@ def add_room():
     return render_template('manager/add_room.html')
 
 
-# Functions
+# selezione degli attori (dal nome)
 def get_actor_by_name(name):
+    # se non viene specificato il valore name, ritorna tutta la lista 'actors' con tutti i suoi attributi
     if name is None:
         conn = engine.connect()
         s1 = text("SELECT * FROM actors")
         rs = conn.execute(s1)
         act = rs.fetchall()
+    # altrimenti ritorna la riga della tabella 'actors' che soddisfa la condizione 'actors_fullname' = name
     else:
         conn = engine.connect()
         s = text("SELECT * FROM actors WHERE actors_fullname = :n")
@@ -496,8 +526,9 @@ def get_actor_by_name(name):
     conn.close()
     return act
 
-
+# selezione degli attori (dall'id)
 def get_actor_by_id(aid):
+    #ritorna la riga della tabella actors che soddisfa la condizione 'actors_id' = aid
     conn = engine.connect()
     s = text("SELECT * FROM public.actors WHERE actors_id = :e")
     rs = conn.execute(s, e=aid)
@@ -506,12 +537,15 @@ def get_actor_by_id(aid):
     return act
 
 
+# selezione della sala (dal nome)
 def get_rooms_by_name(name):
     conn = engine.connect()
+    # seleziona la riga della tabella rooms che soddisfa la condizione 'rooms_name' = name
     if name:
         s = text("SELECT * FROM rooms WHERE rooms_name = :n")
         rs = conn.execute(s, n=name)
         rid = rs.fetchone()
+    # se non viene specificato il valore name, ritorna tutta la lista 'rooms' con tutti i suoi attributi
     else:
         s = text("SELECT * FROM rooms")
         rs = conn.execute(s)
@@ -519,13 +553,15 @@ def get_rooms_by_name(name):
     conn.close()
     return rid
 
-
+# selezione della sala (dall'id)
 def get_rooms_by_id(cod):
     conn = engine.connect()
+    # seleziona la riga della tabella rooms che soddisfa la condizione 'rooms_id' = cod
     if cod:
         s = text("SELECT * FROM rooms WHERE rooms_id = :c")
         rs = conn.execute(s, c=cod)
         rid = rs.fetchone()
+    # se non viene specificato il valore name, ritorna tutta la lista 'rooms' con tutti i suoi attributi
     else:
         s = text("SELECT * FROM rooms")
         rs = conn.execute(s)
@@ -533,9 +569,11 @@ def get_rooms_by_id(cod):
     conn.close()
     return rid
 
-
+# check per l'inserimento di una proiezione
 def check_time2(proj, start, end, room):
     conn = engine.connect()
+    # controlla che l'orario 'start' e 'end' non siano in interferenza con altre proiezioni
+    # seleziona le interferenze se sono presenti
     s = text(
         "SELECT projections_id FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id"
         "WHERE projections_room =:r AND projections_id<>:p AND projections_date_time >= :s AND "
@@ -546,8 +584,11 @@ def check_time2(proj, start, end, room):
     return ris
 
 
+#check per l'inserimento di una proiezione
 def check_time(proj, start, end, room):
     conn = engine.connect()
+    # controlla se ci siano altre proiezioni inclusa periodo di tempo tra 'start' e 'end' (= data di inizio e fine della proiezione da inserire)
+    # seleziona le interferenze se sono presenti
     s = text("SELECT projections_id FROM public.projections JOIN public.movies ON projections_movie=movies_id WHERE "
              "projections_room = :r AND projections_id <>:p AND (:st BETWEEN projections_date_time AND "
              "projections_date_time + (movies_duration * interval '1 minute') OR :e BETWEEN projections_date_time AND "
@@ -653,9 +694,12 @@ def get_last_movies():
 def get_projections(mov):
     conn = engine.connect()
     if mov:
-        s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie = movies_id JOIN "
-                 "public.cast ON movies_id = cast_movie JOIN public.actors ON cast_actor = actors_id JOIN "
-                 "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id "
+        s = text("SELECT * FROM public.projections "
+                 "JOIN public.movies ON projections_movie = movies_id "
+                 "JOIN public.cast ON movies_id = cast_movie "
+                 "JOIN public.actors ON cast_actor = actors_id "
+                 "JOIN public.directors ON movies_director = directors_id "
+                 "JOIN public.rooms ON projections_room = rooms_id "
                  "WHERE movies_title = :e1 AND projections_date_time >= current_date")
         rs = conn.execute(s, e1=mov)
     else:
