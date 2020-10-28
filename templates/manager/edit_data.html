@@ -8,6 +8,7 @@
                 <option value="actors">Actors</option>
                 <option value="directors">Directors</option>
                 <option value="rooms">Rooms</option>
+                <option value="projections">Projections</option>
             </select>
         </label>
         <input type="submit">
@@ -17,18 +18,23 @@
             {{ m }} <a href="{{ url_for('edit_movie', title=m.movies_title) }}">Edit</a><br><br>
         {% endfor %}
     {% elif act %}
+        <a href="{{ url_for('add_actor') }}">Add</a> a new actor<br><br>
         {% for a in act %}
             {{ a }} <a href="{{ url_for('edit_actor', actor_id=a.actors_id) }}">Edit</a><br><br>
         {% endfor %}
-            <a href="{{ url_for('add_actor') }}">Add</a> a new actor
     {% elif dir %}
         {% for d in dir %}
             {{ d }} <a href="{{ url_for('edit_director', director_id=d.directors_id) }}">Edit</a><br><br>
         {% endfor %}
     {% elif room %}
+        <a href="{{ url_for('add_room') }}">Add</a> a new room<br><br>
         {% for r in room %}
             {{ r }} <a href="{{ url_for('edit_room', room_id=r.rooms_id) }}">Edit</a><br><br>
         {% endfor %}
-            <a href="{{ url_for('add_room') }}">Add</a> a new room
+    {% elif proj %}
+        <strong>Warning: deleting a projections will refund all purchased tickets!</strong><br><br>
+        {% for p in proj %}
+            {{ p }} <a href="{{ url_for('delete_projection2', proj_id=p.projections_id ) }}">Delete</a> <br>
+        {% endfor %}
     {% endif %}
 {% endblock %}

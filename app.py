@@ -3,12 +3,12 @@ from pyecharts.charts import Bar, Pie, Line
 from pyecharts import options as opts
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
     AnonymousUserMixin
+from sqlalchemy import text, create_engine
 from datetime import *
-from sqlalchemy import select, text
 import secrets
-from schema import engine, users, projections
 
 app = Flask(__name__)
+engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 
 
 # Login Manager
@@ -48,7 +48,8 @@ login_manager.anonymous_user = Anonymous
 @login_manager.user_loader
 def load_user(user_id):
     conn = engine.connect()
-    rs = conn.execute(select([users]).where(users.c.users_id == user_id))
+    s = text("SELECT * FROM public.users WHERE users_id = :e1")
+    rs = conn.execute(s, e1=user_id)
     u = rs.fetchone()
     conn.close()
     return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager,
@@ -65,19 +66,13 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] \
-                or not request.form['pwd'] or not request.form['gender']:
-            flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
         else:
             conn = engine.connect()
-            ins = users.insert()
-            conn.execute(ins, [
-                {"users_name": request.form['name'], "users_surname": request.form['surname'],
-                 "users_email": request.form['email'], "users_gender": request.form['gender'],
-                 "users_pwd": request.form['pwd'], "users_is_manager": False}
-            ])
+            s = text("""INSERT INTO public.users(users_name, users_surname, users_email, users_pwd, users_gender, users_is_manager)
+                        VALUES (:e1, :e2, :e3, :e4, :e5, False)""")
+            conn.execute(s, e1=request.form['name'], e2=request.form['surname'], e3=request.form['email'], e4=request.form['pwd'], e5=request.form['gender'])
             conn.close()
             flash("Signed up successfully")
             return redirect(url_for('home'))
@@ -88,7 +83,8 @@ def signup():
 def login():
     if request.method == 'POST':
         conn = engine.connect()
-        rs = conn.execute(select([users]).where(users.c.users_email == request.form['user']))
+        s = text("SELECT * FROM public.users WHERE users_id = :e1")
+        rs = conn.execute(s, request.form['user'])
         u = rs.fetchone()
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
@@ -113,6 +109,36 @@ def logout():
 @login_required
 def profile():
     return render_template("user/profile.html", info=get_orders(current_user.id))
+
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        conn = engine.connect()
+        s = text("""UPDATE public.users SET users_name = :e1, users_surname = :e2, users_email = :e3
+                    WHERE users_id = :e4""")
+        conn.execute(s, e1=request.form['name'], e2=request.form['surname'], e3=request.form['email'],
+                     e4=current_user.id)
+        conn.close()
+        current_user.name = request.form['name']
+        current_user.surname = request.form['surname']
+        current_user.email = request.form['email']
+        return redirect(url_for('profile'))
+    return render_template('user/edit_profile.html')
+
+
+@app.route('/delete_profile', methods=['GET', 'POST'])
+@login_required
+def delete_profile():
+    conn = engine.connect()
+    s = text("DELETE FROM public.users WHERE users_id = :e")
+    uid = current_user.id
+    logout_user()
+    conn.execute(s, e=uid)
+    conn.close()
+    flash("Successfully deleted user data")
+    return redirect(url_for('home'))
 
 
 @app.route('/projections')
@@ -185,8 +211,12 @@ def edit_data():
             return render_template('manager/edit_data.html', act=get_actors(None))
         elif request.form['edit_obj'] == 'directors':
             return render_template('manager/edit_data.html', dir=get_directors())
-        else:
+        elif request.form['edit_obj'] == 'projections':
+            return render_template('manager/edit_data.html', proj=get_projections(None))
+        elif request.form['edit_obj'] == 'rooms':
             return render_template('manager/edit_data.html', room=get_rooms())
+        else:
+            return render_template('manager/edit_data.html')
     return render_template('manager/edit_data.html')
 
 
@@ -217,25 +247,19 @@ def add_movie():
     if request.method == 'POST':
         conn = engine.connect()
         title = request.form['title']
+        genre = request.form['genre']
+        duration = request.form['duration']
+        synopsis = request.form['synopsis']
+        date = request.form['day']
+        director = get_directors_by_name(request.form['director'])
 
-        # controllo che non ci sia già il film
-        if get_movies(title) is not None:
-            flash("This movie has already been added")
-            return redirect(url_for('add_movie'))
-        else:
-            genre = request.form['genre']
-            duration = request.form['duration']
-            synopsis = request.form['synopsis']
-            date = request.form['day']
-            director = get_directors_by_name(request.form['director'])
-
-            # inserisco il film nel DB
-            s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
-                     "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
-            conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
-            conn.close()
-            flash("Movie added successfully!")
-            return redirect(url_for('movies_route'))
+        # inserisco il film nel DB
+        s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
+                 "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
+        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
+        conn.close()
+        flash("Movie added successfully!")
+        return redirect(url_for('movies_route'))
     return render_template("manager/add_movie.html", gen=get_genres(), dir=get_directors_by_name(None))
 
 
@@ -266,9 +290,15 @@ def add_projection(title):
                      "projections_room=:r AND projections_date_time=:t")
             proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
 
+<<<<<<< HEAD
             # fa un check che non ci siano altri film in proiezione nello stesso orario e nella stessa sala
             if check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None and \
                     check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None:
+=======
+        # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
+            if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) and \
+                    not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room):
+>>>>>>> 393cb580e083d729f79b7519c01c867ff92c0dd4
                 flash("Projection added successfully")
             else:
                 # orario non disponibile, effettua una delete della proiezione appena inserita
@@ -290,8 +320,12 @@ def add_director():
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
+<<<<<<< HEAD
         #se il regista è già presente ritorna un messaggio
         if get_directors_by_name(request.form['name']) is not None:
+=======
+        if get_directors_by_name(request.form['name']):
+>>>>>>> 393cb580e083d729f79b7519c01c867ff92c0dd4
             flash("Director has already been added")
 
         #altrimenti il regista viene inserito nel database
@@ -413,21 +447,46 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
+<<<<<<< HEAD
 # (Manager) elimina una proiezione
 @app.route('/<title>/delete_projection/<int:id>')
+=======
+@app.route('/<title>/delete_projection/<proj_id>')
+>>>>>>> 393cb580e083d729f79b7519c01c867ff92c0dd4
 @login_required
-def delete_projection(title, id):
+def delete_projection(title, proj_id):
     if not current_user.is_manager:
         abort(403)
     conn = engine.connect()
     # elimina una proiezione
     s = text("DELETE FROM public.projections WHERE projections_id=:p")
-    conn.execute(s, p=id)
+    conn.execute(s, p=proj_id)
     flash("Projection deleted successfully!")
     conn.close()
     return render_template('user/movie_info.html', movie=get_movies(title),
-                           projections=format_projections(get_projections(title)),
-                           cast=get_actors(title))
+                           projections=format_projections(get_projections(title)), cast=get_actors(title))
+
+
+@app.route('/delete_projection2/<proj_id>')
+@login_required
+def delete_projection2(proj_id):
+    if not current_user.is_manager:
+        abort(403)
+    conn = engine.connect()
+    s = text("""SELECT * FROM public.tickets
+                JOIN public.users ON tickets.tickets_user = users.users_id
+                JOIN public.projections ON tickets.tickets_projection = projections.projections_id
+                WHERE projections_id = :e1""")
+    rs = conn.execute(s, e1=proj_id)
+    refunds = rs.fetchall()
+    for r in refunds:
+        s = text("""UPDATE public.users SET users_balance = users_balance + :e1 WHERE users_id = :e2""")
+        conn.execute(s, e1=r.projections_price, e2=r.users_id)
+    s = text("DELETE FROM public.projections WHERE projections_id=:p")
+    conn.execute(s, p=proj_id)
+    flash("Projection deleted successfully!")
+    conn.close()
+    return redirect(url_for('edit_data'))
 
 
 def get_seat_by_name(room_id, seat_name):
@@ -639,7 +698,8 @@ def get_directors_by_name(name):
 # Functions
 def user_by_email(user_email):
     conn = engine.connect()
-    rs = conn.execute(select([users]).where(users.c.users_email == user_email))
+    s = text("SELECT * FROM public.users WHERE users_email = :e1")
+    rs = conn.execute(s, user_email)
     u = rs.fetchone()
     conn.close()
     if u:
@@ -703,7 +763,7 @@ def get_projections(mov):
                  "WHERE movies_title = :e1 AND projections_date_time >= current_date")
         rs = conn.execute(s, e1=mov)
     else:
-        s = text("""SELECT movies_title, projections_date_time, projections_price, rooms_name
+        s = text("""SELECT movies_title, projections_date_time, projections_price, projections_id, rooms_name
                     FROM public.projections
                     JOIN public.movies ON projections_movie = movies_id
                     JOIN public.cast ON movies_id = cast_movie

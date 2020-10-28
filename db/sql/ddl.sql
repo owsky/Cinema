@@ -58,6 +58,7 @@ CREATE TABLE public.projections (
     CONSTRAINT projections_movie_fkey
         FOREIGN KEY(projections_movie)
         REFERENCES public.movies(movies_id)
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE public.seats (
@@ -80,7 +81,7 @@ CREATE TABLE public.tickets (
         FOREIGN KEY(tickets_user)
         REFERENCES public.users(users_id)
         ON UPDATE CASCADE
-        ON DELETE CASCADE,
+        ON DELETE SET NULL,
     CONSTRAINT tickets_projection_fkey
         FOREIGN KEY(tickets_projection)
         REFERENCES public.projections(projections_id)
@@ -90,7 +91,7 @@ CREATE TABLE public.tickets (
         FOREIGN KEY(tickets_seat)
         REFERENCES public.seats(seats_id)
         ON UPDATE CASCADE
-        ON DELETE CASCADE
+        ON DELETE SET NULL
 );
 
 CREATE TABLE public.cast (

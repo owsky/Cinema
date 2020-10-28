@@ -1,17 +1,36 @@
 {% extends 'base.html' %}
 {% block body %}
-    Name: {{ current_user.name }} <br>
-    Surname: {{ current_user.surname }} <br>
-    Email: {{ current_user.email }} <br>
-    Balance: {{ current_user.balance }}<br><br>
-    Orders: <br>
-    <ul>
-        {% for i in info %}
-            Movie: {{ i.movies_title }}<br>
-            Date: {{ i.projections_date_time }}<br>
-            Room: {{ i.rooms_name }}<br>
-            Seat: {{ i.seats_name }}<br>
-            <br>
-        {% endfor %}
-    </ul>
+    <style>
+        .user_info {
+            float: left;
+        }
+
+        .delete_account {
+            float: right;
+            padding-right: 10px;
+        }
+    </style>
+    <div class="user_info">
+        <a href="{{ url_for('edit_profile') }}">Edit profile</a><br>
+        Name: {{ current_user.name }} <br>
+        Surname: {{ current_user.surname }} <br>
+        Email: {{ current_user.email }} <br>
+        Balance: {{ current_user.balance }} €<br><br>
+        Orders: <br>
+        <ul>
+            {% for i in info %}
+                Movie: {{ i.movies_title }}<br>
+                Date: {{ i.projections_date_time }}<br>
+                Room: {{ i.rooms_name }}<br>
+                Seat: {{ i.seats_name }}<br>
+                <br>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="delete_account">
+        <form action="{{ url_for('delete_profile') }}" method="POST">
+            Do you want to delete all user data?<br>
+            <input type="submit">
+        </form>
+    </div>
 {% endblock %}

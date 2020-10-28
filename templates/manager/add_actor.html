@@ -3,7 +3,9 @@
         Insert the actor's name:
     <ul>
         <form action="{{ url_for("add_actor") }}" method="POST">
-        <input name="actor" type="text" placeholder="FULLNAME" pattern="[A-Z][a-zA-Z\s]*[a-z]$" requered><br>
+            <label>
+                <input name="actor" type="text" placeholder="First and last name" required>
+            </label><br>
             <input type="submit">
         </form>
     </ul>
