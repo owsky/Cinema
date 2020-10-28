@@ -83,8 +83,8 @@ def signup():
 def login():
     if request.method == 'POST':
         conn = engine.connect()
-        s = text("SELECT * FROM public.users WHERE users_id = :e1")
-        rs = conn.execute(s, request.form['user'])
+        s = text("SELECT * FROM public.users WHERE users_email = :e1")
+        rs = conn.execute(s, e1=request.form['user'])
         u = rs.fetchone()
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
@@ -293,7 +293,11 @@ def add_projection(title):
                      "projections_room=:r AND projections_date_time=:t")
             proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
 
+<<<<<<< HEAD
         # fa un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
+=======
+        # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
+>>>>>>> af23f72219a440457fed4dff30f3a4d733eefd78
             if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) and \
                     not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room):
                 flash("Projection added successfully")
@@ -427,8 +431,8 @@ def delete_movie(title):
     if not current_user.is_manager:
         abort(403)
     conn = engine.connect()
-    s = text("SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id"
-             "WHERE movies_title = :e1")
+    s = text("""SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id
+                WHERE movies_title = :e1""")
     rs = conn.execute(s, e1=title)
     if not rs.fetchall():
         s = text("DELETE FROM public.movies WHERE movies_title = :mt")
@@ -439,7 +443,10 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
+<<<<<<< HEAD
 # (Manager) elimina una proiezione
+=======
+>>>>>>> af23f72219a440457fed4dff30f3a4d733eefd78
 @app.route('/<title>/delete_projection/<proj_id>')
 @login_required
 def delete_projection(title, proj_id):
@@ -687,7 +694,7 @@ def get_directors_by_name(name):
 def user_by_email(user_email):
     conn = engine.connect()
     s = text("SELECT * FROM public.users WHERE users_email = :e1")
-    rs = conn.execute(s, user_email)
+    rs = conn.execute(s, e1=user_email)
     u = rs.fetchone()
     conn.close()
     if u:
@@ -742,20 +749,22 @@ def get_last_movies():
 def get_projections(mov):
     conn = engine.connect()
     if mov:
-        s = text("SELECT * FROM public.projections "
-                 "JOIN public.movies ON projections_movie = movies_id "
-                 "JOIN public.cast ON movies_id = cast_movie "
-                 "JOIN public.actors ON cast_actor = actors_id "
-                 "JOIN public.directors ON movies_director = directors_id "
-                 "JOIN public.rooms ON projections_room = rooms_id "
-                 "WHERE movies_title = :e1 AND projections_date_time >= current_date")
+        s = text("""SELECT projections_id, projections_date_time, projections_price, movies_title, movies_genre, movies_synopsis, movies_duration, directors_name, rooms_name,
+                        (SELECT string_agg(actors_fullname::text, ', ') AS actors
+                         FROM public.actors
+                         JOIN public.cast ON cast_actor=actors_id
+                         JOIN public.movies ON cast_movie=movies_id
+                         WHERE movies_title=:e1)
+                    FROM public.projections
+                    JOIN public.movies ON projections_movie = movies_id
+                    JOIN public.directors ON movies_director = directors_id
+                    JOIN public.rooms ON projections_room = rooms_id 
+                    WHERE movies_title = :e1 AND projections_date_time >= current_date""")
         rs = conn.execute(s, e1=mov)
     else:
         s = text("""SELECT movies_title, projections_date_time, projections_price, projections_id, rooms_name
                     FROM public.projections
                     JOIN public.movies ON projections_movie = movies_id
-                    JOIN public.cast ON movies_id = cast_movie
-                    JOIN public.actors ON cast_actor = actors_id
                     JOIN public.directors ON movies_director = directors_id
                     JOIN public.rooms ON projections_room = rooms_id
                     WHERE projections_date_time >= current_date
