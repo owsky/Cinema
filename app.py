@@ -691,9 +691,9 @@ def format_projections(proj):
 
 
 # ritorna un array di possibili scelte
-def get_sex():
+def get_gender():
     conn = engine.connect()
-    s = text("SELECT enum_range(NULL::public.sex) AS sex")
+    s = text("SELECT enum_range(NULL::public.gender) AS gender")
     rs = conn.execute(s)
     sex = rs.fetchall()
     return sex
@@ -726,7 +726,7 @@ def get_orders(uid):
 def show_echarts():
     if not current_user.is_manager:
         abort(403)
-    bar = get_bar()
+       bar = get_bar()
     pie = get_pie()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
 
@@ -750,22 +750,24 @@ def get_line() -> Line:
 # grafico a barre: seleziona i film in base ai biglietti venduti
 def get_bar() -> Bar:
     conn = engine.connect()
-    s = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
-             "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
-             "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='M' "
-             "GROUP BY movies_id, movies_title")
+    s1 = text("SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS summ FROM "
+              "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
+              "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='M' "
+              "GROUP BY movies_id, movies_genre")
 
-    s1 = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
+    s2 = text("SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS sumf FROM "
               "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
               "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='F' "
-              "GROUP BY movies_id, movies_title")
+              "GROUP BY movies_id, movies_genre")
 
-    datas = conn.execute(s).fetchall()
+    datas1 = conn.execute(s1).fetchall()
+    datas2 = conn.execute(s2).fetchall()
     conn.close()
     c = (
-        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity",
-                                                                  [data['sum'] for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Movies"))
+        Bar().add_xaxis([data['genre'] for data in datas1])
+             .add_yaxis("Male", [data['summ'] for data in datas1]).set_global_opts(
+             title_opts=opts.TitleOpts(title="Movies"))
+             .add_yaxis("Female", [data['sumf'] for data in datas2])
     )
     return c
 
@@ -773,14 +775,13 @@ def get_bar() -> Bar:
 # grafico a cerchio: seleziona i generi più preferiti dalle persone
 def get_pie() -> Pie:
     conn = engine.connect()
-    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
-             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
-             "projections_movie = movies_id GROUP BY movies_genre")
+    s = text("SELECT genre, sum_genres*100/sum_tickets AS genre_perc FROM public.sumtickets, public.sumgenres")
     datas = conn.execute(s).fetchall()
+    print(datas)
     conn.close()
     c = (
-        Pie().add("", [(data['genre'], data['sum']) for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+        Pie().add("", [(data['genre'], data['genre_perc']) for data in datas]).set_global_opts(
+            title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}%"))
     )
     return c
 
