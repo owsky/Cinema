@@ -83,8 +83,8 @@ def signup():
 def login():
     if request.method == 'POST':
         conn = engine.connect()
-        s = text("SELECT * FROM public.users WHERE users_id = :e1")
-        rs = conn.execute(s, request.form['user'])
+        s = text("SELECT * FROM public.users WHERE users_email = :e1")
+        rs = conn.execute(s, e1=request.form['user'])
         u = rs.fetchone()
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
@@ -360,6 +360,7 @@ def add_cast(title):
         return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)),
                                cast=get_actors(title))
     return render_template('manager/add_cast.html', movie=m, act=get_actor_by_name(None))
+
 
 @app.route('/add_actor', methods=['GET', 'POST'])
 @login_required
@@ -644,7 +645,7 @@ def get_directors_by_name(name):
 def user_by_email(user_email):
     conn = engine.connect()
     s = text("SELECT * FROM public.users WHERE users_email = :e1")
-    rs = conn.execute(s, user_email)
+    rs = conn.execute(s, e1=user_email)
     u = rs.fetchone()
     conn.close()
     if u:
