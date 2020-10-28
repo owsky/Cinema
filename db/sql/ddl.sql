@@ -16,7 +16,7 @@ CREATE TABLE public.users (
     users_id serial PRIMARY KEY,
     users_email varchar NOT NULL,
     users_name varchar NOT NULL,
-    users_sex public.gender NOT NULL,
+    users_gender public.gender NOT NULL,
     users_surname varchar NOT NULL,
     users_pwd varchar NOT NULL,
     users_balance Numeric(12,2) DEFAULT 0 CHECK ( users_balance>=0 ),
