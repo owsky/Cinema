@@ -10,7 +10,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 CREATE TYPE public.genre AS ENUM ('Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Fantasy', 'Historical',
                                   'Horror', 'Romance', 'Sci-Fi', 'Thriller');
 
-CREATE TYPE public.gender AS ENUM ('F', 'M', 'U');
+CREATE TYPE public.gender AS ENUM ('F', 'M');
 
 CREATE TABLE public.users (
     users_id serial PRIMARY KEY,

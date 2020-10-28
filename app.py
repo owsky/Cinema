@@ -612,30 +612,32 @@ def get_rooms_by_id(cod):
     conn.close()
     return rid
 
+
 # check per l'inserimento di una proiezione
 def check_time2(proj, start, end, room):
     conn = engine.connect()
     # controlla che l'orario 'start' e 'end' non siano in interferenza con altre proiezioni
     # seleziona le interferenze se sono presenti
-    s = text(
-        "SELECT projections_id FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id"
-        "WHERE projections_room =:r AND projections_id<>:p AND projections_date_time >= :s AND "
-        "(projections_date_time + (movies_duration * interval '1 minute'))<= :e")
+    s = text("""SELECT projections_id FROM public.projections
+                JOIN public.movies ON projections.projections_movie = movies.movies_id
+                WHERE projections_room =:r AND projections_id<>:p AND projections_date_time >= :s
+                AND (projections_date_time + (movies_duration * interval '1 minute'))<= :e""")
     rs = conn.execute(s, p=proj, r=room, s=start, e=end)
     ris = rs.fetchone()
     conn.close()
     return ris
 
 
-#check per l'inserimento di una proiezione
+# check per l'inserimento di una proiezione
 def check_time(proj, start, end, room):
     conn = engine.connect()
     # controlla se ci siano altre proiezioni inclusa periodo di tempo tra 'start' e 'end' (= data di inizio e fine della proiezione da inserire)
     # seleziona le interferenze se sono presenti
-    s = text("SELECT projections_id FROM public.projections JOIN public.movies ON projections_movie=movies_id WHERE "
-             "projections_room = :r AND projections_id <>:p AND (:st BETWEEN projections_date_time AND "
-             "projections_date_time + (movies_duration * interval '1 minute') OR :e BETWEEN projections_date_time AND "
-             "projections_date_time + (movies_duration * interval '1 minute'))")
+    s = text("""SELECT projections_id FROM public.projections
+                JOIN public.movies ON projections_movie=movies_id
+                WHERE projections_room = :r AND projections_id <>:p AND
+                (:st BETWEEN projections_date_time AND projections_date_time + (movies_duration * interval '1 minute') OR
+                :e BETWEEN projections_date_time AND projections_date_time + (movies_duration * interval '1 minute'))""")
     rs = conn.execute(s, p=proj, r=room, st=start, e=end)
     ris = rs.fetchone()
     conn.close()
@@ -879,9 +881,10 @@ def show_echarts():
 # grafico a linee: può non essere inserita
 def get_line() -> Line:
     conn = engine.connect()
-    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
-             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
-             "projections_movie = movies_id GROUP BY movies_genre")
+    s = text("""SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum
+                FROM public.tickets
+                LEFT JOIN public.projections on tickets_projection = projections_id
+                LEFT JOIN public.movies on projections_movie = movies_id GROUP BY movies_genre""")
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
@@ -895,15 +898,20 @@ def get_line() -> Line:
 # grafico a barre: seleziona i film in base ai biglietti venduti
 def get_bar() -> Bar:
     conn = engine.connect()
-    s1 = text("SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS summ FROM "
-              "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
-              "projections_movie = movies_id JOIN public.users ON users_id = tickets_user "
-              "WHERE users_gender='M' GROUP BY movies_id, movies_genre")
+    s1 = text("""SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS summ
+                 FROM public.tickets
+                 JOIN public.projections ON tickets_projection = projections_id
+                 JOIN public.movies ON projections_movie = movies_id
+                 JOIN public.users ON users_id = tickets_user 
+                 WHERE users_gender='M' GROUP BY movies_id, movies_genre""")
 
-    s2 = text("SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS sumf FROM "
-              "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
-              "projections_movie = movies_id JOIN public.users ON users_id = tickets_user "
-              "WHERE users_gender='F' GROUP BY movies_id, movies_genre")
+    s2 = text("""SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS sumf
+                 FROM public.tickets
+                 JOIN public.projections ON tickets_projection = projections_id
+                 JOIN public.movies ON projections_movie = movies_id
+                 JOIN public.users ON users_id = tickets_user 
+                 WHERE users_gender='F'
+                 GROUP BY movies_id, movies_genre""")
 
     datas1 = conn.execute(s1).fetchall()
     datas2 = conn.execute(s2).fetchall()
@@ -919,10 +927,12 @@ def get_bar() -> Bar:
 
 def pop_movies() -> Bar:
     conn = engine.connect()
-    s1 = text("SELECT movies_id AS id, movies_title AS title, SUM(tickets_id) AS sold FROM "
-              "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
-              "projections_movie = movies_id JOIN public.users ON users_id = tickets_user "
-              "GROUP BY movies_id, movies_title")
+    s1 = text("""SELECT movies_id AS id, movies_title AS title, SUM(tickets_id) AS sold
+                 FROM public.tickets
+                 JOIN public.projections ON tickets_projection = projections_id
+                 JOIN public.movies ON projections_movie = movies_id
+                 JOIN public.users ON users_id = tickets_user 
+                 GROUP BY movies_id, movies_title""")
 
     datas = conn.execute(s1).fetchall()
     conn.close()
