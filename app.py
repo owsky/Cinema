@@ -149,9 +149,9 @@ def purchase_ticket(title, projection):
 
 # Manager side
 # Update
-@app.route('/update_movie/<title>', methods=['GET', 'POST'])
+@app.route('/edit_movie/<title>', methods=['GET', 'POST'])
 @login_required
-def update_movie(title):
+def edit_movie(title):
     if not current_user.is_manager:
         abort(403)
     m = get_movies(title)
@@ -167,7 +167,7 @@ def update_movie(title):
         conn.execute(s, g=genre, d=duration, s=synopsis, dr=director.directors_id, cod=m.movies_id)
         conn.close()
         return render_template('manager/movie_manager.html')
-    return render_template('manager/update_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
+    return render_template('manager/edit_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
                            dir=get_directors_by_name(None), c=get_actors(title))
 
 
@@ -359,8 +359,14 @@ def delete_movie(title):
     if not current_user.is_manager:
         abort(403)
     conn = engine.connect()
-    s = text("DELETE FROM public.movies WHERE movies_title = :mt")
-    conn.execute(s, mt=title)
+    s = text("""SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id
+                WHERE movies_title = :e1""")
+    rs = conn.execute(s, e1=title)
+    if not rs.fetchall():
+        s = text("DELETE FROM public.movies WHERE movies_title = :mt")
+        conn.execute(s, mt=title)
+    else:
+        flash("You can't delete movies that have been/are being projected")
     conn.close()
     return redirect(url_for('movies_route'))
 
