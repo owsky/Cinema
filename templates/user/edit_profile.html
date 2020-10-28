@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block body %}
+    <form action="{{ url_for('edit_profile') }}" method="POST">
+        <label>
+            <input type="text" name="name" value="{{ current_user.name }}">
+        </label> <br>
+        <label>
+            <input type="text" name="surname" value="{{ current_user.surname }}">
+        </label> <br>
+        <label>
+            <input type="text" name="email" value="{{ current_user.email }}">
+        </label> <br>
+        <input type="submit">
+    </form>
+{% endblock %}
