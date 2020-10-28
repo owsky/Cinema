@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block body %}
+        Choose an actor:
+    <ul>
+        <form action="{{ url_for("add_cast", title=movie.movies_title) }}" method="POST">
+            <select name="actor">
+                {% for a in act %}
+                <option value="{{ a.actors_fullname }}">{{ a.actors_fullname }}</option>
+                {% endfor %}
+            </select><br>
+            <input type="submit">
+        </form>
+    </ul>
+
+{% endblock %}

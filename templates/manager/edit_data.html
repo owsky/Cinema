@@ -20,6 +20,7 @@
         {% for a in act %}
             {{ a }} <a href="{{ url_for('edit_actor', actor_id=a.actors_id) }}">Edit</a><br><br>
         {% endfor %}
+            <a href="{{ url_for('add_actor') }}">Add</a> a new actor
     {% elif dir %}
         {% for d in dir %}
             {{ d }} <a href="{{ url_for('edit_director', director_id=d.directors_id) }}">Edit</a><br><br>
@@ -28,5 +29,6 @@
         {% for r in room %}
             {{ r }} <a href="{{ url_for('edit_room', room_id=r.rooms_id) }}">Edit</a><br><br>
         {% endfor %}
+            <a href="{{ url_for('add_room') }}">Add</a> a new room
     {% endif %}
 {% endblock %}

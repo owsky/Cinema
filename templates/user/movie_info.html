@@ -11,7 +11,7 @@
             {{ c.actors_fullname }}<br>
         {% endfor %}
         {% if current_user.is_manager %}
-        <a href="{{ url_for('add_actor', title=movie.movies_title)}}">Add </a> a new actor <br>
+        <a href="{{ url_for('add_cast', title=movie.movies_title)}}">Add </a> a new actor to this movie<br>
     {% endif %}
         <br>
     </ul>
