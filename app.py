@@ -253,6 +253,9 @@ def add_movie():
         date = request.form['day']
         director = get_directors_by_name(request.form['director'])
 
+        if (get_movies(request.form['title'])):
+            flash("Movie's name already exists, add at the end it's release date in brackets")
+
         # inserisco il film nel DB
         s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
                  "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
@@ -290,15 +293,9 @@ def add_projection(title):
                      "projections_room=:r AND projections_date_time=:t")
             proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
 
-<<<<<<< HEAD
-            # fa un check che non ci siano altri film in proiezione nello stesso orario e nella stessa sala
-            if check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None and \
-                    check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None:
-=======
-        # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
+        # fa un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
             if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) and \
                     not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room):
->>>>>>> 393cb580e083d729f79b7519c01c867ff92c0dd4
                 flash("Projection added successfully")
             else:
                 # orario non disponibile, effettua una delete della proiezione appena inserita
@@ -320,12 +317,7 @@ def add_director():
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-<<<<<<< HEAD
-        #se il regista è già presente ritorna un messaggio
-        if get_directors_by_name(request.form['name']) is not None:
-=======
         if get_directors_by_name(request.form['name']):
->>>>>>> 393cb580e083d729f79b7519c01c867ff92c0dd4
             flash("Director has already been added")
 
         #altrimenti il regista viene inserito nel database
@@ -447,12 +439,8 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
-<<<<<<< HEAD
 # (Manager) elimina una proiezione
-@app.route('/<title>/delete_projection/<int:id>')
-=======
 @app.route('/<title>/delete_projection/<proj_id>')
->>>>>>> 393cb580e083d729f79b7519c01c867ff92c0dd4
 @login_required
 def delete_projection(title, proj_id):
     if not current_user.is_manager:
