@@ -403,8 +403,8 @@ def delete_movie(title):
     if not current_user.is_manager:
         abort(403)
     conn = engine.connect()
-    s = text("SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id"
-             "WHERE movies_title = :e1")
+    s = text("""SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id
+                WHERE movies_title = :e1""")
     rs = conn.execute(s, e1=title)
     if not rs.fetchall():
         s = text("DELETE FROM public.movies WHERE movies_title = :mt")
@@ -700,17 +700,22 @@ def get_last_movies():
 def get_projections(mov):
     conn = engine.connect()
     if mov:
-        s = text("SELECT * FROM public.projections JOIN public.movies ON projections_movie = movies_id JOIN "
-                 "public.cast ON movies_id = cast_movie JOIN public.actors ON cast_actor = actors_id JOIN "
-                 "public.directors ON movies_director = directors_id JOIN public.rooms ON projections_room = rooms_id "
-                 "WHERE movies_title = :e1 AND projections_date_time >= current_date")
+        s = text("""SELECT projections_id, projections_date_time, projections_price, movies_title, movies_genre, movies_synopsis, movies_duration, directors_name, rooms_name,
+                        (SELECT string_agg(actors_fullname::text, ', ') AS actors
+                         FROM public.actors
+                         JOIN public.cast ON cast_actor=actors_id
+                         JOIN public.movies ON cast_movie=movies_id
+                         WHERE movies_title=:e1)
+                    FROM public.projections
+                    JOIN public.movies ON projections_movie = movies_id
+                    JOIN public.directors ON movies_director = directors_id
+                    JOIN public.rooms ON projections_room = rooms_id 
+                    WHERE movies_title = :e1 AND projections_date_time >= current_date""")
         rs = conn.execute(s, e1=mov)
     else:
         s = text("""SELECT movies_title, projections_date_time, projections_price, projections_id, rooms_name
                     FROM public.projections
                     JOIN public.movies ON projections_movie = movies_id
-                    JOIN public.cast ON movies_id = cast_movie
-                    JOIN public.actors ON cast_actor = actors_id
                     JOIN public.directors ON movies_director = directors_id
                     JOIN public.rooms ON projections_room = rooms_id
                     WHERE projections_date_time >= current_date
