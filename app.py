@@ -64,18 +64,13 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if not request.form['name'] or not request.form['surname'] or not request.form['email'] \
-                or not request.form['pwd']:
-            flash("Missing information")
         if user_by_email(request.form['email']):
             flash("There's already an account set up to use this email address")
         else:
             conn = engine.connect()
-            ins = users.insert()
-            conn.execute(ins, [
-                {"users_name": request.form['name'], "users_surname": request.form['surname'],
-                 "users_email": request.form['email'], "users_pwd": request.form['pwd'], "users_is_manager": False}
-            ])
+            s = text("""INSERT INTO public.users(users_name, users_surname, users_email, users_pwd, users_gender, users_is_manager)
+                        VALUES (:e1, :e2, :e3, :e4, :e5, False)""")
+            conn.execute(s, e1=request.form['name'], e2=request.form['surname'], e3=request.form['email'], e4=request.form['pwd'], e5=request.form['gender'])
             conn.close()
             return redirect(url_for('home'))
     return render_template("user/signup.html")

@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block body %}
-    <form action="/signup" method="POST">
+    <form action="{{ url_for('signup') }}" method="POST">
         Insert your email to sign up !<br><br>
-        <input name="name" type="text" placeholder="NAME" pattern="^[A-Z][a-zA-Z\s]*[a-z]$" required><br>
-        <input name="surname" type="text" placeholder="SURNAME" pattern="^[A-Z][a-zA-Z\s]*[a-z]$" required><br>
+        <input name="name" type="text" placeholder="NAME" required><br>
+        <input name="surname" type="text" placeholder="SURNAME" required><br>
         <input name="email" type="text" placeholder="EMAIL" pattern="[A-z0-9\.\+_-]+@[A-z0-9\._-]+\.[A-z]{2,6}" required> <br>
-        <input name="pwd" type="password" placeholder="PASSWORD" pattern="([a-zA-Z0-9_.,\-+*!#@?]{6,25})" required oninvalid="this.setCustomValidity('password must be more than 6 and less than 25 characters')"><br>
+        <input name="pwd" type="password" placeholder="PASSWORD" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}" required oninvalid="this.setCustomValidity('password must be more than 6 and less than 25 characters with at least 1 number and 1 special character')"><br>
+        <select name="gender">
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="U">Other</option>
+        </select><br>
         <input type="submit">
     </form>
 {% endblock %}
