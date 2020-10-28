@@ -1,5 +1,6 @@
 from flask_login import current_user
 from sqlalchemy import text
+
 from app import engine
 from classes import InsufficientBalanceException, Projection, User
 

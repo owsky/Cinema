@@ -1,6 +1,7 @@
-from pyecharts.charts import Bar, Pie, Line
 from pyecharts import options as opts
+from pyecharts.charts import Bar, Pie, Line
 from sqlalchemy import text
+
 from app import engine
 
 
