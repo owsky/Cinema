@@ -2,6 +2,7 @@ from unittest import TestCase
 
 import simplejson as json
 
+
 class TestDefault(TestCase):
     def test_default(self):
         self.assertEqual(

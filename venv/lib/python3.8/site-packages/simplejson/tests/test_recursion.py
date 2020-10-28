@@ -2,6 +2,7 @@ from unittest import TestCase
 
 import simplejson as json
 
+
 class JSONTestObject:
     pass
 

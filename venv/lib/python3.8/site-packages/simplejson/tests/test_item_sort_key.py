@@ -1,7 +1,8 @@
+from operator import itemgetter
 from unittest import TestCase
 
 import simplejson as json
-from operator import itemgetter
+
 
 class TestItemSortKey(TestCase):
     def test_simple_first(self):

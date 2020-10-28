@@ -11,8 +11,11 @@ Usage::
 
 """
 from __future__ import with_statement
+
 import sys
+
 import simplejson as json
+
 
 def main():
     if len(sys.argv) == 1:
