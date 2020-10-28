@@ -227,7 +227,8 @@ def add_projection(title):
         proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
 
         # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
-        if check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None:
+        if check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None and \
+                check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) is None:
             flash("Projection added successfully")
         else:
             flash("Time not available")
@@ -417,6 +418,17 @@ def get_rooms_by_id(cod):
         rid = rs.fetchall()
     conn.close()
     return rid
+
+
+def check_time2(proj,start, end, room):
+    conn = engine.connect()
+    s = text("SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id"
+             "WHERE projections_room =:r AND projections_id<>:p AND projections_date_time >= :s AND "
+             "(projections_date_time + (movies_duration * interval '1 minute'))<= :e")
+    rs = conn.execute(s, p=proj, r=room, s=start, e=end)
+    ris = rs.fetchone()
+    conn.close()
+    return ris
 
 
 def check_time(proj, start, end, room):
