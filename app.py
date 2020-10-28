@@ -171,6 +171,41 @@ def edit_movie(title):
                            dir=get_directors_by_name(None), c=get_actors(title))
 
 
+@app.route('/edit_data', methods=['GET', 'POST'])
+@login_required
+def edit_data():
+    if not current_user.is_manager:
+        abort(403)
+    if request.method == 'POST':
+        if request.form['edit_obj'] == 'movies':
+            return render_template('manager/edit_data.html', mov=get_movies(None))
+        elif request.form['edit_obj'] == 'actors':
+            return render_template('manager/edit_data.html', act=get_actors(None))
+        elif request.form['edit_obj'] == 'directors':
+            return render_template('manager/edit_data.html', dir=get_directors())
+        else:
+            return render_template('manager/edit_data.html', room=get_rooms())
+    return render_template('manager/edit_data.html')
+
+
+def get_directors():
+    conn = engine.connect()
+    s = text("SELECT * FROM public.directors")
+    rs = conn.execute(s)
+    dire = rs.fetchall()
+    conn.close()
+    return dire
+
+
+def get_rooms():
+    conn = engine.connect()
+    s = text("SELECT * FROM public.rooms")
+    rs = conn.execute(s)
+    dire = rs.fetchall()
+    conn.close()
+    return dire
+
+
 # (Manager) aggiungere un film
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
@@ -260,6 +295,21 @@ def add_director():
     return render_template("manager/add_director.html")
 
 
+@app.route('/edit_director/<director_id>', methods=['GET', 'POST'])
+@login_required
+def edit_director(director_id):
+    if not current_user.is_manager:
+        abort(403)
+    if request.method == 'POST':
+        if request.form['name']:
+            conn = engine.connect()
+            s = text("UPDATE public.directors SET directors_name = :e1 WHERE directors_id = :e2")
+            conn.execute(s, e1=request.form['name'], e2=director_id)
+            conn.close()
+            flash("Done!")
+    return render_template('manager/edit_director.html', dir=get_directors_by_id(director_id))
+
+
 # (Manager) connettere un attore a un film
 @app.route('/<title>/add_actor', methods=['GET', 'POST'])
 @login_required
@@ -271,14 +321,14 @@ def add_actor(title):
         conn = engine.connect()
         actor = request.form['actor']
         # aggiungo l'attore se non c'era già nel DB
-        if get_actors_by_name(actor) is None:
+        if not get_actor_by_name(actor):
             addact = text("INSERT INTO actors(actors_fullname) VALUES (:a)")
             conn.execute(addact, a=actor)
-        a = get_actors_by_name(actor)
+        a = get_actor_by_name(actor)
         # connetto gli attori al film corrispondente inserendoli nel cast
-        if check_cast(m.movies_id, a.actors_id) is None:
+        if not check_cast(m.movies_id, a.actors_id):
             addcast = text("INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)")
-            conn.execute(addcast, m=m.movies_id, a=get_actors_by_name(actor).actors_id)
+            conn.execute(addcast, m=m.movies_id, a=get_actor_by_name(actor).actors_id)
             flash("Actor added successfully!")
         else:
             flash("Actor has already been added!")
@@ -287,69 +337,21 @@ def add_actor(title):
     return render_template('manager/add_actor.html', movie_to_update=m)
 
 
-# statistiche
-@app.route('/show_echarts')
+@app.route('/edit_actor/<actor_id>', methods=['GET', 'POST'])
 @login_required
-def show_echarts():
+def edit_actor(actor_id):
     if not current_user.is_manager:
         abort(403)
-    bar = get_bar()
-    pie = get_pie()
-    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
-
-
-# grafico a linee: può non essere inserita
-def get_line() -> Line:
-    conn = engine.connect()
-    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
-             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
-             "projections_movie = movies_id GROUP BY movies_genre")
-    datas = conn.execute(s).fetchall()
-    conn.close()
-    c = (
-        Line().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity",
-                                                                      [data['sum'] for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genre"))
-    )
-    return c
-
-
-# grafico a barre: seleziona i film in base ai biglietti venduti
-def get_bar() -> Bar:
-    conn = engine.connect()
-    s = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
-             "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
-             "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='M' "
-             "GROUP BY movies_id, movies_title")
-
-    s1 = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
-              "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
-              "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='F' "
-              "GROUP BY movies_id, movies_title")
-
-    datas = conn.execute(s).fetchall()
-    conn.close()
-    c = (
-        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity",
-                                                                  [data['sum'] for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Movies"))
-    )
-    return c
-
-
-# grafico a cerchio: seleziona i generi più preferiti dalle persone
-def get_pie() -> Pie:
-    conn = engine.connect()
-    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
-             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
-             "projections_movie = movies_id GROUP BY movies_genre")
-    datas = conn.execute(s).fetchall()
-    conn.close()
-    c = (
-        Pie().add("", [(data['genre'], data['sum']) for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
-    )
-    return c
+    if request.method == 'POST':
+        if request.form['name']:
+            conn = engine.connect()
+            s = text("""UPDATE public.actors
+                        SET actors_fullname = :e1
+                        WHERE actors_id = :e2""")
+            conn.execute(s, e1=request.form['name'], e2=actor_id)
+            conn.close()
+            flash("Done!")
+    return render_template('manager/edit_actor.html', act=get_actor_by_id(actor_id))
 
 
 # Delete
@@ -386,11 +388,76 @@ def delete_projection(title, id):
                            cast=get_actors(title))
 
 
+def get_seat_by_name(room_id, seat_name):
+    conn = engine.connect()
+    s = text("""SELECT * FROM public.seats JOIN public.rooms ON seats.seats_room = rooms.rooms_id
+                WHERE rooms_id = :e1 AND seats_name = :e2 """)
+    rs = conn.execute(s, e1=room_id, e2=seat_name)
+    se = rs.fetchone()
+    conn.close()
+    return se
+
+
+@app.route('/edit_room/<room_id>', methods=['GET', 'POST'])
+@login_required
+def edit_room(room_id):
+    if not current_user.is_manager:
+        abort(403)
+    if request.method == 'POST':
+        conn = engine.connect()
+        s = text("INSERT INTO public.seats(seats_name, seats_room) VALUES (:e1, :e2)")
+        conn.execute(s, e1=request.form['seat_name'], e2=room_id)
+        conn.close()
+    conn = engine.connect()
+    s = text("SELECT * FROM public.seats WHERE seats_room = :e1")
+    rs = conn.execute(s, e1=room_id)
+    se = rs.fetchall()
+    conn.close()
+    return render_template('manager/edit_room.html', seats=se, room_id=room_id)
+
+
+@app.route('/remove_seat/<seat_id>/<room_id>')
+@login_required
+def remove_seat(seat_id, room_id):
+    if not current_user.is_manager:
+        abort(403)
+    conn = engine.connect()
+    s = text("DELETE FROM public.seats WHERE seats_id = :e1")
+    conn.execute(s, e1=seat_id)
+    conn.close()
+    return redirect(url_for('edit_room', room_id=room_id))
+
+
+@app.route('/add_seat/<room_id>', methods=['GET', 'POST'])
+@login_required
+def add_seat(room_id):
+    if not current_user.is_manager:
+        abort(403)
+    if request.method == 'POST':
+        conn = engine.connect()
+        s = text("INSERT INTO public.seats VALUES (:e1, :e2)")
+        if request.form['name']:
+            li = list(request.form['name'].strip().split(","))
+            for n in li:
+                conn.execute(s, e1=n, e2=room_id)
+            flash("Success")
+    return render_template('manager/add_seat.html', room=room_id)
+
+
 # Functions
-def get_actors_by_name(name):
+def get_actor_by_name(name):
     conn = engine.connect()
     s = text("SELECT * FROM actors WHERE actors_fullname = :n")
     rs = conn.execute(s, n=name)
+    act = rs.fetchone()
+    conn.close()
+    return act
+
+
+def get_actor_by_id(aid):
+    conn = engine.connect()
+    s = text("SELECT * FROM public.actors WHERE actors_id = :e")
+    rs = conn.execute(s, e=aid)
     act = rs.fetchone()
     conn.close()
     return act
@@ -504,12 +571,16 @@ def get_movies(mov):
 
 def get_actors(mov):
     conn = engine.connect()
-    s = text("""SELECT actors_fullname FROM movies
-                JOIN directors ON movies.movies_director = directors.directors_id
-                JOIN public.cast ON movies_id = public.cast.cast_movie
-                JOIN actors ON cast_actor = actors_id
-                WHERE movies_title = :e1""")
-    rs = conn.execute(s, e1=mov)
+    if mov:
+        s = text("""SELECT actors_fullname FROM movies
+                    JOIN directors ON movies.movies_director = directors.directors_id
+                    JOIN public.cast ON movies_id = public.cast.cast_movie
+                    JOIN actors ON cast_actor = actors_id
+                    WHERE movies_title = :e1""")
+        rs = conn.execute(s, e1=mov)
+    else:
+        s = text("SELECT * FROM actors ORDER BY actors_id")
+        rs = conn.execute(s)
     act = rs.fetchall()
     conn.close()
     return act
@@ -600,7 +671,6 @@ def purchase(proj_id, selected_seats):
         total = balance.users_balance - (tprice.projections_price * len(selected_seats))
         if total < 0:
             raise InsufficientBalanceException(balance.users_balance)
-            return
         for x in selected_seats:
             s = text(
                 "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
@@ -648,6 +718,71 @@ def get_orders(uid):
     rs = conn.execute(s, e1=uid)
     orders = rs.fetchall()
     return orders
+
+
+# statistiche
+@app.route('/show_echarts')
+@login_required
+def show_echarts():
+    if not current_user.is_manager:
+        abort(403)
+    bar = get_bar()
+    pie = get_pie()
+    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
+
+
+# grafico a linee: può non essere inserita
+def get_line() -> Line:
+    conn = engine.connect()
+    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
+             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
+             "projections_movie = movies_id GROUP BY movies_genre")
+    datas = conn.execute(s).fetchall()
+    conn.close()
+    c = (
+        Line().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity",
+                                                                      [data['sum'] for data in datas]).set_global_opts(
+            title_opts=opts.TitleOpts(title="Genre"))
+    )
+    return c
+
+
+# grafico a barre: seleziona i film in base ai biglietti venduti
+def get_bar() -> Bar:
+    conn = engine.connect()
+    s = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
+             "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
+             "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='M' "
+             "GROUP BY movies_id, movies_title")
+
+    s1 = text("SELECT movies_id AS id, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sumM FROM "
+              "public.tickets JOIN public.projections ON tickets_projection = projections_id JOIN public.movies ON "
+              "projections_movie = movies_id JOIN public.users ON users_id = tickets_user AND users_sex='F' "
+              "GROUP BY movies_id, movies_title")
+
+    datas = conn.execute(s).fetchall()
+    conn.close()
+    c = (
+        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity",
+                                                                  [data['sum'] for data in datas]).set_global_opts(
+            title_opts=opts.TitleOpts(title="Movies"))
+    )
+    return c
+
+
+# grafico a cerchio: seleziona i generi più preferiti dalle persone
+def get_pie() -> Pie:
+    conn = engine.connect()
+    s = text("SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum FROM "
+             "tickets LEFT JOIN projections on tickets_projection = projections_id LEFT JOIN movies on "
+             "projections_movie = movies_id GROUP BY movies_genre")
+    datas = conn.execute(s).fetchall()
+    conn.close()
+    c = (
+        Pie().add("", [(data['genre'], data['sum']) for data in datas]).set_global_opts(
+            title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+    )
+    return c
 
 
 if __name__ == '__main__':
