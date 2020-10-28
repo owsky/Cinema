@@ -293,11 +293,7 @@ def add_projection(title):
                      "projections_room=:r AND projections_date_time=:t")
             proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
 
-<<<<<<< HEAD
         # fa un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
-=======
-        # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
->>>>>>> af23f72219a440457fed4dff30f3a4d733eefd78
             if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) and \
                     not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room):
                 flash("Projection added successfully")
@@ -443,10 +439,7 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
-<<<<<<< HEAD
 # (Manager) elimina una proiezione
-=======
->>>>>>> af23f72219a440457fed4dff30f3a4d733eefd78
 @app.route('/<title>/delete_projection/<proj_id>')
 @login_required
 def delete_projection(title, proj_id):
