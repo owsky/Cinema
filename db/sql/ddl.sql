@@ -7,8 +7,8 @@ SET row_security = off;
 
 CREATE SCHEMA IF NOT EXISTS public;
 
-CREATE TYPE public.genre AS ENUM ('Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Fantasy', 'Historical', 'Horror',
-                           'Romance', 'Sci-Fi', 'Thriller');
+CREATE TYPE public.genre AS ENUM ('Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Fantasy', 'Historical',
+                                  'Horror', 'Romance', 'Sci-Fi', 'Thriller');
 
 CREATE TYPE public.gender AS ENUM ('F', 'M', 'U');
 
@@ -22,7 +22,6 @@ CREATE TABLE public.users (
     users_balance Numeric(12,2) DEFAULT 0 CHECK ( users_balance>=0 ),
     users_is_manager boolean NOT NULL
 );
-
 
 CREATE TABLE public.rooms (
     rooms_id serial PRIMARY KEY,
@@ -59,8 +58,6 @@ CREATE TABLE public.projections (
     CONSTRAINT projections_movie_fkey
         FOREIGN KEY(projections_movie)
         REFERENCES public.movies(movies_id)
-        ON UPDATE CASCADE
-        ON DELETE CASCADE
 );
 
 CREATE TABLE public.seats (
@@ -111,7 +108,6 @@ CREATE TABLE public.cast (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
-
 
 CREATE VIEW public.sumtickets AS
     SELECT SUM(tickets_id) AS sum_tickets
