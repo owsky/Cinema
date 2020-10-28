@@ -3,7 +3,7 @@
         Insert the actor's name:
     <ul>
         <form action="{{ url_for("add_actor", title=movie_to_update.movies_title) }}" method="POST">
-        <input name="actor" type="text" placeholder="FULLNAME" pattern="[a-zA-Z][a-zA-Z\s]*[a-z]$" requered><br>
+        <input name="actor" type="text" placeholder="FULLNAME" pattern="[A-Z][a-zA-Z\s]*[a-z]$" requered><br>
             <input type="submit">
         </form>
     </ul>

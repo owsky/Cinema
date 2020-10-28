@@ -2,8 +2,12 @@
 {% block body %}
     <form action="/signup" method="POST">
         Insert your email to sign up !<br><br>
-        <input name="name" type="text" placeholder="NAME" pattern="^[A-Z][a-zA-Z\s]*[a-z]$" required><br>
-        <input name="surname" type="text" placeholder="SURNAME" pattern="^[A-Z][a-zA-Z\s]*[a-z]$" required><br>
+        <input name="name" type="text" placeholder="NAME" pattern="[a-zA-Z\s]*" required><br>
+        <input name="surname" type="text" placeholder="SURNAME" pattern="[a-zA-Z\s]*" required><br>
+        <select name="gender">
+            <option value="{{ gen[0].gender }}">{{ gen[0].gender }}</option>
+            <option value="{{ gen[1].gender }}">{{ gen[1].gender }}</option>
+        </select><br>
         <input name="email" type="text" placeholder="EMAIL" pattern="[A-z0-9\.\+_-]+@[A-z0-9\._-]+\.[A-z]{2,6}" required> <br>
         <input name="pwd" type="password" placeholder="PASSWORD" pattern="([a-zA-Z0-9_.,\-+*!#@?]{6,25})" required oninvalid="this.setCustomValidity('password must be more than 6 and less than 25 characters')"><br>
         <input type="submit">
