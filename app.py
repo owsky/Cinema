@@ -1,45 +1,19 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
-from pyecharts.charts import Bar, Pie, Line
-from pyecharts import options as opts
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, \
-    AnonymousUserMixin
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text, create_engine
-from datetime import *
 import secrets
+from classes import User, Anonymous, InsufficientBalanceException
+from functions import get_last_movies, user_by_email, get_gender, get_orders, get_projections, get_movies, get_actors, \
+    format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
+    get_rooms, get_rooms_by_name, check_time, check_time2, get_rooms_by_id, get_actor_by_name, check_cast, \
+    get_actor_by_id, get_seat_by_name
+from stats import get_bar, get_pie
 
 app = Flask(__name__)
-engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
-
-
-# Login Manager
-class User(UserMixin):
-    def __init__(self, user_id, email, name, surname, pwd, is_manager, balance):
-        self.id = user_id
-        self.email = email
-        self.name = name
-        self.surname = surname
-        self.pwd = pwd
-        self.is_manager = is_manager
-        self.balance = balance
-
-
-class Anonymous(AnonymousUserMixin):
-    def __init__(self):
-        self.name = None
-        self.is_manager = False
-
-
-class Projection:
-    def __init__(self, proj_id, date, time, room, price, tickets_left):
-        self.id = proj_id
-        self.date = date
-        self.time = time
-        self.room = room
-        self.price = price
-        self.tickets_left = tickets_left
-
-
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
+engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.anonymous_user = Anonymous
@@ -52,11 +26,9 @@ def load_user(user_id):
     rs = conn.execute(s, e1=user_id)
     u = rs.fetchone()
     conn.close()
-    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager,
-                u.users_balance)
+    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager, u.users_balance)
 
 
-# App routes
 # User side
 @app.route('/')
 def home():
@@ -72,7 +44,8 @@ def signup():
             conn = engine.connect()
             s = text("""INSERT INTO public.users(users_name, users_surname, users_email, users_pwd, users_gender, users_is_manager)
                         VALUES (:e1, :e2, :e3, :e4, :e5, False)""")
-            conn.execute(s, e1=request.form['name'], e2=request.form['surname'], e3=request.form['email'], e4=request.form['pwd'], e5=request.form['gender'])
+            conn.execute(s, e1=request.form['name'], e2=request.form['surname'], e3=request.form['email'],
+                         e4=request.form['pwd'], e5=request.form['gender'])
             conn.close()
             flash("Signed up successfully")
             return redirect(url_for('home'))
@@ -220,24 +193,6 @@ def edit_data():
     return render_template('manager/edit_data.html')
 
 
-def get_directors():
-    conn = engine.connect()
-    s = text("SELECT * FROM public.directors")
-    rs = conn.execute(s)
-    dire = rs.fetchall()
-    conn.close()
-    return dire
-
-
-def get_rooms():
-    conn = engine.connect()
-    s = text("SELECT * FROM public.rooms")
-    rs = conn.execute(s)
-    dire = rs.fetchall()
-    conn.close()
-    return dire
-
-
 # (Manager) aggiunge un film
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
@@ -250,16 +205,16 @@ def add_movie():
         genre = request.form['genre']
         duration = request.form['duration']
         synopsis = request.form['synopsis']
-        date = request.form['day']
+        rel_date = request.form['day']
         director = get_directors_by_name(request.form['director'])
 
-        if (get_movies(request.form['title'])):
+        if get_movies(request.form['title']):
             flash("Movie's name already exists, add at the end it's release date in brackets")
 
         # inserisco il film nel DB
         s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
                  "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
-        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=date, dr=director.directors_id)
+        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=rel_date, dr=director.directors_id)
         conn.close()
         flash("Movie added successfully!")
         return redirect(url_for('movies_route'))
@@ -277,10 +232,10 @@ def add_projection(title):
         mov = get_movies(title)
         room = get_rooms_by_name(request.form['room'])
 
-        if (request.form['date_time']<=datetime.now()):
+        if request.form['date_time'] <= datetime.now():
             flash("Can not add a projection in the past")
         else:
-        # inserisce la nuova proiezione
+            # inserisce la nuova proiezione
             s1 = text("INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
                       "projections_price) VALUES (:m,:t,:r,:p)")
             conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id, p=request.form['price'])
@@ -293,11 +248,7 @@ def add_projection(title):
                      "projections_room=:r AND projections_date_time=:t")
             proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
 
-<<<<<<< HEAD
-        # fa un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
-=======
-        # faccio un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
->>>>>>> af23f72219a440457fed4dff30f3a4d733eefd78
+            # fa un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
             if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) and \
                     not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room):
                 flash("Projection added successfully")
@@ -324,7 +275,7 @@ def add_director():
         if get_directors_by_name(request.form['name']):
             flash("Director has already been added")
 
-        #altrimenti il regista viene inserito nel database
+        # altrimenti il regista viene inserito nel database
         else:
             conn = engine.connect()
             name = request.form['name']
@@ -443,10 +394,7 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
-<<<<<<< HEAD
 # (Manager) elimina una proiezione
-=======
->>>>>>> af23f72219a440457fed4dff30f3a4d733eefd78
 @app.route('/<title>/delete_projection/<proj_id>')
 @login_required
 def delete_projection(title, proj_id):
@@ -482,16 +430,6 @@ def delete_projection2(proj_id):
     flash("Projection deleted successfully!")
     conn.close()
     return redirect(url_for('edit_data'))
-
-
-def get_seat_by_name(room_id, seat_name):
-    conn = engine.connect()
-    s = text("""SELECT * FROM public.seats JOIN public.rooms ON seats.seats_room = rooms.rooms_id
-                WHERE rooms_id = :e1 AND seats_name = :e2 """)
-    rs = conn.execute(s, e1=room_id, e2=seat_name)
-    se = rs.fetchone()
-    conn.close()
-    return se
 
 
 @app.route('/edit_room/<room_id>', methods=['GET', 'POST'])
@@ -556,326 +494,11 @@ def add_room():
         # altrimenti procede con l'inserimento
         else:
             conn = engine.connect()
-            s = text ("INSERT INTO public.rooms(rooms_name, rooms_capacity) VALUES (:n, :c)")
+            s = text("INSERT INTO public.rooms(rooms_name, rooms_capacity) VALUES (:n, :c)")
             conn.execute(s, n=request.form['name'].strip(), c=request.form['capacity'])
             flash("Success")
             conn.close()
     return render_template('manager/add_room.html')
-
-
-# selezione degli attori (dal nome)
-def get_actor_by_name(name):
-    # se non viene specificato il valore name, ritorna tutta la lista 'actors' con tutti i suoi attributi
-    if name is None:
-        conn = engine.connect()
-        s1 = text("SELECT * FROM actors")
-        rs = conn.execute(s1)
-        act = rs.fetchall()
-    # altrimenti ritorna la riga della tabella 'actors' che soddisfa la condizione 'actors_fullname' = name
-    else:
-        conn = engine.connect()
-        s = text("SELECT * FROM actors WHERE actors_fullname = :n")
-        rs = conn.execute(s, n=name)
-        act = rs.fetchone()
-    conn.close()
-    return act
-
-# selezione degli attori (dall'id)
-def get_actor_by_id(aid):
-    #ritorna la riga della tabella actors che soddisfa la condizione 'actors_id' = aid
-    conn = engine.connect()
-    s = text("SELECT * FROM public.actors WHERE actors_id = :e")
-    rs = conn.execute(s, e=aid)
-    act = rs.fetchone()
-    conn.close()
-    return act
-
-
-# selezione della sala (dal nome)
-def get_rooms_by_name(name):
-    conn = engine.connect()
-    # seleziona la riga della tabella rooms che soddisfa la condizione 'rooms_name' = name
-    if name:
-        s = text("SELECT * FROM rooms WHERE rooms_name = :n")
-        rs = conn.execute(s, n=name)
-        rid = rs.fetchone()
-    # se non viene specificato il valore name, ritorna tutta la lista 'rooms' con tutti i suoi attributi
-    else:
-        s = text("SELECT * FROM rooms")
-        rs = conn.execute(s)
-        rid = rs.fetchall()
-    conn.close()
-    return rid
-
-# selezione della sala (dall'id)
-def get_rooms_by_id(cod):
-    conn = engine.connect()
-    # seleziona la riga della tabella rooms che soddisfa la condizione 'rooms_id' = cod
-    if cod:
-        s = text("SELECT * FROM rooms WHERE rooms_id = :c")
-        rs = conn.execute(s, c=cod)
-        rid = rs.fetchone()
-    # se non viene specificato il valore name, ritorna tutta la lista 'rooms' con tutti i suoi attributi
-    else:
-        s = text("SELECT * FROM rooms")
-        rs = conn.execute(s)
-        rid = rs.fetchall()
-    conn.close()
-    return rid
-
-
-# check per l'inserimento di una proiezione
-def check_time2(proj, start, end, room):
-    conn = engine.connect()
-    # controlla che l'orario 'start' e 'end' non siano in interferenza con altre proiezioni
-    # seleziona le interferenze se sono presenti
-    s = text("""SELECT projections_id FROM public.projections
-                JOIN public.movies ON projections.projections_movie = movies.movies_id
-                WHERE projections_room =:r AND projections_id<>:p AND projections_date_time >= :s
-                AND (projections_date_time + (movies_duration * interval '1 minute'))<= :e""")
-    rs = conn.execute(s, p=proj, r=room, s=start, e=end)
-    ris = rs.fetchone()
-    conn.close()
-    return ris
-
-
-# check per l'inserimento di una proiezione
-def check_time(proj, start, end, room):
-    conn = engine.connect()
-    # controlla se ci siano altre proiezioni inclusa periodo di tempo tra 'start' e 'end' (= data di inizio e fine della proiezione da inserire)
-    # seleziona le interferenze se sono presenti
-    s = text("""SELECT projections_id FROM public.projections
-                JOIN public.movies ON projections_movie=movies_id
-                WHERE projections_room = :r AND projections_id <>:p AND
-                (:st BETWEEN projections_date_time AND projections_date_time + (movies_duration * interval '1 minute') OR
-                :e BETWEEN projections_date_time AND projections_date_time + (movies_duration * interval '1 minute'))""")
-    rs = conn.execute(s, p=proj, r=room, st=start, e=end)
-    ris = rs.fetchone()
-    conn.close()
-    return ris
-
-
-def check_cast(movid, actid):
-    conn = engine.connect()
-    s = text("SELECT * FROM public.cast WHERE cast_actor=:a AND cast_movie=:m")
-    rs = conn.execute(s, a=actid, m=movid)
-    check = rs.fetchone()
-    conn.close()
-    return check
-
-
-def get_directors_by_id(cod):
-    conn = engine.connect()
-    if cod:
-        s = text("SELECT * FROM directors WHERE directors_id = :c")
-        rs = conn.execute(s, c=cod)
-        did = rs.fetchone()
-    else:
-        s = text("SELECT * FROM directors")
-        rs = conn.execute(s)
-        did = rs.fetchall()
-    conn.close()
-    return did
-
-
-def get_directors_by_name(name):
-    conn = engine.connect()
-    if name:
-        s = text("SELECT * FROM directors WHERE directors_name = :n")
-        rs = conn.execute(s, n=name)
-        did = rs.fetchone()
-    else:
-        s = text("SELECT * FROM directors")
-        rs = conn.execute(s)
-        did = rs.fetchall()
-    conn.close()
-    return did
-
-
-# Functions
-def user_by_email(user_email):
-    conn = engine.connect()
-    s = text("SELECT * FROM public.users WHERE users_email = :e1")
-    rs = conn.execute(s, e1=user_email)
-    u = rs.fetchone()
-    conn.close()
-    if u:
-        return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager,
-                    u.users_balance)
-    else:
-        return None
-
-
-def get_movies(mov):
-    conn = engine.connect()
-    if mov:
-        s = text("""SELECT * FROM movies
-                    JOIN directors ON movies.movies_director = directors.directors_id
-                    WHERE movies_title = :e1""")
-        rs = conn.execute(s, e1=mov)
-        films = rs.fetchone()
-    else:
-        s = text("SELECT * FROM movies JOIN directors ON movies_director = directors_id")
-        rs = conn.execute(s)
-        films = rs.fetchall()
-    conn.close()
-    return films
-
-
-def get_actors(mov):
-    conn = engine.connect()
-    if mov:
-        s = text("""SELECT actors_fullname FROM movies
-                    JOIN directors ON movies.movies_director = directors.directors_id
-                    JOIN public.cast ON movies_id = public.cast.cast_movie
-                    JOIN actors ON cast_actor = actors_id
-                    WHERE movies_title = :e1""")
-        rs = conn.execute(s, e1=mov)
-    else:
-        s = text("SELECT * FROM actors ORDER BY actors_id")
-        rs = conn.execute(s)
-    act = rs.fetchall()
-    conn.close()
-    return act
-
-
-def get_last_movies():
-    conn = engine.connect()
-    s = text("SELECT * FROM movies JOIN directors ON movies_director = directors_id ORDER BY movies_id DESC LIMIT 5")
-    rs = conn.execute(s)
-    films = rs.fetchall()
-    conn.close()
-    return films
-
-
-def get_projections(mov):
-    conn = engine.connect()
-    if mov:
-        s = text("""SELECT projections_id, projections_date_time, projections_price, movies_title, movies_genre, movies_synopsis, movies_duration, directors_name, rooms_name,
-                        (SELECT string_agg(actors_fullname::text, ', ') AS actors
-                         FROM public.actors
-                         JOIN public.cast ON cast_actor=actors_id
-                         JOIN public.movies ON cast_movie=movies_id
-                         WHERE movies_title=:e1)
-                    FROM public.projections
-                    JOIN public.movies ON projections_movie = movies_id
-                    JOIN public.directors ON movies_director = directors_id
-                    JOIN public.rooms ON projections_room = rooms_id 
-                    WHERE movies_title = :e1 AND projections_date_time >= current_date""")
-        rs = conn.execute(s, e1=mov)
-    else:
-        s = text("""SELECT movies_title, projections_date_time, projections_price, projections_id, rooms_name
-                    FROM public.projections
-                    JOIN public.movies ON projections_movie = movies_id
-                    JOIN public.directors ON movies_director = directors_id
-                    JOIN public.rooms ON projections_room = rooms_id
-                    WHERE projections_date_time >= current_date
-                    ORDER BY projections_date_time, movies_title, rooms_name""")
-        rs = conn.execute(s)
-    proj = rs.fetchall()
-    conn.close()
-    return proj
-
-
-def how_many_seats_left(proj_id):
-    conn = engine.connect()
-    s = text("""SELECT COUNT(seats_id) as s
-                     FROM seats
-                     WHERE seats_id NOT IN (
-                        SELECT seats_id
-                        FROM public.projections
-                        JOIN public.tickets ON tickets_projection = projections_id
-                        JOIN public.seats ON tickets_seat = seats_id
-                        WHERE projections_id = :e1)""")
-    rs = conn.execute(s, e1=proj_id)
-    f = rs.fetchone()
-    return f.s
-
-
-def free_seats(proj_id):
-    conn = engine.connect()
-    s = text("""SELECT *
-                 FROM seats
-                 WHERE seats_id NOT IN (
-                    SELECT seats_id
-                    FROM public.projections
-                    JOIN public.tickets ON tickets_projection = projections_id
-                    JOIN public.seats ON tickets_seat = seats_id
-                    WHERE projections_id = :e1)""")
-    rs = conn.execute(s, e1=proj_id)
-    f = rs.fetchall()
-    return f
-
-
-class InsufficientBalanceException(Exception):
-    def __init__(self, balance, message="Insufficient funds"):
-        self.balance = balance
-        self.message = message
-        super().__init__(self.message)
-
-    def __str__(self):
-        return f'{self.balance} -> {self.message}'
-
-
-def purchase(proj_id, selected_seats):
-    with engine.begin() as connection:
-        s1 = text("SELECT users_balance FROM public.users WHERE users_id = :e1")
-        rs1 = connection.execute(s1, e1=current_user.id)
-        balance = rs1.fetchone()
-
-        s2 = text("SELECT projections_price FROM public.projections WHERE projections_id = :e2")
-        rs2 = connection.execute(s2, e2=proj_id)
-        tprice = rs2.fetchone()
-        total = balance.users_balance - (tprice.projections_price * len(selected_seats))
-        if total < 0:
-            raise InsufficientBalanceException(balance.users_balance)
-        for x in selected_seats:
-            s = text(
-                "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
-            connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
-        s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
-        connection.execute(s, e1=total, e2=current_user.id)
-    return
-
-
-def format_projections(proj):
-    proj_list = list()
-    for p in proj:
-        date = p.projections_date_time.strftime("%m/%d/%Y")
-        hour = p.projections_date_time.strftime("%H:%M:%S")[:5]
-        proj_list.append(
-            Projection(p.projections_id, date, hour, p.rooms_name, p.projections_price, how_many_seats_left(p[0])))
-    return proj_list
-
-
-# ritorna un array di possibili scelte
-def get_gender():
-    conn = engine.connect()
-    s = text("SELECT unnest(enum_range(NULL::public.gender)) AS gender")
-    rs = conn.execute(s)
-    gen = rs.fetchall()
-    return gen
-
-
-def get_genres():
-    conn = engine.connect()
-    s = text("SELECT unnest(enum_range(NULL::public.genre)) AS genre")
-    rs = conn.execute(s)
-    gen = rs.fetchall()
-    return gen
-
-
-def get_orders(uid):
-    conn = engine.connect()
-    s = text("""SELECT movies_title, projections_date_time, rooms_name, seats_name FROM tickets
-                JOIN seats ON seats_id=tickets_seat
-                JOIN rooms ON rooms_id=seats_room
-                JOIN projections ON tickets_projection=projections_id
-                JOIN movies ON movies_id=projections_movie
-                WHERE tickets_user=:e1""")
-    rs = conn.execute(s, e1=uid)
-    orders = rs.fetchall()
-    return orders
 
 
 # statistiche
@@ -887,86 +510,6 @@ def show_echarts():
     bar = get_bar()
     pie = get_pie()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
-
-
-# grafico a linee: può non essere inserita
-def get_line() -> Line:
-    conn = engine.connect()
-    s = text("""SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum
-                FROM public.tickets
-                LEFT JOIN public.projections on tickets_projection = projections_id
-                LEFT JOIN public.movies on projections_movie = movies_id GROUP BY movies_genre""")
-    datas = conn.execute(s).fetchall()
-    conn.close()
-    c = (
-        Line().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity",
-                                                                      [data['sum'] for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genre"))
-    )
-    return c
-
-
-# grafico a barre: seleziona i film in base ai biglietti venduti
-def get_bar() -> Bar:
-    conn = engine.connect()
-    s1 = text("""SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS summ
-                 FROM public.tickets
-                 JOIN public.projections ON tickets_projection = projections_id
-                 JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user 
-                 WHERE users_gender='M' GROUP BY movies_id, movies_genre""")
-
-    s2 = text("""SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS sumf
-                 FROM public.tickets
-                 JOIN public.projections ON tickets_projection = projections_id
-                 JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user 
-                 WHERE users_gender='F'
-                 GROUP BY movies_id, movies_genre""")
-
-    datas1 = conn.execute(s1).fetchall()
-    datas2 = conn.execute(s2).fetchall()
-    conn.close()
-    c = (
-        Bar().add_xaxis([data['genre'] for data in datas1])
-            .add_yaxis("Male", [data['summ'] for data in datas1]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres"))
-            .add_yaxis("Female", [data['sumf'] for data in datas2])
-    )
-    return c
-
-
-def pop_movies() -> Bar:
-    conn = engine.connect()
-    s1 = text("""SELECT movies_id AS id, movies_title AS title, SUM(tickets_id) AS sold
-                 FROM public.tickets
-                 JOIN public.projections ON tickets_projection = projections_id
-                 JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user 
-                 GROUP BY movies_id, movies_title""")
-
-    datas = conn.execute(s1).fetchall()
-    conn.close()
-    c = (
-        Bar().add_xaxis([data['genre'] for data in datas])
-            .add_yaxis("Quantity", [data['sold'] for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Movies"))
-    )
-    return c
-
-
-# grafico a cerchio: seleziona i generi più preferiti dalle persone
-def get_pie() -> Pie:
-    conn = engine.connect()
-    s = text("SELECT genre, sum_genres*100/sum_tickets AS genre_perc FROM public.sumtickets, public.sumgenres")
-    datas = conn.execute(s).fetchall()
-    print(datas)
-    conn.close()
-    c = (
-        Pie().add("", [(data['genre'], data['genre_perc']) for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}%"))
-    )
-    return c
 
 
 if __name__ == '__main__':
