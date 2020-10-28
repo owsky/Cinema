@@ -112,6 +112,36 @@ def profile():
     return render_template("user/profile.html", info=get_orders(current_user.id))
 
 
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        conn = engine.connect()
+        s = text("""UPDATE public.users SET users_name = :e1, users_surname = :e2, users_email = :e3
+                    WHERE users_id = :e4""")
+        conn.execute(s, e1=request.form['name'], e2=request.form['surname'], e3=request.form['email'],
+                     e4=current_user.id)
+        conn.close()
+        current_user.name = request.form['name']
+        current_user.surname = request.form['surname']
+        current_user.email = request.form['email']
+        return redirect(url_for('profile'))
+    return render_template('user/edit_profile.html')
+
+
+@app.route('/delete_profile', methods=['GET', 'POST'])
+@login_required
+def delete_profile():
+    conn = engine.connect()
+    s = text("DELETE FROM public.users WHERE users_id = :e")
+    uid = current_user.id
+    logout_user()
+    conn.execute(s, e=uid)
+    conn.close()
+    flash("Successfully deleted user data")
+    return redirect(url_for('home'))
+
+
 @app.route('/projections')
 def projections():
     return render_template("user/projections.html", projections=get_projections(None))
