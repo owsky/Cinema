@@ -9,8 +9,7 @@
                 <option value="{{ movie_to_update.movies_genre }}">{{ g.genre }}</option>
             {% endfor %}
             </select><br>
-        Duration:<br>
-        <input name="duration" type="number" placeholder="DURATION" value="{{  movie_to_update.movies_duration }}" required><br>
+        Duration: {{ movie_to_update.movies_duration }}<br>
         Synopsis:<br>
         <input name="synopsis" type="text" placeholder="SYNOPSIS" value="{{  movie_to_update.movies_synopsis }}" required><br>
         Director:<br>
