@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block body %}
-    Compile the following data to add a movie!<br>
+    Compile the following data to add a movie:<br>
     <ul>
         <form action="{{ url_for("add_movie") }}" method="POST">
             Title:<br>
@@ -12,7 +12,7 @@
             {% endfor %}
         </select><br>
             Duration:<br>
-        <input name="duration" type="int" placeholder="DURATION" pattern="^[1-9][0-9]*" requered><br>
+        <input name="duration" type="number" placeholder="DURATION" pattern="^[1-9][0-9]*" requered><br>
             Synopsis:<br>
         <input name="synopsis" type="text" placeholder="SYNOPSIS" requered><br>
             Director:<br>

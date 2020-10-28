@@ -39,9 +39,12 @@
             </a>
 
             {% if current_user.is_manager %}
-            <a href="{{ url_for('show_echarts') }}" class="navbar-item">
-                Statistic
-            </a>
+                <a href="{{ url_for('show_echarts') }}" class="navbar-item">
+                    Statistics
+                </a>
+                <a href="{{ url_for('edit_data') }}" class="navbar-item">
+                    Edit Data
+                </a>
             {% endif %}
         </div>
 
