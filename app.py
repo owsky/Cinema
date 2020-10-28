@@ -399,19 +399,40 @@ def delete_movie(title):
     return redirect(url_for('movies_route'))
 
 
-@app.route('/<title>/delete_projection/<int:id>')
+@app.route('/<title>/delete_projection/<proj_id>')
 @login_required
-def delete_projection(title, id):
+def delete_projection(title, proj_id):
     if not current_user.is_manager:
         abort(403)
     conn = engine.connect()
     s = text("DELETE FROM public.projections WHERE projections_id=:p")
-    conn.execute(s, p=id)
+    conn.execute(s, p=proj_id)
     flash("Projection deleted successfully!")
     conn.close()
     return render_template('user/movie_info.html', movie=get_movies(title),
-                           projections=format_projections(get_projections(title)),
-                           cast=get_actors(title))
+                           projections=format_projections(get_projections(title)), cast=get_actors(title))
+
+
+@app.route('/delete_projection2/<proj_id>')
+@login_required
+def delete_projection2(proj_id):
+    if not current_user.is_manager:
+        abort(403)
+    conn = engine.connect()
+    s = text("""SELECT * FROM public.tickets
+                JOIN public.users ON tickets.tickets_user = users.users_id
+                JOIN public.projections ON tickets.tickets_projection = projections.projections_id
+                WHERE projections_id = :e1""")
+    rs = conn.execute(s, e1=proj_id)
+    refunds = rs.fetchall()
+    for r in refunds:
+        s = text("""UPDATE public.users SET users_balance = users_balance + :e1 WHERE users_id = :e2""")
+        conn.execute(s, e1=r.projections_price, e2=r.users_id)
+    s = text("DELETE FROM public.projections WHERE projections_id=:p")
+    conn.execute(s, p=proj_id)
+    flash("Projection deleted successfully!")
+    conn.close()
+    return redirect(url_for('edit_data'))
 
 
 def get_seat_by_name(room_id, seat_name):

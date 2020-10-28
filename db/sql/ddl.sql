@@ -80,7 +80,7 @@ CREATE TABLE public.tickets (
         FOREIGN KEY(tickets_user)
         REFERENCES public.users(users_id)
         ON UPDATE CASCADE
-        ON DELETE CASCADE,
+        ON DELETE SET NULL,
     CONSTRAINT tickets_projection_fkey
         FOREIGN KEY(tickets_projection)
         REFERENCES public.projections(projections_id)
