@@ -4,10 +4,15 @@
     <ul>
         <form action="/{{ m.movies_title }}/add_projection" method="POST">
             Title: {{ m.movies_title }}<br>
-            Data and Time:<br>
+            Date:<br>
             <label>
-                <input name="date_time" type="datetime-local" placeholder="DATATIME" required>
-            </label><br>
+                <input type="text" placeholder="yyyy/mm/dd"><br>
+            </label>
+            Time:<br>
+            <label>
+                <input type="text" placeholder="hh:mm">
+            </label>
+            <br>
             Room:<br>
             <label>
                 <select name="room">
