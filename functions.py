@@ -204,6 +204,7 @@ def user_by_email(user_email):
         return None
 
 
+#  Returns all movies or a specific movie
 def get_movies(mov):
     conn = engine.connect()
     # If mov is not None it returns a single movie
@@ -214,9 +215,22 @@ def get_movies(mov):
         rs = conn.execute(s, e1=mov)
         films = rs.fetchone()
     else:
-        s = text("SELECT * FROM movies JOIN directors ON movies_director = directors_id")
+        s = text("""SELECT * FROM movies
+                    JOIN directors ON movies_director = directors_id""")
         rs = conn.execute(s)
         films = rs.fetchall()
+    conn.close()
+    return films
+
+
+# Returns the movies that are currently being projected
+def get_movies_proj():
+    conn = engine.connect()
+    s = text("""SELECT * FROM movies
+                        JOIN directors ON movies_director = directors_id
+                        JOIN public.projections ON movies.movies_id = projections.projections_movie""")
+    rs = conn.execute(s)
+    films = rs.fetchall()
     conn.close()
     return films
 

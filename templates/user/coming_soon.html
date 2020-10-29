@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block body %}
+    Coming soon:<br><br>
+    <ul>
+        {% for m in mov %}
+            Title: <a href="{{ url_for('movie_info', title=m.movies_title) }}">{{ m.movies_title }}</a> <br>
+            Duration: {{ m.movies_duration }} <br>
+            Genre: {{ m.movies_genre }} <br>
+            Synopsis: {{ m.movies_synopsis }}<br>
+            Date: {{ m.movies_date }}<br><br>
+        {% endfor %}
+    </ul>
+{% endblock %}
