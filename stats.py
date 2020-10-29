@@ -61,9 +61,10 @@ def pop_movies() -> Bar:
                  GROUP BY movies_id, movies_title""")
 
     datas = conn.execute(s1).fetchall()
+    print(datas)
     conn.close()
     c = (
-        Bar().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+        Bar().add_xaxis([data['title'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
     )
     return c
 
