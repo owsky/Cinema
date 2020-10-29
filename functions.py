@@ -1,8 +1,8 @@
 from flask_login import current_user
-from sqlalchemy import text
-
-from app import engine
+from sqlalchemy import text, create_engine
 from classes import InsufficientBalanceException, Projection, User
+
+engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 
 
 def purchase(proj_id, selected_seats):

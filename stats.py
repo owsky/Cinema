@@ -1,8 +1,8 @@
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Pie, Line
-from sqlalchemy import text
+from sqlalchemy import text, create_engine
 
-from app import engine
+engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 
 
 # grafico a linee: può non essere inserita
