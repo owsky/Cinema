@@ -1,5 +1,6 @@
 import secrets
 from datetime import datetime
+from functools import wraps
 
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -18,6 +19,15 @@ engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.anonymous_user = Anonymous
+
+
+def man_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_manager:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # Loads the users from the DB and creates a respective object
@@ -191,9 +201,8 @@ def purchase_ticket(title, projection):
 # Renders a hub where a manager can add new or edit existing information on the database
 @app.route('/edit_data', methods=['GET', 'POST'])
 @login_required
+@man_required
 def edit_data():
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         if request.form['edit_obj'] == 'movies':
             return render_template('manager/edit_data.html', mov=get_movies(None))
@@ -213,9 +222,8 @@ def edit_data():
 # Lets a manager edit movies information
 @app.route('/edit_movie/<title>', methods=['GET', 'POST'])
 @login_required
+@man_required
 def edit_movie(title):
-    if not current_user.is_manager:
-        abort(403)
     m = get_movies(title)
     d = get_directors_by_id(m.movies_director)
     if request.method == 'POST':
@@ -235,9 +243,8 @@ def edit_movie(title):
 # Lets a manager add a new movie on the DB
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
+@man_required
 def add_movie():
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         conn = engine.connect()
         title = request.form['title']
@@ -262,9 +269,8 @@ def add_movie():
 # Lets a manager add a new projections on the schedule from the movie info page
 @app.route('/<title>/add_projection', methods=['GET', 'POST'])
 @login_required
+@man_required
 def add_projection_movie(title):
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         mov = get_movies(title)
         room = get_rooms_by_name(request.form['room'])
@@ -307,9 +313,8 @@ def add_projection_movie(title):
 # Lets a manager add a new director
 @app.route('/add_director', methods=['GET', 'POST'])
 @login_required
+@man_required
 def add_director():
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         if get_directors_by_name(request.form['name']):
             flash("Director has already been added")
@@ -327,9 +332,8 @@ def add_director():
 # Lets a manager edit a director's information
 @app.route('/edit_director/<director_id>', methods=['GET', 'POST'])
 @login_required
+@man_required
 def edit_director(director_id):
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         if get_directors_by_name(request.form['name']):
             flash("Director already exists")
@@ -345,9 +349,8 @@ def edit_director(director_id):
 # Lets a manager add an actor to a movie's cast
 @app.route('/<title>/add_cast', methods=['GET', 'POST'])
 @login_required
+@man_required
 def add_cast(title):
-    if not current_user.is_manager:
-        abort(403)
     m = get_movies(title)
     if request.method == 'POST':
         conn = engine.connect()
@@ -365,9 +368,8 @@ def add_cast(title):
 # Lets a manager add a new actor on the DB
 @app.route('/add_actor', methods=['GET', 'POST'])
 @login_required
+@man_required
 def add_actor():
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         # Checks whether the actor tuple already exists
         if get_actor_by_name(request.form['actor']):
@@ -384,9 +386,8 @@ def add_actor():
 # Lets a manager edit an actor's information
 @app.route('/edit_actor/<actor_id>', methods=['GET', 'POST'])
 @login_required
+@man_required
 def edit_actor(actor_id):
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         # Checks whether the actor's new name already exists on the DB
         if get_actor_by_name(request.form['name']):
@@ -405,9 +406,8 @@ def edit_actor(actor_id):
 # Lets a manager delete a movie from the DB if it doesn't have any associated projection
 @app.route('/delete_movie/<title>')
 @login_required
+@man_required
 def delete_movie(title):
-    if not current_user.is_manager:
-        abort(403)
     conn = engine.connect()
     s = text("""SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id
                 WHERE movies_title = :e1""")
@@ -424,9 +424,8 @@ def delete_movie(title):
 # Lets a manager delete a projection and refunds sold tickets from the edit data page
 @app.route('/delete<proj_id>')
 @login_required
+@man_required
 def delete_projection(proj_id):
-    if not current_user.is_manager:
-        abort(403)
     delete_proj(proj_id)
     return redirect(url_for('edit_data'))
 
@@ -434,9 +433,8 @@ def delete_projection(proj_id):
 # Lets a manager delete a projection and refunds sold tickets from the movie info page
 @app.route('/delete/<title>/<proj>')
 @login_required
+@man_required
 def delete_projection_movie(title, proj):
-    if not current_user.is_manager:
-        abort(403)
     delete_proj(proj)
     return redirect(url_for('movie_info', title=title))
 
@@ -444,9 +442,8 @@ def delete_projection_movie(title, proj):
 # Lets a manager edit a room's information
 @app.route('/edit_room/<room_id>', methods=['GET', 'POST'])
 @login_required
+@man_required
 def edit_room(room_id):
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         conn = engine.connect()
         s = text("INSERT INTO public.seats(seats_name, seats_room) VALUES (:e1, :e2)")
@@ -463,9 +460,8 @@ def edit_room(room_id):
 # Lets a manager delete seats from a room
 @app.route('/remove_seat/<seat_id>/<room_id>')
 @login_required
+@man_required
 def remove_seat(seat_id, room_id):
-    if not current_user.is_manager:
-        abort(403)
     conn = engine.connect()
     s = text("DELETE FROM public.seats WHERE seats_id = :e1")
     conn.execute(s, e1=seat_id)
@@ -476,9 +472,8 @@ def remove_seat(seat_id, room_id):
 # Lets a manager add a seat to a room
 @app.route('/add_seat/<room_id>', methods=['GET', 'POST'])
 @login_required
+@man_required
 def add_seat(room_id):
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         if get_seat_by_name(room_id, request.form['name']):
             flash("Seat already exists")
@@ -496,9 +491,8 @@ def add_seat(room_id):
 # Lets a manager add a new room
 @app.route('/add_room', methods=['GET', 'POST'])
 @login_required
+@man_required
 def add_room():
-    if not current_user.is_manager:
-        abort(403)
     if request.method == 'POST':
         # controlla se il nome della 'room' sia ridondante, se sì ritorna un messaggio
         if get_rooms_by_name(request.form['name']):
@@ -516,9 +510,8 @@ def add_room():
 # Shows statistics generated from user data
 @app.route('/show_echarts')
 @login_required
+@man_required
 def show_echarts():
-    if not current_user.is_manager:
-        abort(403)
     bar = get_bar()
     pie = get_pie()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
