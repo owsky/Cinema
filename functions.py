@@ -339,4 +339,23 @@ def get_rooms():
     rs = conn.execute(s)
     dire = rs.fetchall()
     conn.close()
-    return dire
+    return rooms
+
+
+def delete_proj(proj):
+    with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+        with conn.begin():
+            s = text("""SELECT * FROM public.tickets
+                        JOIN public.users ON tickets.tickets_user = users.users_id
+                        JOIN public.projections ON tickets.tickets_projection = projections.projections_id
+                        WHERE projections_id = :e1""")
+            rs = conn.execute(s, e1=proj)
+            refunds = rs.fetchall()
+            for r in refunds:
+                s = text("""UPDATE public.users SET users_balance = users_balance + :e1 WHERE users_id = :e2""")
+                conn.execute(s, e1=r.projections_price, e2=r.users_id)
+            s = text("DELETE FROM public.projections WHERE projections_id=:p")
+            conn.execute(s, p=proj)
+            flash("Projection deleted successfully!")
+    conn.close()
+    return
