@@ -139,6 +139,19 @@ def check_time(start, end, room):
     return ris
 
 
+# Checks for overlaps on a given projection
+def check_time_update(proj, start, end, room):
+    conn = engine.connect()
+    s = text("""SELECT projections_id FROM public.projections
+                JOIN public.movies ON projections_movie=movies_id
+                WHERE projections_room = :r AND projections_id <>:p AND
+                (:st, :e) OVERLAPS (projections_date_time, projections_date_time + (movies_duration * interval '1 minute'))""")
+    rs = conn.execute(s,p=proj, r=room, st=start, e=end)
+    ris = rs.fetchone()
+    conn.close()
+    return ris
+
+
 # Checks whether exists a relation between an actor and a movie
 def check_cast(movid, actid):
     conn = engine.connect()
@@ -236,6 +249,24 @@ def get_actors(mov):
     act = rs.fetchall()
     conn.close()
     return act
+
+
+def get_movie_by_id(id):
+    conn = engine.connect()
+    s = text("SELECT * FROM movies WHERE movies_id =:cod")
+    rs = conn.execute(s,cod=id)
+    ris = rs.fetchone()
+    conn.close()
+    return ris
+
+
+def get_projection_by_id(id):
+    conn = engine.connect()
+    s = text("SELECT * FROM projections WHERE projections_id =:cod")
+    rs = conn.execute(s,cod=id)
+    ris = rs.fetchone()
+    conn.close()
+    return ris
 
 
 def get_last_movies():

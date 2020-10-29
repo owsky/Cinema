@@ -7,8 +7,8 @@ from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvaila
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
-    get_seat_by_name, delete_proj, get_movies_proj
-from stats import get_bar, get_pie
+    get_seat_by_name, delete_proj, get_movies_proj, get_movie_by_id, get_projection_by_id, check_time_update
+from stats import get_bar, get_pie, pop_movies
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
@@ -230,7 +230,7 @@ def edit_movie(title):
                  "movies_director=:dr WHERE movies_id =:cod")
         conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
         conn.close()
-        return render_template('manager/movie_manager.html')
+        return render_template('manager/edit_data.html')
     return render_template('manager/edit_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
                            dir=get_directors_by_name(None), c=get_actors(title))
 
@@ -262,6 +262,39 @@ def add_movie():
 
 
 # Lets a manager add a new projections on the schedule from the movie info page
+@app.route('/edit_projection/<proj_id>', methods=['GET', 'POST'])
+@login_required
+@man_required
+def edit_projection_movie(proj_id):
+    proj = get_projection_by_id(proj_id)
+    mov = get_movie_by_id(proj.projections_movie)
+    if request.method == 'POST':
+        datetimeObj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
+        room = get_rooms_by_name(request.form['room'])
+        if datetimeObj <= datetime.now():
+            flash("Can not add a projection in the past")
+        else:
+            with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+                with conn.begin():
+                    endtime = str(datetimeObj + timedelta(minutes=mov.movies_duration))
+
+                    # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
+                    if not check_time_update(proj_id, request.form['date_time'], endtime, room.rooms_id):
+                        s1 = text(
+                            """UPDATE public.projections SET projections_date_time = :t, projections_room =:r, 
+                            projections_price = :p WHERE projections_id =:cod""")
+                        conn.execute(s1, t=request.form['date_time'], r=room.rooms_id,
+                                     p=request.form['price'], cod=proj_id)
+                        flash("Projection updated successfully")
+                    else:
+                        raise TimeNotAvailableException(request.form['date_time'])
+            conn.close()
+        return render_template('manager/edit_data.html')
+    else:
+        return render_template("manager/edit_projection.html", proj=proj, movie=mov, room=get_rooms())
+
+
+# Lets a manager add a new projections on the schedule from the movie info page
 @app.route('/<title>/add_projection', methods=['GET', 'POST'])
 @login_required
 @man_required
@@ -281,7 +314,7 @@ def add_projection_movie(title):
                     # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
                     if not check_time(dt, endtime, room.rooms_id):
                         s1 = text(
-                            "INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
+                            "INSERT INTO public.projections(projections_movie, projections_date_time, projections_room,"
                             "projections_price) VALUES (:m,:t,:r,:p)")
                         conn.execute(s1, m=mov.movies_id, t=dt, r=room.rooms_id,
                                      p=request.form['price'])
@@ -501,7 +534,9 @@ def add_room():
 def show_echarts():
     bar = get_bar()
     pie = get_pie()
-    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options())
+    bar2 = pop_movies()
+    return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
+                           bar_option2=bar2.dump_options())
 
 
 if __name__ == '__main__':
