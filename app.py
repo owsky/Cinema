@@ -269,14 +269,14 @@ def edit_projection_movie(proj_id):
     proj = get_projection_by_id(proj_id)
     mov = get_movie_by_id(proj.projections_movie)
     if request.method == 'POST':
-        datetimeObj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
+        datetimeobj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
         room = get_rooms_by_name(request.form['room'])
-        if datetimeObj <= datetime.now():
+        if datetimeobj <= datetime.now():
             flash("Can not add a projection in the past")
         else:
             with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
                 with conn.begin():
-                    endtime = str(datetimeObj + timedelta(minutes=mov.movies_duration))
+                    endtime = str(datetimeobj + timedelta(minutes=mov.movies_duration))
 
                     # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
                     if not check_time_update(proj_id, request.form['date_time'], endtime, room.rooms_id):
@@ -287,7 +287,8 @@ def edit_projection_movie(proj_id):
                                      p=request.form['price'], cod=proj_id)
                         flash("Projection updated successfully")
                     else:
-                        raise TimeNotAvailableException(request.form['date_time'])
+                        conn.rollback()
+                        flash("Couldn't edit projection due to time overlap")
             conn.close()
         return render_template('manager/edit_data.html')
     else:
@@ -322,6 +323,7 @@ def add_projection_movie(title):
                         flash("Projection added successfully")
                     else:
                         conn.rollback()
+                        flash("Couldn't add projection due to time overlap")
             conn.close()
         return render_template('user/movie_info.html', movie=mov,
                                projections=format_projections(get_projections(title)),
