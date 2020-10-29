@@ -174,11 +174,7 @@ def movie_info(title):
     if not m:
         abort(404)
     proj = get_projections(title)
-    try:
-        return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
-                               cast=get_actors(title))
-    except TimeNotAvailableException as e:
-        flash(e.message)
+    return render_template("user/movie_info.html", movie=m, projections=format_projections(proj), cast=get_actors(title))
 
 
 # Renders the purchase page where the user can buy tickets for a specific projection
@@ -292,7 +288,7 @@ def add_projection_movie(title):
 
                         flash("Projection added successfully")
                     else:
-                        raise TimeNotAvailableException(dt)
+                        conn.rollback()
             conn.close()
         return render_template('user/movie_info.html', movie=mov,
                                projections=format_projections(get_projections(title)),
