@@ -1,11 +1,8 @@
 import secrets
-from datetime import datetime
-from time import strptime
-
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text, create_engine
-
 from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvailableException, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
@@ -275,35 +272,26 @@ def add_movie():
 def add_projection_movie(title):
     if request.method == 'POST':
         mov = get_movies(title)
+        datetimeObj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
         room = get_rooms_by_name(request.form['room'])
-
-        if strptime(request.form['date_time'], '%m%d%y %H:%M') <= datetime.now():
+        if datetimeObj <= datetime.now():
             flash("Can not add a projection in the past")
         else:
             with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
                 with conn.begin():
-                    s1 = text(
-                        "INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
-                        "projections_price) VALUES (:m,:t,:r,:p)")
-                    conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id,
-                                 p=request.form['price'])
+                    endtime = str(datetimeObj + timedelta(minutes=mov.movies_duration))
 
-                    # Queries the DB for the just added projection
-                    s = text("SELECT projections_id AS mov_proj, movies_id AS mov_id, projections_room AS mov_room, "
-                             "projections_date_time AS mov_start, "
-                             "projections_date_time + (movies_duration * interval '1 minute') AS mov_end FROM public.projections "
-                             "JOIN public.movies ON projections_movie=movies_id WHERE projections_movie=:m AND "
-                             "projections_room=:r AND projections_date_time=:t")
-                    proj_info = (
-                        conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
                     # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
-                    if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end,
-                                      proj_info.mov_room) and \
-                            not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end,
-                                            proj_info.mov_room):
+                    if not check_time(request.form['date_time'], endtime, room.rooms_id):
+                        s1 = text(
+                            "INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
+                            "projections_price) VALUES (:m,:t,:r,:p)")
+                        conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id,
+                                     p=request.form['price'])
+
                         flash("Projection added successfully")
                     else:
-                        raise TimeNotAvailableException(proj_info.mov_start)
+                        raise TimeNotAvailableException(request.form['date_time'])
             conn.close()
         return render_template('user/movie_info.html', movie=mov,
                                projections=format_projections(get_projections(title)),
