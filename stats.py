@@ -51,7 +51,7 @@ def get_bar() -> Bar:
     return c
 
 
-def pop_movies() -> Bar:
+def get_bar2() -> Bar:
     conn = engine.connect()
     s1 = text("""SELECT movies_id AS id, movies_title AS title, SUM(tickets_id) AS sold
                  FROM public.tickets
@@ -64,7 +64,7 @@ def pop_movies() -> Bar:
     print(datas)
     conn.close()
     c = (
-        Bar().add_xaxis([data['title'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
     )
     return c
 

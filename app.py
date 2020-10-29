@@ -10,7 +10,7 @@ from functions import get_last_movies, user_by_email, get_orders, get_projection
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
     get_seat_by_name, delete_proj, get_movies_proj, get_movie_by_id, get_projection_by_id, check_time_update
-from stats import get_bar, get_pie, pop_movies
+from stats import get_bar, get_pie, get_bar2
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
@@ -541,7 +541,7 @@ def add_room():
 def show_echarts():
     bar = get_bar()
     pie = get_pie()
-    bar2 = pop_movies()
+    bar2 = get_bar2()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
                            bar_option2=bar2.dump_options())
 
