@@ -157,11 +157,13 @@ def movies_list():
 @app.route('/coming_soon')
 def coming_soon():
     conn = engine.connect()
-    s = text("""SELECT * FROM public.movies
+    s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis, movies_date
+                FROM public.movies
                 JOIN public.directors ON movies.movies_director = directors.directors_id
                 WHERE movies_id NOT IN (
                     SELECT movies_id FROM public.movies
-                    JOIN public.projections ON movies.movies_id = projections.projections_movie)""")
+                    JOIN public.projections ON movies.movies_id = projections.projections_movie)
+                AND movies_date > current_date""")
     c = conn.execute(s).fetchall()
     conn.close()
     return render_template('user/coming_soon.html', mov=c)
