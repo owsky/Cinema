@@ -6,7 +6,7 @@ from sqlalchemy import text, create_engine
 from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvailableException, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
-    get_rooms, get_rooms_by_name, check_time, check_time2, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
+    get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
     get_seat_by_name, delete_proj, get_movies_proj
 from stats import get_bar, get_pie
 
