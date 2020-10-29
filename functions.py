@@ -209,8 +209,8 @@ def get_movies(mov):
     conn = engine.connect()
     # If mov is not None it returns a single movie
     if mov:
-        s = text("""SELECT * FROM movies
-                    JOIN directors ON movies.movies_director = directors.directors_id
+        s = text("""SELECT * FROM public.movies
+                    JOIN public.directors ON movies.movies_director = directors.directors_id
                     WHERE movies_title = :e1""")
         rs = conn.execute(s, e1=mov)
         films = rs.fetchone()
@@ -225,10 +225,10 @@ def get_movies(mov):
 def get_actors(mov):
     conn = engine.connect()
     if mov:
-        s = text("""SELECT actors_fullname FROM movies
-                    JOIN directors ON movies.movies_director = directors.directors_id
+        s = text("""SELECT actors_fullname FROM public.movies
+                    JOIN public.directors ON movies.movies_director = directors.directors_id
                     JOIN public.cast ON movies_id = public.cast.cast_movie
-                    JOIN actors ON cast_actor = actors_id
+                    JOIN public.actors ON cast_actor = actors_id
                     WHERE movies_title = :e1""")
         rs = conn.execute(s, e1=mov)
     else:

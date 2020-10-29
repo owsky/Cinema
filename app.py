@@ -128,9 +128,33 @@ def projections():
 
 
 # Renders the movies page with all movies saved on the DB
-@app.route('/movies')
+@app.route('/movies', methods=['GET', 'POST'])
 def movies_list():
-    return render_template("movies.html", movies=get_movies(None))
+    if request.method == 'POST':
+        conn = engine.connect()
+        if request.form['filter_select'] == 'genre':
+            s = text("""SELECT * FROM public.movies
+                        JOIN public.directors ON movies_director = directors_id
+                        WHERE movies_genre = :e1""")
+            rs = conn.execute(s, e1=request.form['genre'])
+            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(), act=get_actors(None))
+        elif request.form['filter_select'] == 'director':
+            s = text("""SELECT * FROM public.movies
+                        JOIN public.directors ON movies_director = directors_id
+                        WHERE directors_name = :e1""")
+            rs = conn.execute(s, e1=request.form['director'])
+            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(), act=get_actors(None))
+        else:
+            s = text("""SELECT * FROM public.movies
+                        JOIN public.directors ON movies_director = directors_id
+                        WHERE movies_id IN (
+                            SELECT movies_id FROM public.movies
+                            JOIN public.cast ON movies_id = cast_movie
+                            JOIN public.actors ON cast_actor = actors_id
+                            WHERE actors_fullname = :e1)""")
+            rs = conn.execute(s, e1=request.form['actor'])
+            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(), act=get_actors(None))
+    return render_template("movies.html", movies=get_movies(None), gen=get_genres(), dir=get_directors(), act=get_actors(None))
 
 
 # Dinamically renders a movie page upon request with the provided movie title
