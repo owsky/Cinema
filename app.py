@@ -130,6 +130,7 @@ def projections():
 # Renders the movies page with all movies saved on the DB
 @app.route('/movies', methods=['GET', 'POST'])
 def movies_list():
+    # If the page gets loaded with a POST request it applies the filter provided by the user through the GUI
     if request.method == 'POST':
         conn = engine.connect()
         if request.form['filter_select'] == 'genre':
