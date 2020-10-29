@@ -286,10 +286,10 @@ def edit_projection_movie(proj_id):
                         conn.execute(s1, t=request.form['date_time'], r=room.rooms_id,
                                      p=request.form['price'], cod=proj_id)
                         flash("Projection updated successfully")
+                        conn.close()
                     else:
-                        conn.rollback()
+                        conn.close()
                         flash("Couldn't edit projection due to time overlap")
-            conn.close()
         return render_template('manager/edit_data.html')
     else:
         return render_template("manager/edit_projection.html", proj=proj, movie=mov, room=get_rooms())
@@ -319,12 +319,11 @@ def add_projection_movie(title):
                             "projections_price) VALUES (:m,:t,:r,:p)")
                         conn.execute(s1, m=mov.movies_id, t=dt, r=room.rooms_id,
                                      p=request.form['price'])
-
+                        conn.close()
                         flash("Projection added successfully")
                     else:
-                        conn.rollback()
+                        conn.close()
                         flash("Couldn't add projection due to time overlap")
-            conn.close()
         return render_template('user/movie_info.html', movie=mov,
                                projections=format_projections(get_projections(title)),
                                cast=get_actors(title))
