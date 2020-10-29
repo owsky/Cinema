@@ -1,5 +1,6 @@
 import secrets
 from datetime import datetime
+from time import strptime
 
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -276,7 +277,7 @@ def add_projection_movie(title):
         mov = get_movies(title)
         room = get_rooms_by_name(request.form['room'])
 
-        if request.form['date_time'] <= datetime.now():
+        if strptime(request.form['date_time'], '%m%d%y %H:%M') <= datetime.now():
             flash("Can not add a projection in the past")
         else:
             with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
@@ -519,4 +520,4 @@ def show_echarts():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

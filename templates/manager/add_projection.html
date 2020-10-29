@@ -3,21 +3,24 @@
     Compile the following data to add a projection!<br>
     <ul>
         <form action="/{{ m.movies_title }}/add_projection" method="POST">
-            Title: {{ m.movies_title }}
-        </select><br>
+            Title: {{ m.movies_title }}<br>
             Data and Time:<br>
-        <input name="date_time" type="datetime" placeholder="DATATIME" requered><br>
+            <label>
+                <input name="date_time" type="datetime-local" placeholder="DATATIME" required>
+            </label><br>
             Room:<br>
-        <select name="room">
-            {% for r in room %}
-                <option value="{{ r.rooms_name }}">{{ r.rooms_name }}</option>
-            {% endfor %}
-        </select><br>
+            <label>
+                <select name="room">
+                    {% for r in room %}
+                        <option value="{{ r.rooms_name }}">{{ r.rooms_name }}</option>
+                    {% endfor %}
+                </select>
+            </label><br>
             Price:<br>
-        <input name="price" type="number" step="0.01" placeholder="PRICE" requered><br>
+            <label>
+                <input name="price" type="number" step="0.01" placeholder="PRICE" required>
+            </label><br>
             <input type="submit">
-
-    </form>
-
+        </form>
     </ul>
 {% endblock %}
