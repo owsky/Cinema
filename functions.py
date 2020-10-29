@@ -1,32 +1,39 @@
+from datetime import datetime
+
+from flask import flash, request, render_template
 from flask_login import current_user
 from sqlalchemy import text, create_engine
 
-from classes import InsufficientBalanceException, Projection, User
+from classes import InsufficientBalanceException, Projection, User, TimeNotAvailableException
 
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 
 
+# Buy a ticket after checking whether the user has enough money
 def purchase(proj_id, selected_seats):
-    with engine.begin() as connection:
-        s1 = text("SELECT users_balance FROM public.users WHERE users_id = :e1")
-        rs1 = connection.execute(s1, e1=current_user.id)
-        balance = rs1.fetchone()
+    with engine.connect().execution_options(isolation_level="SERIALIZABLE") as connection:
+        with connection.begin():
+            s1 = text("SELECT users_balance FROM public.users WHERE users_id = :e1")
+            rs1 = connection.execute(s1, e1=current_user.id)
+            balance = rs1.fetchone()
 
-        s2 = text("SELECT projections_price FROM public.projections WHERE projections_id = :e2")
-        rs2 = connection.execute(s2, e2=proj_id)
-        tprice = rs2.fetchone()
-        total = balance.users_balance - (tprice.projections_price * len(selected_seats))
-        if total < 0:
-            raise InsufficientBalanceException(balance.users_balance)
-        for x in selected_seats:
-            s = text(
-                "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
-            connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
-        s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
-        connection.execute(s, e1=total, e2=current_user.id)
+            s2 = text("SELECT projections_price FROM public.projections WHERE projections_id = :e2")
+            rs2 = connection.execute(s2, e2=proj_id)
+            tprice = rs2.fetchone()
+            total = balance.users_balance - (tprice.projections_price * len(selected_seats))
+            if total < 0:
+                raise InsufficientBalanceException(balance.users_balance)
+            for x in selected_seats:
+                s = text(
+                    "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
+                connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
+            s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
+            connection.execute(s, e1=total, e2=current_user.id)
+    connection.close()
     return
 
 
+# Given a projection's id it returns a new Projection object with formatted date and time
 def format_projections(proj):
     proj_list = list()
     for p in proj:
@@ -38,23 +45,17 @@ def format_projections(proj):
     return proj_list
 
 
-# ritorna un array di possibili scelte
-def get_gender():
-    conn = engine.connect()
-    s = text("SELECT unnest(enum_range(NULL::public.gender)) AS gender")
-    rs = conn.execute(s)
-    gen = rs.fetchall()
-    return gen
-
-
+# Returns all genres from the enum on the DB
 def get_genres():
     conn = engine.connect()
     s = text("SELECT unnest(enum_range(NULL::public.genre)) AS genre")
     rs = conn.execute(s)
     gen = rs.fetchall()
+    conn.close()
     return gen
 
 
+# Returns orders history for a specific user
 def get_orders(uid):
     conn = engine.connect()
     s = text("""SELECT movies_title, projections_date_time, rooms_name, seats_name FROM tickets
@@ -65,18 +66,17 @@ def get_orders(uid):
                 WHERE tickets_user=:e1""")
     rs = conn.execute(s, e1=uid)
     orders = rs.fetchall()
+    conn.close()
     return orders
 
 
-# selezione degli attori (dal nome)
 def get_actor_by_name(name):
-    # se non viene specificato il valore name, ritorna tutta la lista 'actors' con tutti i suoi attributi
-    if name is None:
+    # if name is None then returns all actors
+    if not name:
         conn = engine.connect()
         s1 = text("SELECT * FROM actors")
         rs = conn.execute(s1)
         act = rs.fetchall()
-    # altrimenti ritorna la riga della tabella 'actors' che soddisfa la condizione 'actors_fullname' = name
     else:
         conn = engine.connect()
         s = text("SELECT * FROM actors WHERE actors_fullname = :n")
@@ -86,9 +86,7 @@ def get_actor_by_name(name):
     return act
 
 
-# selezione degli attori (dall'id)
 def get_actor_by_id(aid):
-    # ritorna la riga della tabella actors che soddisfa la condizione 'actors_id' = aid
     conn = engine.connect()
     s = text("SELECT * FROM public.actors WHERE actors_id = :e")
     rs = conn.execute(s, e=aid)
@@ -97,15 +95,13 @@ def get_actor_by_id(aid):
     return act
 
 
-# selezione della sala (dal nome)
 def get_rooms_by_name(name):
     conn = engine.connect()
-    # seleziona la riga della tabella rooms che soddisfa la condizione 'rooms_name' = name
     if name:
         s = text("SELECT * FROM rooms WHERE rooms_name = :n")
         rs = conn.execute(s, n=name)
         rid = rs.fetchone()
-    # se non viene specificato il valore name, ritorna tutta la lista 'rooms' con tutti i suoi attributi
+    # if name is None it returns all rooms
     else:
         s = text("SELECT * FROM rooms")
         rs = conn.execute(s)
@@ -114,15 +110,13 @@ def get_rooms_by_name(name):
     return rid
 
 
-# selezione della sala (dall'id)
 def get_rooms_by_id(cod):
     conn = engine.connect()
-    # seleziona la riga della tabella rooms che soddisfa la condizione 'rooms_id' = cod
     if cod:
         s = text("SELECT * FROM rooms WHERE rooms_id = :c")
         rs = conn.execute(s, c=cod)
         rid = rs.fetchone()
-    # se non viene specificato il valore name, ritorna tutta la lista 'rooms' con tutti i suoi attributi
+    # if cod is None it returns all rooms
     else:
         s = text("SELECT * FROM rooms")
         rs = conn.execute(s)
@@ -146,11 +140,9 @@ def check_time2(proj, start, end, room):
     return ris
 
 
-# check per l'inserimento di una proiezione
+# Checks for overlaps on a given projection
 def check_time(proj, start, end, room):
     conn = engine.connect()
-    # controlla se ci siano altre proiezioni inclusa periodo di tempo tra 'start' e 'end' (= data di inizio e fine della proiezione da inserire)
-    # seleziona le interferenze se sono presenti
     s = text("""SELECT projections_id FROM public.projections
                 JOIN public.movies ON projections_movie=movies_id
                 WHERE projections_room = :r AND projections_id <>:p AND
@@ -162,6 +154,7 @@ def check_time(proj, start, end, room):
     return ris
 
 
+# Checks whether exists a relation between an actor and a movie
 def check_cast(movid, actid):
     conn = engine.connect()
     s = text("SELECT * FROM public.cast WHERE cast_actor=:a AND cast_movie=:m")
@@ -199,7 +192,6 @@ def get_directors_by_name(name):
     return did
 
 
-# Functions
 def user_by_email(user_email):
     conn = engine.connect()
     s = text("SELECT * FROM public.users WHERE users_email = :e1")
@@ -215,6 +207,7 @@ def user_by_email(user_email):
 
 def get_movies(mov):
     conn = engine.connect()
+    # If mov is not None it returns a single movie
     if mov:
         s = text("""SELECT * FROM movies
                     JOIN directors ON movies.movies_director = directors.directors_id
@@ -296,6 +289,7 @@ def how_many_seats_left(proj_id):
                         WHERE projections_id = :e1)""")
     rs = conn.execute(s, e1=proj_id)
     f = rs.fetchone()
+    conn.close()
     return f.s
 
 
@@ -311,6 +305,7 @@ def free_seats(proj_id):
                     WHERE projections_id = :e1)""")
     rs = conn.execute(s, e1=proj_id)
     f = rs.fetchall()
+    conn.close()
     return f
 
 
@@ -337,7 +332,7 @@ def get_rooms():
     conn = engine.connect()
     s = text("SELECT * FROM public.rooms")
     rs = conn.execute(s)
-    dire = rs.fetchall()
+    rooms = rs.fetchall()
     conn.close()
     return rooms
 

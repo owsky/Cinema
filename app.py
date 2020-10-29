@@ -5,12 +5,11 @@ from flask import Flask, render_template, request, redirect, url_for, abort, fla
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text, create_engine
 
-from classes import User, Anonymous, InsufficientBalanceException
-from functions import get_last_movies, user_by_email, get_gender, get_orders, get_projections, get_movies, get_actors, \
 from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvailableException
+from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
-    get_rooms, get_rooms_by_name, check_time, check_time2, get_rooms_by_id, get_actor_by_name, check_cast, \
-    get_actor_by_id, get_seat_by_name
+    get_rooms, get_rooms_by_name, check_time, check_time2, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
+    get_seat_by_name, delete_proj
 from stats import get_bar, get_pie
 
 app = Flask(__name__)
@@ -21,6 +20,7 @@ login_manager.init_app(app)
 login_manager.anonymous_user = Anonymous
 
 
+# Loads the users from the DB and creates a respective object
 @login_manager.user_loader
 def load_user(user_id):
     conn = engine.connect()
@@ -31,12 +31,12 @@ def load_user(user_id):
     return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager, u.users_balance)
 
 
-# User side
 @app.route('/')
 def home():
     return render_template("user/index.html", films=get_last_movies())
 
 
+# Creates a new user entry in the DB if the provided email is not already in use
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -51,9 +51,10 @@ def signup():
             conn.close()
             flash("Signed up successfully")
             return redirect(url_for('home'))
-    return render_template("user/signup.html", gen=get_gender())
+    return render_template("user/signup.html")
 
 
+# Logs the user in if there's a match in the DB
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -73,6 +74,7 @@ def login():
         return render_template("user/login.html")
 
 
+# Logout
 @app.route('/logout')
 @login_required
 def logout():
@@ -80,12 +82,14 @@ def logout():
     return redirect(url_for('home'))
 
 
+# Renders the user profile page with all the order history
 @app.route('/profile')
 @login_required
 def profile():
     return render_template("user/profile.html", info=get_orders(current_user.id))
 
 
+# Lets the user change their profile information
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
@@ -103,6 +107,7 @@ def edit_profile():
     return render_template('user/edit_profile.html')
 
 
+# Deletes a user from the DB while preserving order history
 @app.route('/delete_profile', methods=['GET', 'POST'])
 @login_required
 def delete_profile():
@@ -116,25 +121,25 @@ def delete_profile():
     return redirect(url_for('home'))
 
 
+# Renders the projections page with the current schedule
 @app.route('/projections')
 def projections():
     return render_template("user/projections.html", projections=get_projections(None))
 
 
+# Renders the movies page with all movies saved on the DB
 @app.route('/movies')
-def movies_route():
 def movies_list():
     return render_template("movies.html", movies=get_movies(None))
 
 
+# Dinamically renders a movie page upon request with the provided movie title
 @app.route('/<title>')
 def movie_info(title):
     m = get_movies(title)
     if not m:
         abort(404)
     proj = get_projections(title)
-    return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
-                           cast=get_actors(title))
     try:
         return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
                                cast=get_actors(title))
@@ -142,6 +147,7 @@ def movie_info(title):
         flash(e.message)
 
 
+# Renders the purchase page where the user can buy tickets for a specific projection
 @app.route('/<title>/<projection>', methods=['GET', 'POST'])
 @login_required
 def purchase_ticket(title, projection):
@@ -157,29 +163,7 @@ def purchase_ticket(title, projection):
     return render_template("user/purchase.html", seats=free_seats(projection), mov=m.movies_title, proj=projection)
 
 
-# Manager side
-# Update: aggiorna gli attributi di un film (genre, synopsis, director)
-@app.route('/edit_movie/<title>', methods=['GET', 'POST'])
-@login_required
-def edit_movie(title):
-    if not current_user.is_manager:
-        abort(403)
-    m = get_movies(title)
-    d = get_directors_by_id(m.movies_director)
-    if request.method == 'POST':
-        conn = engine.connect()
-        director = get_directors_by_name(request.form['director'])
-        genre = request.form['genre']
-        synopsis = request.form['synopsis']
-        s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
-                 "movies_director=:dr WHERE movies_id =:cod")
-        conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
-        conn.close()
-        return render_template('manager/movie_manager.html')
-    return render_template('manager/edit_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
-                           dir=get_directors_by_name(None), c=get_actors(title))
-
-
+# Renders a hub where a manager can add new or edit existing information on the database
 @app.route('/edit_data', methods=['GET', 'POST'])
 @login_required
 def edit_data():
@@ -201,7 +185,29 @@ def edit_data():
     return render_template('manager/edit_data.html')
 
 
-# (Manager) aggiunge un film
+# Lets a manager edit movies information
+@app.route('/edit_movie/<title>', methods=['GET', 'POST'])
+@login_required
+def edit_movie(title):
+    if not current_user.is_manager:
+        abort(403)
+    m = get_movies(title)
+    d = get_directors_by_id(m.movies_director)
+    if request.method == 'POST':
+        conn = engine.connect()
+        director = get_directors_by_name(request.form['director'])
+        genre = request.form['genre']
+        synopsis = request.form['synopsis']
+        s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
+                 "movies_director=:dr WHERE movies_id =:cod")
+        conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
+        conn.close()
+        return render_template('manager/movie_manager.html')
+    return render_template('manager/edit_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
+                           dir=get_directors_by_name(None), c=get_actors(title))
+
+
+# Lets a manager add a new movie on the DB
 @app.route('/add_movie', methods=['GET', 'POST'])
 @login_required
 def add_movie():
@@ -219,24 +225,22 @@ def add_movie():
         if get_movies(request.form['title']):
             flash("Movie's name already exists, add at the end it's release date in brackets")
 
-        # inserisco il film nel DB
         s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
                  "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
         conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=rel_date, dr=director.directors_id)
         conn.close()
         flash("Movie added successfully!")
-        return redirect(url_for('movies_route'))
+        return redirect(url_for('movies_list'))
     return render_template("manager/add_movie.html", gen=get_genres(), dir=get_directors_by_name(None))
 
 
-# (Manager) aggiunge una proiezione controllando che non ci siano interferenze nelle sale
+# Lets a manager add a new projections on the schedule from the movie info page
 @app.route('/<title>/add_projection', methods=['GET', 'POST'])
 @login_required
-def add_projection(title):
+def add_projection_movie(title):
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-        conn = engine.connect()
         mov = get_movies(title)
         room = get_rooms_by_name(request.form['room'])
 
@@ -275,7 +279,7 @@ def add_projection(title):
         return render_template("manager/add_projection.html", m=get_movies(title), room=get_rooms_by_id(None))
 
 
-# (Manager) aggiunge un regista se non è già presente nel database
+# Lets a manager add a new director
 @app.route('/add_director', methods=['GET', 'POST'])
 @login_required
 def add_director():
@@ -285,7 +289,6 @@ def add_director():
         if get_directors_by_name(request.form['name']):
             flash("Director has already been added")
 
-        # altrimenti il regista viene inserito nel database
         else:
             conn = engine.connect()
             name = request.form['name']
@@ -296,18 +299,15 @@ def add_director():
     return render_template("manager/add_director.html")
 
 
-# (Manager) aggiornamento sul nome del regista
+# Lets a manager edit a director's information
 @app.route('/edit_director/<director_id>', methods=['GET', 'POST'])
 @login_required
 def edit_director(director_id):
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-        # se il nome del regista inserito è ridondante ritorna un messaggio
-        if get_directors_by_name(request.form['name']) is not None:
+        if get_directors_by_name(request.form['name']):
             flash("Director already exists")
-
-        # altrimenti procede con l'aggiornamento
         else:
             conn = engine.connect()
             s = text("UPDATE public.directors SET directors_name = :e1 WHERE directors_id = :e2")
@@ -317,7 +317,7 @@ def edit_director(director_id):
     return render_template('manager/edit_director.html', dir=get_directors_by_id(director_id))
 
 
-# (Manager) aggiunge una relazione tra un film e un attore
+# Lets a manager add an actor to a movie's cast
 @app.route('/<title>/add_cast', methods=['GET', 'POST'])
 @login_required
 def add_cast(title):
@@ -328,32 +328,25 @@ def add_cast(title):
         conn = engine.connect()
         a = get_actor_by_name(request.form['actor'])
 
-        # controllo che la relazione tra il film e l'attore non esista già
-        if not check_cast(m.movies_id, a.actors_id):
-            # procede con l'inserimento nella tabella cast
-            addcast = text("INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)")
-            conn.execute(addcast, m=m.movies_id, a=a.actors_id)
-            flash("Actor added successfully!")
-        # la relazione è ridondante
-        else:
-            flash("Actor has already been added!")
+        addcast = text("""INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)
+                          ON CONFLICT DO NOTHING""")
+        conn.execute(addcast, m=m.movies_id, a=a.actors_id)
+        flash("Actor added successfully!")
         return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)),
                                cast=get_actors(title))
     return render_template('manager/add_cast.html', movie=m, act=get_actor_by_name(None))
 
 
-# (Manager) aggiunge un nuovo attore
+# Lets a manager add a new actor on the DB
 @app.route('/add_actor', methods=['GET', 'POST'])
 @login_required
 def add_actor():
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-        # controlla se il nome dell'attore è ridondante, se sì ritorna un messaggio
-        if get_actor_by_name(request.form['actor']) is not None:
+        # Checks whether the actor tuple already exists
+        if get_actor_by_name(request.form['actor']):
             flash("Actor already exists")
-
-        # in caso contrario procede con l'inserimento nel database
         else:
             conn = engine.connect()
             s = text("INSERT INTO public.actors (actors_fullname) VALUES (:n)")
@@ -363,17 +356,16 @@ def add_actor():
     return render_template('manager/add_actor.html')
 
 
-# (Manager) aggiornamento dell'attore
+# Lets a manager edit an actor's information
 @app.route('/edit_actor/<actor_id>', methods=['GET', 'POST'])
 @login_required
 def edit_actor(actor_id):
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-        # controlla se il nome dell'attore è ridondante, se sì ritorna un messaggio
-        if get_actor_by_name(request.form['name']) is not None:
+        # Checks whether the actor's new name already exists on the DB
+        if get_actor_by_name(request.form['name']):
             flash("Actor already exists")
-        # in caso contrario procede con l'aggiornamento nel database
         else:
             conn = engine.connect()
             s = text("""UPDATE public.actors
@@ -385,7 +377,7 @@ def edit_actor(actor_id):
     return render_template('manager/edit_actor.html', act=get_actor_by_id(actor_id))
 
 
-# (Manager) elimina un film dal database
+# Lets a manager delete a movie from the DB if it doesn't have any associated projection
 @app.route('/delete_movie/<title>')
 @login_required
 def delete_movie(title):
@@ -401,47 +393,30 @@ def delete_movie(title):
     else:
         flash("You can't delete movies that have been/are being projected")
     conn.close()
-    return redirect(url_for('movies_route'))
+    return redirect(url_for('movies_list'))
 
 
-# (Manager) elimina una proiezione
-@app.route('/<title>/delete_projection/<proj_id>')
+# Lets a manager delete a projection and refunds sold tickets from the edit data page
+@app.route('/delete<proj_id>')
 @login_required
-def delete_projection(title, proj_id):
+def delete_projection(proj_id):
     if not current_user.is_manager:
         abort(403)
-    conn = engine.connect()
-    # elimina una proiezione
-    s = text("DELETE FROM public.projections WHERE projections_id=:p")
-    conn.execute(s, p=proj_id)
-    flash("Projection deleted successfully!")
-    conn.close()
-    return render_template('user/movie_info.html', movie=get_movies(title),
-                           projections=format_projections(get_projections(title)), cast=get_actors(title))
-
-
-@app.route('/delete_projection2/<proj_id>')
-@login_required
-def delete_projection2(proj_id):
-    if not current_user.is_manager:
-        abort(403)
-    conn = engine.connect()
-    s = text("""SELECT * FROM public.tickets
-                JOIN public.users ON tickets.tickets_user = users.users_id
-                JOIN public.projections ON tickets.tickets_projection = projections.projections_id
-                WHERE projections_id = :e1""")
-    rs = conn.execute(s, e1=proj_id)
-    refunds = rs.fetchall()
-    for r in refunds:
-        s = text("""UPDATE public.users SET users_balance = users_balance + :e1 WHERE users_id = :e2""")
-        conn.execute(s, e1=r.projections_price, e2=r.users_id)
-    s = text("DELETE FROM public.projections WHERE projections_id=:p")
-    conn.execute(s, p=proj_id)
-    flash("Projection deleted successfully!")
-    conn.close()
+    delete_proj(proj_id)
     return redirect(url_for('edit_data'))
 
 
+# Lets a manager delete a projection and refunds sold tickets from the movie info page
+@app.route('/delete/<title>/<proj>')
+@login_required
+def delete_projection_movie(title, proj):
+    if not current_user.is_manager:
+        abort(403)
+    delete_proj(proj)
+    return redirect(url_for('movie_info', title=title))
+
+
+# Lets a manager edit a room's information
 @app.route('/edit_room/<room_id>', methods=['GET', 'POST'])
 @login_required
 def edit_room(room_id):
@@ -460,6 +435,7 @@ def edit_room(room_id):
     return render_template('manager/edit_room.html', seats=se, room_id=room_id)
 
 
+# Lets a manager delete seats from a room
 @app.route('/remove_seat/<seat_id>/<room_id>')
 @login_required
 def remove_seat(seat_id, room_id):
@@ -472,13 +448,14 @@ def remove_seat(seat_id, room_id):
     return redirect(url_for('edit_room', room_id=room_id))
 
 
+# Lets a manager add a seat to a room
 @app.route('/add_seat/<room_id>', methods=['GET', 'POST'])
 @login_required
 def add_seat(room_id):
     if not current_user.is_manager:
         abort(403)
     if request.method == 'POST':
-        if get_seat_by_name(room_id, request.form['name']) is not None:
+        if get_seat_by_name(room_id, request.form['name']):
             flash("Seat already exists")
         else:
             conn = engine.connect()
@@ -491,7 +468,7 @@ def add_seat(room_id):
     return render_template('manager/add_seat.html', room=room_id)
 
 
-# (Manager) aggiunge una sala
+# Lets a manager add a new room
 @app.route('/add_room', methods=['GET', 'POST'])
 @login_required
 def add_room():
@@ -499,7 +476,7 @@ def add_room():
         abort(403)
     if request.method == 'POST':
         # controlla se il nome della 'room' sia ridondante, se sì ritorna un messaggio
-        if get_rooms_by_name(request.form['name']) is not None:
+        if get_rooms_by_name(request.form['name']):
             flash("Room already exists")
         # altrimenti procede con l'inserimento
         else:
@@ -511,7 +488,7 @@ def add_room():
     return render_template('manager/add_room.html')
 
 
-# statistiche
+# Shows statistics generated from user data
 @app.route('/show_echarts')
 @login_required
 def show_echarts():
