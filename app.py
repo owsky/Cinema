@@ -272,7 +272,8 @@ def add_movie():
 def add_projection_movie(title):
     if request.method == 'POST':
         mov = get_movies(title)
-        datetimeobj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
+        dt = request.form['date'] + " " + request.form['time']
+        datetimeobj = datetime.strptime(dt, '%Y/%m/%d %H:%M')
         room = get_rooms_by_name(request.form['room'])
         if datetimeobj <= datetime.now():
             flash("Can not add a projection in the past")
@@ -282,16 +283,16 @@ def add_projection_movie(title):
                     endtime = str(datetimeobj + timedelta(minutes=mov.movies_duration))
 
                     # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
-                    if not check_time(request.form['date_time'], endtime, room.rooms_id):
+                    if not check_time(dt, endtime, room.rooms_id):
                         s1 = text(
                             "INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
                             "projections_price) VALUES (:m,:t,:r,:p)")
-                        conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id,
+                        conn.execute(s1, m=mov.movies_id, t=dt, r=room.rooms_id,
                                      p=request.form['price'])
 
                         flash("Projection added successfully")
                     else:
-                        raise TimeNotAvailableException(request.form['date_time'])
+                        raise TimeNotAvailableException(dt)
             conn.close()
         return render_template('user/movie_info.html', movie=mov,
                                projections=format_projections(get_projections(title)),
@@ -508,4 +509,4 @@ def show_echarts():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
