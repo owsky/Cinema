@@ -38,23 +38,3 @@ class Projection:
         self.room = room
         self.price = price
         self.tickets_left = tickets_left
-
-
-class InsufficientBalanceException(Exception):
-    def __init__(self, balance, message="Insufficient funds"):
-        self.balance = balance
-        self.message = message
-        super().__init__(self.message)
-
-    def __str__(self):
-        return f'{self.balance} -> {self.message}'
-
-
-class TimeNotAvailableException(Exception):
-    def __init__(self, datetime, message="Projection overlaps current schedule"):
-        self.datetime = datetime
-        self.message = message
-        super().__init__(self.message)
-
-    def __str__(self):
-        return f'{self.datetime} -> {self.message}'

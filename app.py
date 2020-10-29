@@ -1,9 +1,11 @@
 import secrets
 from datetime import datetime, timedelta
+
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text, create_engine
-from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvailableException, man_required
+
+from classes import User, Anonymous, InsufficientBalanceException, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
