@@ -272,14 +272,14 @@ def add_movie():
 def add_projection_movie(title):
     if request.method == 'POST':
         mov = get_movies(title)
-        datetimeObj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
+        datetimeobj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
         room = get_rooms_by_name(request.form['room'])
-        if datetimeObj <= datetime.now():
+        if datetimeobj <= datetime.now():
             flash("Can not add a projection in the past")
         else:
             with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
                 with conn.begin():
-                    endtime = str(datetimeObj + timedelta(minutes=mov.movies_duration))
+                    endtime = str(datetimeobj + timedelta(minutes=mov.movies_duration))
 
                     # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
                     if not check_time(request.form['date_time'], endtime, room.rooms_id):
