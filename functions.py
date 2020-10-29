@@ -126,29 +126,28 @@ def get_rooms_by_id(cod):
 
 
 # check per l'inserimento di una proiezione
-def check_time2(proj, start, end, room):
+def check_time2(start, end, room):
     conn = engine.connect()
     # controlla che l'orario 'start' e 'end' non siano in interferenza con altre proiezioni
     # seleziona le interferenze se sono presenti
     s = text("""SELECT projections_id FROM public.projections
                 JOIN public.movies ON projections.projections_movie = movies.movies_id
-                WHERE projections_room =:r AND projections_id<>:p AND projections_date_time >= :s
+                WHERE projections_room =:r AND projections_date_time >= :s
                 AND (projections_date_time + (movies_duration * interval '1 minute'))<= :e""")
-    rs = conn.execute(s, p=proj, r=room, s=start, e=end)
+    rs = conn.execute(s, r=room, s=start, e=end)
     ris = rs.fetchone()
     conn.close()
     return ris
 
 
 # Checks for overlaps on a given projection
-def check_time(proj, start, end, room):
+def check_time(start, end, room):
     conn = engine.connect()
     s = text("""SELECT projections_id FROM public.projections
                 JOIN public.movies ON projections_movie=movies_id
-                WHERE projections_room = :r AND projections_id <>:p AND
-                (:st BETWEEN projections_date_time AND projections_date_time + (movies_duration * interval '1 minute') OR
-                :e BETWEEN projections_date_time AND projections_date_time + (movies_duration * interval '1 minute'))""")
-    rs = conn.execute(s, p=proj, r=room, st=start, e=end)
+                WHERE projections_room = :r AND
+                (:st, :e) OVERLAPS (projections_date_time, projections_date_time + (movies_duration * interval '1 minute'))""")
+    rs = conn.execute(s, r=room, st=start, e=end)
     ris = rs.fetchone()
     conn.close()
     return ris
