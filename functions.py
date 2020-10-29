@@ -1,10 +1,8 @@
-from datetime import datetime
-
-from flask import flash, request, render_template
+from flask import flash
 from flask_login import current_user
 from sqlalchemy import text, create_engine
 
-from classes import InsufficientBalanceException, Projection, User, TimeNotAvailableException
+from classes import Projection, User
 
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 
@@ -22,14 +20,15 @@ def purchase(proj_id, selected_seats):
             tprice = rs2.fetchone()
             total = balance.users_balance - (tprice.projections_price * len(selected_seats))
             if total < 0:
-                raise InsufficientBalanceException(balance.users_balance)
-            for x in selected_seats:
-                s = text(
-                    "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
-                connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
-            s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
-            connection.execute(s, e1=total, e2=current_user.id)
-    connection.close()
+                connection.close()
+            else:
+                for x in selected_seats:
+                    s = text(
+                        "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
+                    connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
+                s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
+                connection.execute(s, e1=total, e2=current_user.id)
+                connection.close()
     return
 
 
