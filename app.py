@@ -7,6 +7,7 @@ from sqlalchemy import text, create_engine
 
 from classes import User, Anonymous, InsufficientBalanceException
 from functions import get_last_movies, user_by_email, get_gender, get_orders, get_projections, get_movies, get_actors, \
+from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvailableException
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, check_time2, get_rooms_by_id, get_actor_by_name, check_cast, \
     get_actor_by_id, get_seat_by_name
@@ -122,6 +123,7 @@ def projections():
 
 @app.route('/movies')
 def movies_route():
+def movies_list():
     return render_template("movies.html", movies=get_movies(None))
 
 
@@ -133,6 +135,11 @@ def movie_info(title):
     proj = get_projections(title)
     return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
                            cast=get_actors(title))
+    try:
+        return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
+                               cast=get_actors(title))
+    except TimeNotAvailableException as e:
+        flash(e.message)
 
 
 @app.route('/<title>/<projection>', methods=['GET', 'POST'])
@@ -236,29 +243,31 @@ def add_projection(title):
         if request.form['date_time'] <= datetime.now():
             flash("Can not add a projection in the past")
         else:
-            # inserisce la nuova proiezione
-            s1 = text("INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
-                      "projections_price) VALUES (:m,:t,:r,:p)")
-            conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id, p=request.form['price'])
+            with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+                with conn.begin():
+                    s1 = text(
+                        "INSERT INTO public.projections(projections_movie, projections_date_time, projections_room, "
+                        "projections_price) VALUES (:m,:t,:r,:p)")
+                    conn.execute(s1, m=mov.movies_id, t=request.form['date_time'], r=room.rooms_id,
+                                 p=request.form['price'])
 
-            # seleziona la proiezione che ho appena inserito
-            s = text("SELECT projections_id AS mov_proj, movies_id AS mov_id, projections_room AS mov_room, "
-                     "projections_date_time AS mov_start, "
-                     "projections_date_time + (movies_duration * interval '1 minute') AS mov_end FROM public.projections "
-                     "JOIN public.movies ON projections_movie=movies_id WHERE projections_movie=:m AND "
-                     "projections_room=:r AND projections_date_time=:t")
-            proj_info = (conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
-
-        # fa un check che non ci siano altri film in proiezione nella stessa data e ora e nella stessa sala
-            if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room) and \
-                    not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end, proj_info.mov_room):
-                flash("Projection added successfully")
-            else:
-                # orario non disponibile, effettua una delete della proiezione appena inserita
-                flash("Time not available")
-                s2 = text("DELETE FROM projections WHERE projections_id=:p")
-                conn.execute(s2, p=proj_info.mov_proj)
-        conn.close()
+                    # Queries the DB for the just added projection
+                    s = text("SELECT projections_id AS mov_proj, movies_id AS mov_id, projections_room AS mov_room, "
+                             "projections_date_time AS mov_start, "
+                             "projections_date_time + (movies_duration * interval '1 minute') AS mov_end FROM public.projections "
+                             "JOIN public.movies ON projections_movie=movies_id WHERE projections_movie=:m AND "
+                             "projections_room=:r AND projections_date_time=:t")
+                    proj_info = (
+                        conn.execute(s, m=mov.movies_id, r=room.rooms_id, t=request.form['date_time'])).fetchone()
+                    # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
+                    if not check_time(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end,
+                                      proj_info.mov_room) and \
+                            not check_time2(proj_info.mov_proj, proj_info.mov_start, proj_info.mov_end,
+                                            proj_info.mov_room):
+                        flash("Projection added successfully")
+                    else:
+                        raise TimeNotAvailableException(proj_info.mov_start)
+            conn.close()
         return render_template('user/movie_info.html', movie=mov,
                                projections=format_projections(get_projections(title)),
                                cast=get_actors(title))
