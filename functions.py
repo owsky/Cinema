@@ -63,7 +63,8 @@ def get_orders(uid):
                 JOIN rooms ON rooms_id=seats_room
                 JOIN projections ON tickets_projection=projections_id
                 JOIN movies ON movies_id=projections_movie
-                WHERE tickets_user=:e1""")
+                WHERE tickets_user=:e1
+                ORDER BY projections_date_time DESC""")
     rs = conn.execute(s, e1=uid)
     orders = rs.fetchall()
     conn.close()
