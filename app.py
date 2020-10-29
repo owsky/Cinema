@@ -1,12 +1,11 @@
 import secrets
 from datetime import datetime
-from functools import wraps
 
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text, create_engine
 
-from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvailableException
+from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvailableException, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, check_time2, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
@@ -19,15 +18,6 @@ engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.anonymous_user = Anonymous
-
-
-def man_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_manager:
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 # Loads the users from the DB and creates a respective object

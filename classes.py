@@ -1,4 +1,16 @@
-from flask_login import UserMixin, AnonymousUserMixin
+from functools import wraps
+
+from flask_login import UserMixin, AnonymousUserMixin, current_user
+from werkzeug.exceptions import abort
+
+
+def man_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_manager:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 class User(UserMixin):
