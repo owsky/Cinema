@@ -9,7 +9,7 @@ from classes import User, Anonymous, InsufficientBalanceException, TimeNotAvaila
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, check_time2, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
-    get_seat_by_name, delete_proj
+    get_seat_by_name, delete_proj, get_movies_proj
 from stats import get_bar, get_pie
 
 app = Flask(__name__)
@@ -121,13 +121,7 @@ def delete_profile():
     return redirect(url_for('home'))
 
 
-# Renders the projections page with the current schedule
-@app.route('/projections')
-def projections():
-    return render_template("user/projections.html", projections=get_projections(None))
-
-
-# Renders the movies page with all movies saved on the DB
+# Renders the movies page with all the movies that are currently being projected
 @app.route('/movies', methods=['GET', 'POST'])
 def movies_list():
     # If the page gets loaded with a POST request it applies the filter provided by the user through the GUI
@@ -152,10 +146,25 @@ def movies_list():
                             SELECT movies_id FROM public.movies
                             JOIN public.cast ON movies_id = cast_movie
                             JOIN public.actors ON cast_actor = actors_id
+                            JOIN public.projections ON movies.movies_id = projections.projections_movie
                             WHERE actors_fullname = :e1)""")
             rs = conn.execute(s, e1=request.form['actor'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(), act=get_actors(None))
-    return render_template("movies.html", movies=get_movies(None), gen=get_genres(), dir=get_directors(), act=get_actors(None))
+    return render_template("movies.html", movies=get_movies_proj(), gen=get_genres(), dir=get_directors(), act=get_actors(None))
+
+
+# Shows the list of coming soon movies
+@app.route('/coming_soon')
+def coming_soon():
+    conn = engine.connect()
+    s = text("""SELECT * FROM public.movies
+                JOIN public.directors ON movies.movies_director = directors.directors_id
+                WHERE movies_id NOT IN (
+                    SELECT movies_id FROM public.movies
+                    JOIN public.projections ON movies.movies_id = projections.projections_movie)""")
+    c = conn.execute(s).fetchall()
+    conn.close()
+    return render_template('user/coming_soon.html', mov=c)
 
 
 # Dinamically renders a movie page upon request with the provided movie title
