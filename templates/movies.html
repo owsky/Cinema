@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
     <form action="{{ url_for('movies_list') }}" method="POST">
-        Filter by:
+        Filter by:<br>
         <label>
             <select id="filter" name="filter_select" onchange="showDiv(this)">
                 <option value="genre">Genre</option>

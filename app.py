@@ -226,7 +226,6 @@ def all_movies():
 @man_required
 def edit_movie(title):
     m = get_movies(title)
-    d = get_directors_by_id(m.movies_director)
     if request.method == 'POST':
         conn = engine.connect()
         director = get_directors_by_name(request.form['director'])
@@ -237,7 +236,7 @@ def edit_movie(title):
         conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
         conn.close()
         return render_template('manager/edit_data.html')
-    return render_template('manager/edit_movie.html', movie_to_update=m, direct=d, gen=get_genres(),
+    return render_template('manager/edit_movie.html', movie_to_update=m, gen=get_genres(),
                            dir=get_directors_by_name(None), c=get_actors(title))
 
 
@@ -362,14 +361,16 @@ def add_director():
 @man_required
 def edit_director(director_id):
     if request.method == 'POST':
-        if get_directors_by_name(request.form['name']):
+        conn = engine.connect()
+        s1 = text("SELECT * FROM public.directors WHERE directors_id <> :cod AND directors_name =:n")
+        ris = conn.execute(s1, cod=director_id, n=request.form['name']).fetchone()
+        if ris:
             flash("Director already exists")
         else:
-            conn = engine.connect()
             s = text("UPDATE public.directors SET directors_name = :e1 WHERE directors_id = :e2")
             conn.execute(s, e1=request.form['name'], e2=director_id)
-            conn.close()
             flash("Done!")
+        conn.close()
     return render_template('manager/edit_director.html', dir=get_directors_by_id(director_id))
 
 
@@ -417,7 +418,10 @@ def add_actor():
 def edit_actor(actor_id):
     if request.method == 'POST':
         # Checks whether the actor's new name already exists on the DB
-        if get_actor_by_name(request.form['name']):
+        conn = engine.connect()
+        s1 = text("SELECT * FROM public.actors WHERE actors_id <> :cod AND actors_fullname =:n")
+        ris = conn.execute(s1, cod=actor_id, n=request.form['name']).fetchone()
+        if ris:
             flash("Actor already exists")
         else:
             conn = engine.connect()
@@ -425,8 +429,8 @@ def edit_actor(actor_id):
                         SET actors_fullname = :e1
                         WHERE actors_id = :e2""")
             conn.execute(s, e1=request.form['name'], e2=actor_id)
-            conn.close()
             flash("Done!")
+        conn.close()
     return render_template('manager/edit_actor.html', act=get_actor_by_id(actor_id))
 
 
@@ -445,7 +449,8 @@ def delete_movie(title):
     else:
         flash("You can't delete movies that have been/are being projected")
     conn.close()
-    return redirect(url_for('movies_list'))
+    return render_template('manager/edit_movie.html', movie_to_update=get_movies(title), gen=get_genres(),
+                           dir=get_directors_by_name(None), c=get_actors(title))
 
 
 # Lets a manager delete a projection and refunds sold tickets from the edit data page
@@ -539,7 +544,7 @@ def show_echarts():
     pie = get_pie()
     bar2 = get_bar2()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
-                           bar_option2=bar2.dump_options())
+                           bar_options2=bar2.dump_options())
 
 
 if __name__ == '__main__':

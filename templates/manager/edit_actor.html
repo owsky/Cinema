@@ -3,6 +3,6 @@
     Actor's name:<br>
     <form action="{{ url_for('edit_actor', actor_id=act.actors_id) }}" method="POST">
         <input type="text" name="name" value="{{ act.actors_fullname }}" >
-        <input type="submit">
+        <input type="submit" value="Edit">
     </form>
 {% endblock %}

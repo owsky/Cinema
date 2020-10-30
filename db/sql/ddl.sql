@@ -74,9 +74,9 @@ CREATE TABLE public.seats (
 
 CREATE TABLE public.tickets (
     tickets_id serial PRIMARY KEY,
-    tickets_user int NOT NULL,
+    tickets_user int,
     tickets_projection int NOT NULL,
-    tickets_seat int NOT NULL,
+    tickets_seat int,
     CONSTRAINT tickets_user_fkey
         FOREIGN KEY(tickets_user)
         REFERENCES public.users(users_id)
