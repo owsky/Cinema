@@ -126,3 +126,11 @@ CREATE VIEW public.summale AS
                  JOIN public.movies ON projections_movie = movies_id
                  JOIN public.users ON users_id = tickets_user
                  WHERE users_gender='M' GROUP BY movies_genre;
+
+CREATE VIEW public.rankmovie AS
+    SELECT movies_id AS id, movies_title AS title, SUM(tickets_id) AS sold
+                 FROM public.tickets
+                 JOIN public.projections ON tickets_projection = projections_id
+                 JOIN public.movies ON projections_movie = movies_id
+                 JOIN public.users ON users_id = tickets_user
+                 GROUP BY movies_id, movies_title;

@@ -47,12 +47,9 @@ def get_bar() -> Bar:
 
 def get_bar2() -> Bar:
     conn = engine.connect()
-    s1 = text("""SELECT movies_id AS id, movies_title AS title, SUM(tickets_id) AS sold
-                 FROM public.tickets
-                 JOIN public.projections ON tickets_projection = projections_id
-                 JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user 
-                 GROUP BY movies_id, movies_title""")
+    s1 = text("""SELECT *
+                 FROM public.rankmovie 
+                 ORDER BY sold DESC LIMIT 10""")
 
     datas = conn.execute(s1).fetchall()
     print(datas)
@@ -60,6 +57,7 @@ def get_bar2() -> Bar:
     c = (
         Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas])
              .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+
     )
     return c
 
