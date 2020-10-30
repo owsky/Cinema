@@ -165,7 +165,7 @@ INSERT INTO public.movies(movies_id, movies_title, movies_duration, movies_genre
     (13, 'The Dark Knight', 152, 'Action', 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.', 7, '2008-07-18'),
     (14, 'The Lord of the Rings: The Return of the King', 201, 'Adventure', 'Gandalf and Aragorn lead the World of Men against Sauron''s army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.', 13, '2003-12-17'),
     (15, 'Pulp Fiction', 154, 'Drama', 'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.', 14, '1994-10-14'),
-    (16, 'The Good, the Bad and the Ugly', 178, 'Western', 'A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.', 15, '1967-12-29'),
+    (16, 'The Good, the Bad and the Ugly', 178, 'Western', 'A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.', 15, '1967-12-29');
 
 
 SELECT setval('movies_movies_id_seq', (SELECT MAX(movies_id) from "movies"));
@@ -330,7 +330,7 @@ INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUE
     (6, 1, 15),
     (6, 1, 16),
     (6, 1, 17),
-    (6, 1, 18),                                                                                                                                                       
+    (6, 1, 18),
     (2, 2, 1),
     (2, 2, 2),
     (2, 2, 3),
