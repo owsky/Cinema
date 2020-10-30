@@ -314,31 +314,35 @@ def get_projections(mov):
 # Returns how many seats are not occupied on a specific projection
 def how_many_seats_left(proj_id):
     conn = engine.connect()
-    s = text("""SELECT COUNT(seats_id) as s
-                     FROM seats
-                     WHERE seats_id NOT IN (
-                        SELECT seats_id
-                        FROM public.projections
-                        JOIN public.tickets ON tickets_projection = projections_id
-                        JOIN public.seats ON tickets_seat = seats_id
-                        WHERE projections_id = :e1)""")
+    s = text("""SELECT rooms_capacity FROM public.rooms
+                JOIN public.projections ON rooms.rooms_id = projections.projections_room
+                WHERE projections_id = :e1""")
+    rs = conn.execute(s, e1=proj_id)
+    capacity = rs.fetchone()
+
+    s = text("""SELECT COUNT(tickets_id) as t
+                FROM public.tickets
+                WHERE tickets_projection = :e1""")
     rs = conn.execute(s, e1=proj_id)
     f = rs.fetchone()
     conn.close()
-    return f.s
+    return capacity.rooms_capacity - f.t
 
 
 # Returns the seats that are not occupied on a specific projection
 def free_seats(proj_id):
     conn = engine.connect()
     s = text("""SELECT *
-                 FROM seats
-                 WHERE seats_id NOT IN (
-                    SELECT seats_id
-                    FROM public.projections
-                    JOIN public.tickets ON tickets_projection = projections_id
-                    JOIN public.seats ON tickets_seat = seats_id
-                    WHERE projections_id = :e1)""")
+                 FROM public.seats
+                 JOIN public.rooms On seats.seats_room = rooms.rooms_id
+                 JOIN public.projections ON rooms.rooms_id = projections.projections_room
+                 WHERE projections_id = :e1 AND
+                    seats_id NOT IN (
+                        SELECT seats_id
+                        FROM public.projections
+                        JOIN public.tickets ON tickets_projection = projections_id
+                        JOIN public.seats ON tickets_seat = seats_id
+                        WHERE projections_id = :e1)""")
     rs = conn.execute(s, e1=proj_id)
     f = rs.fetchall()
     conn.close()
