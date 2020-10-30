@@ -1,8 +1,0 @@
-{% extends 'base.html' %}
-{% block body %}
-    <form action="{{ url_for('add_seat', room_id=room) }}" method="POST">
-        Insert seats names separated by a comma:
-        <input type="text" name="name">
-        <input type="submit">
-    </form>
-{% endblock %}

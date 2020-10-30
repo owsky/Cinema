@@ -496,25 +496,6 @@ def remove_seat(seat_id, room_id):
     return redirect(url_for('edit_room', room_id=room_id))
 
 
-# Lets a manager add a seat to a room
-@app.route('/add_seat/<room_id>', methods=['GET', 'POST'])
-@login_required
-@man_required
-def add_seat(room_id):
-    if request.method == 'POST':
-        if get_seat_by_name(room_id, request.form['name']):
-            flash("Seat already exists")
-        else:
-            conn = engine.connect()
-            s = text("INSERT INTO public.seats VALUES (:e1, :e2)")
-            if request.form['name']:
-                li = list(request.form['name'].strip().split(","))
-                for n in li:
-                    conn.execute(s, e1=n, e2=room_id)
-                flash("Success")
-    return render_template('manager/add_seat.html', room=room_id)
-
-
 # Lets a manager add a new room
 @app.route('/add_room', methods=['GET', 'POST'])
 @login_required
