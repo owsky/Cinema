@@ -144,7 +144,10 @@ INSERT INTO public.directors(directors_id, directors_name) VALUES
     (12, 'Francis Ford Coppola'),
     (13, 'Peter Jackson'),
     (14, 'Quentin Tarantino'),
-    (15, 'Sergio Leone');
+    (15, 'Sergio Leone'),
+    (19, 'David Yates'),
+    (20, 'Jaume Collet-Serra'),
+    (21, 'David Gordon Green');
 
 SELECT setval('directors_directors_id_seq', (SELECT MAX(directors_id) from "directors"));
 
@@ -165,7 +168,10 @@ INSERT INTO public.movies(movies_id, movies_title, movies_duration, movies_genre
     (13, 'The Dark Knight', 152, 'Action', 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.', 7, '2008-07-18'),
     (14, 'The Lord of the Rings: The Return of the King', 201, 'Adventure', 'Gandalf and Aragorn lead the World of Men against Sauron''s army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.', 13, '2003-12-17'),
     (15, 'Pulp Fiction', 154, 'Drama', 'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.', 14, '1994-10-14'),
-    (16, 'The Good, the Bad and the Ugly', 178, 'Western', 'A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.', 15, '1967-12-29');
+    (16, 'The Good, the Bad and the Ugly', 178, 'Western', 'A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.', 15, '1967-12-29'),
+    (17, 'Fantastic Beasts and Where to Find Them 3', NULL, 'Fantasy', 'The third installment of the ''Fantastic Beasts and Where to Find Them'' series which follows the adventures of Newt Scamander.', 19, NULL),
+    (18, 'Black Adam', NULL, 'Sci-Fi', 'A spin-off from ''Shazam!'' centering on the film''s anti-hero, Black Adam.', 20, NULL),
+    (19, 'Halloween Kills', NULL, 'Horror', 'The saga of Michael Myers and Laurie Strode continues in the next thrilling chapter of the Halloween series.', 21, NULL);
 
 
 SELECT setval('movies_movies_id_seq', (SELECT MAX(movies_id) from "movies"));
@@ -218,7 +224,16 @@ INSERT INTO public.actors(actors_id, actors_fullname) VALUES
     (44, 'Julia Louis-Dreyfus'),
     (45, 'Elisabeth Moss'),
     (46, 'Oliver Jackson-Cohen'),
-    (47, 'Harriet Dyer');
+    (47, 'Harriet Dyer'),
+    (48, 'Eddie Redmayne'),
+    (49, 'Johnny Depp'),
+    (50, 'Katherine Waterston'),
+    (51, 'Dwayne Johnson'),
+    (52, 'Sarah Shahi'),
+    (53, 'Aldis Hodge'),
+    (54, 'Jamie Lee Curtis'),
+    (55, 'Judy Greer'),
+    (56, 'Anthony Michael Hall');
 
 SELECT setval('actors_actors_id_seq', (SELECT MAX(actors_id) from "actors"));
 
@@ -271,7 +286,16 @@ INSERT INTO public.cast(cast_movie, cast_actor) VALUES
     (15, 18),
     (16, 19),
     (16, 20),
-    (16, 21);
+    (16, 21),
+    (17, 48),
+    (17, 49),
+    (17, 50),
+    (18, 51),
+    (18, 52),
+    (18, 53),
+    (19, 54),
+    (19, 55),
+    (19, 56);
 
 -- USERS
 INSERT INTO public.users(users_id, users_email, users_name, users_gender, users_surname, users_pwd, users_balance, users_is_manager) VALUES
