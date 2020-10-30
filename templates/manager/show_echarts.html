@@ -12,7 +12,7 @@
         var pieChart = echarts.init(document.getElementById('pie'));
         var barChart2 = echarts.init(document.getElementById('bar2'));
 
-                var option2 = {{ bar_options2 | safe }};
+        var option2 = {{ bar_options2 | safe }};
 
         barChart.setOption({{ bar_options | safe }})
         barChart2.setOption(option2)

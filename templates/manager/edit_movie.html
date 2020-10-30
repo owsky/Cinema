@@ -15,10 +15,10 @@
         Director:<br>
             <select name="director">
             {% for d in dir %}
-                <option value="{{ direct.directors_name }}">{{ d.directors_name }}</option>
+                <option value="{{ movie_to_update.directors_name }}">{{ d.directors_name }}</option>
             {% endfor %}
             </select><br>
-            <input type="submit">
+            <input type="submit" value="Edit">
 
         </form>
 
