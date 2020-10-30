@@ -311,6 +311,7 @@ def get_projections(mov):
     return proj
 
 
+# Returns how many seats are not occupied on a specific projection
 def how_many_seats_left(proj_id):
     conn = engine.connect()
     s = text("""SELECT COUNT(seats_id) as s
@@ -327,6 +328,7 @@ def how_many_seats_left(proj_id):
     return f.s
 
 
+# Returns the seats that are not occupied on a specific projection
 def free_seats(proj_id):
     conn = engine.connect()
     s = text("""SELECT *
