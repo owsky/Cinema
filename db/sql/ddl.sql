@@ -37,10 +37,10 @@ CREATE TABLE public.directors (
 CREATE TABLE public.movies (
     movies_id serial PRIMARY KEY,
     movies_title varchar NOT NULL,
-    movies_duration int NOT NULL CHECK ( movies_duration>0 ),
+    movies_duration int CHECK ( movies_duration>0 ),
     movies_genre public.genre NOT NULL,
     movies_synopsis varchar NOT NULL,
-    movies_date date NOT NULL,
+    movies_date date,
     movies_director int REFERENCES public.directors(directors_id) NOT NULL
 );
 
