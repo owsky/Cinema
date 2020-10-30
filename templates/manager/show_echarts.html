@@ -4,17 +4,19 @@
     <script src="/static/echarts.min.js"></script>
 <body>
     <div id="bar" style="width: 600px; height:400px"></div>
-    <div id="pie" style="width: 600px; height:400px"></div>
     <div id="bar2" style="width: 600px; height:400px"></div>
+    <div id="pie" style="width: 600px; height:400px"></div>
     <script type="text/javascript">
 
         var barChart = echarts.init(document.getElementById('bar'));
         var pieChart = echarts.init(document.getElementById('pie'));
         var barChart2 = echarts.init(document.getElementById('bar2'));
 
+                var option2 = {{ bar_options2 | safe }};
+
         barChart.setOption({{ bar_options | safe }})
+        barChart2.setOption(option2)
         pieChart.setOption({{ pie_options | safe }})
-        barChart2.setOption({{ bar_options2 | safe }})
     </script>
 
 </body>

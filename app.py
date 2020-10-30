@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, abort, fla
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text, create_engine
 
-from classes import User, Anonymous, InsufficientBalanceException, man_required
+from classes import User, Anonymous, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
@@ -539,7 +539,7 @@ def show_echarts():
     pie = get_pie()
     bar2 = get_bar2()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
-                           bar_option2=bar2.dump_options())
+                           bar_options2=bar2.dump_options())
 
 
 if __name__ == '__main__':

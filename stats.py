@@ -64,7 +64,8 @@ def get_bar2() -> Bar:
     print(datas)
     conn.close()
     c = (
-        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas]).set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas])
+             .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
     )
     return c
 
