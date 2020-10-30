@@ -25,28 +25,22 @@ def get_line() -> Line:
 # grafico a barre: seleziona i film in base ai biglietti venduti
 def get_bar() -> Bar:
     conn = engine.connect()
-    s1 = text("""SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS summ
-                 FROM public.tickets
-                 JOIN public.projections ON tickets_projection = projections_id
-                 JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user 
-                 WHERE users_gender='M' GROUP BY movies_id, movies_genre""")
 
-    s2 = text("""SELECT movies_id AS id, movies_genre AS genre, SUM(tickets_id) AS sumf
+    s1 = text("""SELECT movies_genre AS genre, summ, SUM(tickets_id) AS sumf
                  FROM public.tickets
                  JOIN public.projections ON tickets_projection = projections_id
                  JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user 
+                 JOIN public.users ON users_id = tickets_user
+                 JOIN public.summale ON genre = movies_genre
                  WHERE users_gender='F'
-                 GROUP BY movies_id, movies_genre""")
+                 GROUP BY movies_genre, summ""")
 
     datas1 = conn.execute(s1).fetchall()
-    datas2 = conn.execute(s2).fetchall()
     conn.close()
     c = (
         Bar().add_xaxis([data['genre'] for data in datas1]).add_yaxis("Male", [data['summ'] for data in
                                                                                datas1]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres")).add_yaxis("Female", [data['sumf'] for data in datas2])
+            title_opts=opts.TitleOpts(title="Genres")).add_yaxis("Female", [data['sumf'] for data in datas1])
     )
     return c
 
