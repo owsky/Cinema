@@ -12,7 +12,7 @@
             {% endfor %}
         </select><br>
             Duration:<br>
-        <input name="duration" type="number" placeholder="DURATION" pattern="^[1-9][0-9]*" requered><br>
+        <input name="duration" type="number" placeholder="DURATION"><br>
             Synopsis:<br>
         <input name="synopsis" type="text" placeholder="SYNOPSIS" requered><br>
             Director:<br>
@@ -22,7 +22,7 @@
             {% endfor %}
         </select><br>
             Release Date:<br>
-        <input name="day" type="date" placeholder="DAY" pattern="^[12][0-9]{3}-[01][0-9]-[0123][0-9]$" requered><br>
+        <input name="day" type="date" placeholder="DAY" requered><br>
             <input type="submit" value="Add"><br>
         Can't find the director? <a href="{{ url_for('add_director') }}">Add</a><br><br>
 

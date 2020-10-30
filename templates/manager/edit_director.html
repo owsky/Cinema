@@ -2,7 +2,7 @@
 {% block body %}
     Director's name:<br>
     <form action="{{ url_for('edit_director', director_id=dir.directors_id) }}" method="POST">
-        <input type="text" name="name" value="{{ dir.directors_name }}" >
+        <input type="text" name="name" value="{{ dir.directors_name }}" required>
         <input type="submit" value="Edit">
     </form>
 {% endblock %}

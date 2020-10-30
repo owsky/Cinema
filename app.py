@@ -9,7 +9,8 @@ from classes import User, Anonymous, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
-    get_seat_by_name, delete_proj, get_movies_proj, get_movie_by_id, get_projection_by_id, check_time_update
+    get_seat_by_name, delete_proj, get_movies_proj, get_movie_by_id, get_projection_by_id, check_time_update, \
+    get_future_projections
 from stats import get_bar, get_pie, get_bar2
 
 app = Flask(__name__)
@@ -234,9 +235,24 @@ def edit_movie(title):
             director = get_directors_by_name(request.form['director'])
             genre = request.form['genre']
             synopsis = request.form['synopsis']
-            s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
-                     "movies_director=:dr WHERE movies_id =:cod")
-            conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
+            date = request.form['duration']
+            # if he wants to change movie's duration
+            if date != m.movies_duration:
+                if get_future_projections(title):
+                    s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
+                             "movies_director=:dr WHERE movies_id =:cod")
+                    conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
+                    flash("You can edit movie's duration only if it has no projections in the future")
+                else:
+                    s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
+                             "movies_director=:dr, movies_duration=:d WHERE movies_id =:cod")
+                    conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, d=request.form['duration'], cod=m.movies_id)
+                    flash("Movie updated successfully")
+            else:
+                s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
+                         "movies_director=:dr WHERE movies_id =:cod")
+                conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
+                flash("Movie updated successfully")
             conn.close()
             return render_template('manager/edit_data.html')
     return render_template('manager/edit_movie.html', movie_to_update=m, gen=get_genres(),
@@ -322,6 +338,7 @@ def add_projection_movie(title):
         if datetimeobj <= datetime.now():
             flash("Can not add a projection in the past")
         else:
+            print(str(datetimeobj + timedelta(minutes=mov.movies_duration)))
             with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
                 with conn.begin():
                     endtime = str(datetimeobj + timedelta(minutes=mov.movies_duration))

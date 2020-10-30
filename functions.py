@@ -1,7 +1,9 @@
+
+
 from flask import flash
 from flask_login import current_user
 from sqlalchemy import text, create_engine
-
+from datetime import datetime
 from classes import Projection, User
 
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
@@ -267,6 +269,16 @@ def get_projection_by_id(id):
     s = text("SELECT * FROM projections WHERE projections_id =:cod")
     rs = conn.execute(s, cod=id)
     ris = rs.fetchone()
+    conn.close()
+    return ris
+
+
+def get_future_projections(title):
+    conn = engine.connect()
+    s = text("""SELECT * FROM public.projections JOIN public.movies ON projections_movie=movies_id 
+                WHERE movies_title=:title AND projections_date_time >=:time""")
+    rs = conn.execute(s, title=title, time=str(datetime.now()))
+    ris = rs.fetchall()
     conn.close()
     return ris
 
