@@ -207,13 +207,15 @@ def get_movies(mov):
     conn = engine.connect()
     # If mov is not None it returns a single movie
     if mov:
-        s = text("""SELECT * FROM public.movies
+        s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis, movies_date, directors_name
+                    FROM public.movies
                     JOIN public.directors ON movies.movies_director = directors.directors_id
                     WHERE movies_title = :e1""")
         rs = conn.execute(s, e1=mov)
         films = rs.fetchone()
     else:
-        s = text("""SELECT * FROM movies
+        s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis, movies_date, directors_name
+                    FROM movies
                     JOIN directors ON movies_director = directors_id""")
         rs = conn.execute(s)
         films = rs.fetchall()
@@ -224,9 +226,10 @@ def get_movies(mov):
 # Returns the movies that are currently being projected
 def get_movies_proj():
     conn = engine.connect()
-    s = text("""SELECT * FROM movies
-                        JOIN directors ON movies_director = directors_id
-                        JOIN public.projections ON movies.movies_id = projections.projections_movie""")
+    s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis, movies_date, directors_name
+                FROM movies
+                JOIN directors ON movies_director = directors_id
+                JOIN public.projections ON movies.movies_id = projections.projections_movie""")
     rs = conn.execute(s)
     films = rs.fetchall()
     conn.close()
@@ -243,7 +246,7 @@ def get_actors(mov):
                     WHERE movies_title = :e1""")
         rs = conn.execute(s, e1=mov)
     else:
-        s = text("SELECT * FROM actors ORDER BY actors_id")
+        s = text("SELECT actors_fullname FROM actors ORDER BY actors_id")
         rs = conn.execute(s)
     act = rs.fetchall()
     conn.close()
@@ -253,7 +256,7 @@ def get_actors(mov):
 def get_movie_by_id(id):
     conn = engine.connect()
     s = text("SELECT * FROM movies WHERE movies_id =:cod")
-    rs = conn.execute(s,cod=id)
+    rs = conn.execute(s, cod=id)
     ris = rs.fetchone()
     conn.close()
     return ris
@@ -262,7 +265,7 @@ def get_movie_by_id(id):
 def get_projection_by_id(id):
     conn = engine.connect()
     s = text("SELECT * FROM projections WHERE projections_id =:cod")
-    rs = conn.execute(s,cod=id)
+    rs = conn.execute(s, cod=id)
     ris = rs.fetchone()
     conn.close()
     return ris
@@ -270,7 +273,9 @@ def get_projection_by_id(id):
 
 def get_last_movies():
     conn = engine.connect()
-    s = text("SELECT * FROM movies JOIN directors ON movies_director = directors_id ORDER BY movies_id DESC LIMIT 5")
+    s = text("""SELECT movies_title, movies_genre, movies_synopsis, directors_name
+                FROM movies JOIN directors ON movies_director = directors_id
+                ORDER BY movies_id DESC LIMIT 5""")
     rs = conn.execute(s)
     films = rs.fetchall()
     conn.close()
@@ -369,7 +374,7 @@ def get_rooms():
 def delete_proj(proj):
     with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
         with conn.begin():
-            s = text("""SELECT * FROM public.tickets
+            s = text("""SELECT projections_price, users_id FROM public.tickets
                         JOIN public.users ON tickets.tickets_user = users.users_id
                         JOIN public.projections ON tickets.tickets_projection = projections.projections_id
                         WHERE projections_id = :e1""")

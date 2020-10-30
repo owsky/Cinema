@@ -6,6 +6,7 @@
         Synopsis: {{ movie.movies_synopsis }} <br>
         Director: {{ movie.directors_name }} <br>
         Length: {{ (movie.movies_duration/60) | round(1) }} hours <br>
+        Release date: {{ movie.movies_date }}<br>
         Cast:<br>
         {% for c in cast %}
             {{ c.actors_fullname }}<br>

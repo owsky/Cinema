@@ -187,11 +187,8 @@ def purchase_ticket(title, projection):
     if not m:
         abort(404)
     if request.method == 'POST':
-        try:
-            purchase(projection, request.form.getlist('seat'))
-            flash("Successfully purchased tickets")
-        except InsufficientBalanceException as e:
-            flash(e.message)
+        purchase(projection, request.form.getlist('seat'))
+        flash("Successfully purchased tickets")
     return render_template("user/purchase.html", seats=free_seats(projection), mov=m.movies_title, proj=projection)
 
 
@@ -214,6 +211,13 @@ def edit_data():
         else:
             return render_template('manager/edit_data.html')
     return render_template('manager/edit_data.html')
+
+
+@app.route('/all_movies')
+@login_required
+@man_required
+def all_movies():
+    return render_template('manager/all_movies.html', mov=get_movies(None))
 
 
 # Lets a manager edit movies information
