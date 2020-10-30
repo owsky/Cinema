@@ -472,10 +472,25 @@ def delete_projection_movie(title, proj):
 @man_required
 def edit_room(room_id):
     if request.method == 'POST':
-        conn = engine.connect()
-        s = text("INSERT INTO public.seats(seats_name, seats_room) VALUES (:e1, :e2)")
-        conn.execute(s, e1=request.form['seat_name'], e2=room_id)
-        conn.close()
+        if get_seat_by_name(room_id, request.form['seat_name']):
+            flash("Seat already exists")
+        else:
+            with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+                with conn.begin():
+                    s = text("SELECT rooms_capacity FROM public.rooms WHERE rooms_id = :e1")
+                    rs = conn.execute(s, e1=room_id)
+                    capacity = rs.fetchone()
+
+                    s = text("SELECT COUNT(seats_id) FROM public.seats WHERE seats_room = :e1")
+                    rs = conn.execute(s, e1=room_id)
+                    existing_seats = rs.fetchone()
+
+                    if existing_seats == capacity:
+                        conn.close()
+                        flash("Can't add any more seats to this room")
+                    else:
+                        s = text("INSERT INTO public.seats(seats_name, seats_room) VALUES (:e1, :e2)")
+                        conn.execute(s, e1=request.form['seat_name'], e2=room_id)
     conn = engine.connect()
     s = text("SELECT * FROM public.seats WHERE seats_room = :e1")
     rs = conn.execute(s, e1=room_id)
