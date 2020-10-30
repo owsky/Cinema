@@ -317,7 +317,7 @@ def add_projection_movie(title):
     if request.method == 'POST':
         mov = get_movies(title)
         dt = request.form['date'] + " " + request.form['time']
-        datetimeobj = datetime.strptime(dt, '%Y/%m/%d %H:%M')
+        datetimeobj = datetime.strptime(dt, '%Y-%m-%d %H:%M')
         room = get_rooms_by_name(request.form['room'])
         if datetimeobj <= datetime.now():
             flash("Can not add a projection in the past")
