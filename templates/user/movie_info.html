@@ -1,21 +1,30 @@
 {% extends "base.html" %}
 {% block body %}
-    <ul>
-        Title: {{ movie.movies_title }} <br>
-        Genre: {{ movie.movies_genre }} <br>
-        Synopsis: {{ movie.movies_synopsis }} <br>
-        Director: {{ movie.directors_name }} <br>
+    <style>
+        ul {
+            padding-left: 10px;
+        }
+    </style>
+    Title: {{ movie.movies_title }} <br>
+    Genre: {{ movie.movies_genre }} <br>
+    Synopsis: {{ movie.movies_synopsis }} <br>
+    Director: {{ movie.directors_name }} <br>
+    {% if movie.movies_duration %}
         Length: {{ (movie.movies_duration/60) | round(1) }} hours <br>
+    {% endif %}
+    {% if movie.movies_date %}
         Release date: {{ movie.movies_date }}<br>
-        Cast:<br>
-        {% for c in cast %}
-            {{ c.actors_fullname }}<br>
-        {% endfor %}
-        {% if current_user.is_manager %}
-        <a href="{{ url_for('add_cast', title=movie.movies_title)}}">Add</a> a new actor to this movie<br>
+    {% else %}
+        Release date: COMING SOON<br>
+    {% endif %}
+    Cast:<br>
+    {% for c in cast %}
+        <ul>{{ c.actors_fullname }}</ul>
+    {% endfor %}<br>
+    {% if current_user.is_manager %}
+    <a href="{{ url_for('add_cast', title=movie.movies_title)}}">Add</a> a new actor to this movie<br>
     {% endif %}
         <br>
-    </ul>
     {% if current_user.is_manager %}
         <a href="{{ url_for('add_projection_movie', title=movie.movies_title)}}">Add</a> a new projection <br>
     {% endif %}
