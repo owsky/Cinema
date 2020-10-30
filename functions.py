@@ -239,14 +239,14 @@ def get_movies_proj():
 def get_actors(mov):
     conn = engine.connect()
     if mov:
-        s = text("""SELECT actors_fullname FROM public.movies
+        s = text("""SELECT * FROM public.movies
                     JOIN public.directors ON movies.movies_director = directors.directors_id
                     JOIN public.cast ON movies_id = public.cast.cast_movie
                     JOIN public.actors ON cast_actor = actors_id
                     WHERE movies_title = :e1""")
         rs = conn.execute(s, e1=mov)
     else:
-        s = text("SELECT actors_fullname FROM actors ORDER BY actors_id")
+        s = text("SELECT * FROM actors ORDER BY actors_id")
         rs = conn.execute(s)
     act = rs.fetchall()
     conn.close()

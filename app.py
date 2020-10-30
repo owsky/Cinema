@@ -227,15 +227,18 @@ def all_movies():
 def edit_movie(title):
     m = get_movies(title)
     if request.method == 'POST':
-        conn = engine.connect()
-        director = get_directors_by_name(request.form['director'])
-        genre = request.form['genre']
-        synopsis = request.form['synopsis']
-        s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
-                 "movies_director=:dr WHERE movies_id =:cod")
-        conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
-        conn.close()
-        return render_template('manager/edit_data.html')
+        if not get_movies(title):
+            flash("This movie does not exist")
+        else:
+            conn = engine.connect()
+            director = get_directors_by_name(request.form['director'])
+            genre = request.form['genre']
+            synopsis = request.form['synopsis']
+            s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
+                     "movies_director=:dr WHERE movies_id =:cod")
+            conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, cod=m.movies_id)
+            conn.close()
+            return render_template('manager/edit_data.html')
     return render_template('manager/edit_movie.html', movie_to_update=m, gen=get_genres(),
                            dir=get_directors_by_name(None), c=get_actors(title))
 
@@ -273,9 +276,14 @@ def add_movie():
 def edit_projection_movie(proj_id):
     proj = get_projection_by_id(proj_id)
     mov = get_movie_by_id(proj.projections_movie)
+    date = proj.projections_date_time.strftime("%m/%d/%Y")
+    time = proj.projections_date_time.strftime("%H:%M:%S")[:5]
     if request.method == 'POST':
-        datetimeobj = datetime.strptime(request.form['date_time'], '%Y-%m-%d %H:%M:%S')
+        dt = request.form['date'] + " " + request.form['time']
+        datetimeobj = datetime.strptime(dt, '%Y/%m/%d %H:%M')
         room = get_rooms_by_name(request.form['room'])
+        if not get_projection_by_id(proj_id):
+            flash("This projection does not exist")
         if datetimeobj <= datetime.now():
             flash("Can not add a projection in the past")
         else:
@@ -284,11 +292,11 @@ def edit_projection_movie(proj_id):
                     endtime = str(datetimeobj + timedelta(minutes=mov.movies_duration))
 
                     # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
-                    if not check_time_update(proj_id, request.form['date_time'], endtime, room.rooms_id):
+                    if not check_time_update(proj_id, dt, endtime, room.rooms_id):
                         s1 = text(
                             """UPDATE public.projections SET projections_date_time = :t, projections_room =:r, 
                             projections_price = :p WHERE projections_id =:cod""")
-                        conn.execute(s1, t=request.form['date_time'], r=room.rooms_id,
+                        conn.execute(s1, t=dt, r=room.rooms_id,
                                      p=request.form['price'], cod=proj_id)
                         flash("Projection updated successfully")
                         conn.close()
@@ -297,7 +305,8 @@ def edit_projection_movie(proj_id):
                         flash("Couldn't edit projection due to time overlap")
         return render_template('manager/edit_data.html')
     else:
-        return render_template("manager/edit_projection.html", proj=proj, movie=mov, room=get_rooms())
+
+        return render_template("manager/edit_projection.html", proj=proj, date=date, time=time, movie=mov, room=get_rooms())
 
 
 # Lets a manager add a new projections on the schedule from the movie info page
@@ -430,7 +439,6 @@ def edit_actor(actor_id):
                         WHERE actors_id = :e2""")
             conn.execute(s, e1=request.form['name'], e2=actor_id)
             flash("Done!")
-        conn.close()
     return render_template('manager/edit_actor.html', act=get_actor_by_id(actor_id))
 
 

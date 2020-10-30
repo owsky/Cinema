@@ -3,8 +3,15 @@
     <ul>
         <form action="{{ url_for('edit_projection_movie', proj_id=proj.projections_id) }}" method="POST"><br>
         Title: {{  movie.movies_title }}<br>
-        Date and Time: <br>
-            <input name="date_time" type="datetime-local" placeholder="DATE AND TIME" value="{{ proj.projections_date_time }}" required><br>
+        Date:<br>
+            <label>
+                <input type="date" name="date" placeholder="yyyy/mm/dd" pattern="" value="{{ date }}"><br>
+            </label>
+            Time:<br>
+            <label>
+                <input type="time" name="time" placeholder="hh:mm" value="{{ time }}">
+            </label>
+            <br>
             Room:<br>
             <label>
                 <select name="room">
