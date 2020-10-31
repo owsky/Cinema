@@ -443,6 +443,18 @@ def edit_director(director_id):
     return render_template('manager/edit_director.html', dir=get_directors_by_id(director_id))
 
 
+@app.route('/delete_director/<director_id>')
+@login_required
+@man_required
+def delete_director(director_id):
+    conn = engine.connect()
+    s = text("DELETE FROM public.directors WHERE directors_id = :e1")
+    conn.execute(s, e1=director_id)
+    flash("Director deleted")
+    conn.close()
+    return redirect(url_for('edit_data'))
+
+
 # Lets a manager add an actor to a movie's cast
 @app.route('/<title>/add_cast', methods=['GET', 'POST'])
 @login_required
@@ -501,6 +513,17 @@ def edit_actor(actor_id):
     return render_template('manager/edit_actor.html', act=get_actor_by_id(actor_id))
 
 
+@app.route('/delete_actor/<actor_id>')
+@login_required
+@man_required
+def delete_actor(actor_id):
+    conn = engine.connect()
+    s = text("DELETE FROM public.actors WHERE actors_id = :e1")
+    conn.execute(s, e1=actor_id)
+    flash("Actor deleted")
+    return redirect(url_for('edit_data'))
+
+
 # Lets a manager delete a movie from the DB if it doesn't have any associated projection
 @app.route('/delete_movie/<title>')
 @login_required
@@ -514,9 +537,12 @@ def delete_movie(title):
     if not rs.fetchall():
         s = text("DELETE FROM public.movies WHERE movies_title = :mt")
         conn.execute(s, mt=title)
+        conn.close()
+        flash("Movie deleted")
+        return redirect(url_for('edit_data'))
     else:
         flash("You can't delete movies that have been/are being projected")
-    conn.close()
+        conn.close()
     return render_template('manager/edit_movie.html', movie_to_update=get_movies(title), gen=get_genres(),
                            dir=get_directors_by_name(None), c=get_actors(title))
 
@@ -572,11 +598,32 @@ def edit_room(room_id):
     return render_template('manager/edit_room.html', seats=se, room_id=room_id)
 
 
-# Lets a manager delete seats from a room
-@app.route('/remove_seat/<seat_id>/<room_id>')
+# this route allow for the deletion of a room provided that a projection has never occurred there nor scheduled
+@app.route('/delete_room/<room_id>')
 @login_required
 @man_required
-def remove_seat(seat_id, room_id):
+def delete_room(room_id):
+    conn = engine.connect()
+    s = text("""SELECT * FROM public.projections
+                JOIN public.rooms ON projections.projections_room = rooms.rooms_id
+                WHERE rooms_id = :e1""")
+    rs = conn.execute(s, e1=room_id)
+    proj = rs.fetchall()
+    if proj:
+        flash("You can't delete a room with associated projections")
+    else:
+        s = text("DELETE FROM public.rooms WHERE rooms_id = :e1")
+        conn.execute(s, e1=room_id)
+        conn.close()
+        flash("Room deleted")
+    return redirect(url_for('edit_data'))
+
+
+# Lets a manager delete seats from a room
+@app.route('/delete_seat/<seat_id>/<room_id>')
+@login_required
+@man_required
+def delete_seat(seat_id, room_id):
     conn = engine.connect()
     s = text("DELETE FROM public.seats WHERE seats_id = :e1")
     conn.execute(s, e1=seat_id)
