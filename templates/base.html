@@ -59,9 +59,11 @@
                         <a href="{{ url_for('logout') }}" class="button is-light">
                             <strong>Logout</strong>
                         </a>
-                        <a href="{{ url_for('profile') }}" class="button is-primary">
-                            <strong>Profile</strong>
-                        </a>
+                        {% if not current_user.is_manager %}
+                            <a href="{{ url_for('profile') }}" class="button is-primary">
+                                <strong>Profile</strong>
+                            </a>
+                        {% endif %}
                     {% else %}
                         <a href="{{ url_for('signup') }}" class="button is-primary">
                             <strong>Sign up</strong>
