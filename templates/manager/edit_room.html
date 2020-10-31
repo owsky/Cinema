@@ -6,7 +6,7 @@
         <input type="submit" value="Add">
     </form>
     {% for s in seats %}
-        {{ s.seats_name }}" <a href="{{ url_for('remove_seat', seat_id=s.seats_id, room_id=s.seats_room) }}">Remove</a>
+        {{ s.seats_name }}" <a href="{{ url_for('delete_seat', seat_id=s.seats_id, room_id=s.seats_room) }}">Remove</a>
         <br>
     {% endfor %}
 {% endblock %}

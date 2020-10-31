@@ -165,21 +165,22 @@ def movies_list():
     if request.method == 'POST':
         conn = engine.connect()
         if request.form['filter_select'] == 'genre':
-            s = text("""SELECT * FROM public.movies
+            s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis
+                        FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
                         WHERE movies_genre = :e1""")
             rs = conn.execute(s, e1=request.form['genre'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
                                    act=get_actors(None))
         elif request.form['filter_select'] == 'director':
-            s = text("""SELECT * FROM public.movies
+            s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
                         WHERE directors_name = :e1""")
             rs = conn.execute(s, e1=request.form['director'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
                                    act=get_actors(None))
         else:
-            s = text("""SELECT * FROM public.movies
+            s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
                         WHERE movies_id IN (
                             SELECT movies_id FROM public.movies
@@ -256,8 +257,6 @@ def edit_data():
 
 
 @app.route('/all_movies')
-@login_required
-@man_required
 def all_movies():
     return render_template('manager/all_movies.html', mov=get_movies(None))
 
@@ -447,18 +446,29 @@ def edit_director(director_id):
     return render_template('manager/edit_director.html', dir=get_directors_by_id(director_id))
 
 
+@app.route('/delete_director/<director_id>')
+@login_required
+@man_required
+def delete_director(director_id):
+    conn = engine.connect()
+    s = text("DELETE FROM public.directors WHERE directors_id = :e1")
+    conn.execute(s, e1=director_id)
+    flash("Director deleted")
+    conn.close()
+    return redirect(url_for('edit_data'))
+
+
 # Lets a manager add an actor to a movie's cast
 @app.route('/<title>/add_cast', methods=['GET', 'POST'])
 @login_required
 @man_required
-def add_cast(title):
+def add_to_cast(title):
     m = get_movies(title)
     if request.method == 'POST':
         conn = engine.connect()
         a = get_actor_by_name(request.form['actor'])
 
-        addcast = text("""INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)
-                          ON CONFLICT DO NOTHING""")
+        addcast = text("""INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)""")
         conn.execute(addcast, m=m.movies_id, a=a.actors_id)
         flash("Actor added successfully!")
         return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)),
@@ -506,21 +516,36 @@ def edit_actor(actor_id):
     return render_template('manager/edit_actor.html', act=get_actor_by_id(actor_id))
 
 
+@app.route('/delete_actor/<actor_id>')
+@login_required
+@man_required
+def delete_actor(actor_id):
+    conn = engine.connect()
+    s = text("DELETE FROM public.actors WHERE actors_id = :e1")
+    conn.execute(s, e1=actor_id)
+    flash("Actor deleted")
+    return redirect(url_for('edit_data'))
+
+
 # Lets a manager delete a movie from the DB if it doesn't have any associated projection
 @app.route('/delete_movie/<title>')
 @login_required
 @man_required
 def delete_movie(title):
     conn = engine.connect()
-    s = text("""SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id
+    s = text("""SELECT * FROM public.projections
+                JOIN public.movies ON projections.projections_movie = movies.movies_id
                 WHERE movies_title = :e1""")
     rs = conn.execute(s, e1=title)
     if not rs.fetchall():
         s = text("DELETE FROM public.movies WHERE movies_title = :mt")
         conn.execute(s, mt=title)
+        conn.close()
+        flash("Movie deleted")
+        return redirect(url_for('edit_data'))
     else:
         flash("You can't delete movies that have been/are being projected")
-    conn.close()
+        conn.close()
     return render_template('manager/edit_movie.html', movie_to_update=get_movies(title), gen=get_genres(),
                            dir=get_directors_by_name(None), c=get_actors(title))
 
@@ -576,11 +601,32 @@ def edit_room(room_id):
     return render_template('manager/edit_room.html', seats=se, room_id=room_id)
 
 
-# Lets a manager delete seats from a room
-@app.route('/remove_seat/<seat_id>/<room_id>')
+# this route allow for the deletion of a room provided that a projection has never occurred there nor scheduled
+@app.route('/delete_room/<room_id>')
 @login_required
 @man_required
-def remove_seat(seat_id, room_id):
+def delete_room(room_id):
+    conn = engine.connect()
+    s = text("""SELECT * FROM public.projections
+                JOIN public.rooms ON projections.projections_room = rooms.rooms_id
+                WHERE rooms_id = :e1""")
+    rs = conn.execute(s, e1=room_id)
+    proj = rs.fetchall()
+    if proj:
+        flash("You can't delete a room with associated projections")
+    else:
+        s = text("DELETE FROM public.rooms WHERE rooms_id = :e1")
+        conn.execute(s, e1=room_id)
+        conn.close()
+        flash("Room deleted")
+    return redirect(url_for('edit_data'))
+
+
+# Lets a manager delete seats from a room
+@app.route('/delete_seat/<seat_id>/<room_id>')
+@login_required
+@man_required
+def delete_seat(seat_id, room_id):
     conn = engine.connect()
     s = text("DELETE FROM public.seats WHERE seats_id = :e1")
     conn.execute(s, e1=seat_id)
@@ -629,4 +675,4 @@ def show_echarts():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

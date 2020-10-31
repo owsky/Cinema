@@ -404,6 +404,8 @@ def get_rooms():
     return rooms
 
 
+# When a projections gets deleted a transaction is started that refunds all users who purchased tickets for that projection
+# and the respective tickets get deleted automatically thanks to the ON DELETE CASCADE constraint
 def delete_proj(proj):
     with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
         with conn.begin():
@@ -420,4 +422,3 @@ def delete_proj(proj):
             conn.execute(s, p=proj)
             flash("Projection deleted successfully!")
     conn.close()
-    return

@@ -16,22 +16,26 @@
     {% if mov %}
         <a href="{{ url_for('add_movie') }}">Add</a> a new movie<br><br>
         {% for m in mov %}
-            {{ m }} <a href="{{ url_for('edit_movie', title=m.movies_title) }}">Edit</a><br><br>
+            {{ m }} <a href="{{ url_for('edit_movie', title=m.movies_title) }}">Edit</a> or
+            <a href="{{ url_for('delete_movie', title=m.movies_title) }}">Delete</a> <br><br>
         {% endfor %}
     {% elif act %}
         <a href="{{ url_for('add_actor') }}">Add</a> a new actor<br><br>
         {% for a in act %}
-            {{ a }} <a href="{{ url_for('edit_actor', actor_id=a.actors_id) }}">Edit</a><br><br>
+            {{ a }} <a href="{{ url_for('edit_actor', actor_id=a.actors_id) }}">Edit</a> or
+            <a href="{{ url_for('delete_actor', actor_id=a.actors_id) }}">Delete</a> <br><br>
         {% endfor %}
     {% elif dir %}
         <a href="{{ url_for('add_director') }}">Add</a> a new director<br><br>
         {% for d in dir %}
-            {{ d }} <a href="{{ url_for('edit_director', director_id=d.directors_id) }}">Edit</a><br><br>
+            {{ d }} <a href="{{ url_for('edit_director', director_id=d.directors_id) }}">Edit</a> or
+            <a href="{{ url_for('delete_director', director_id=d.directors_id) }}">Delete</a> <br><br>
         {% endfor %}
     {% elif room %}
         <a href="{{ url_for('add_room') }}">Add</a> a new room<br><br>
         {% for r in room %}
-            {{ r }} <a href="{{ url_for('edit_room', room_id=r.rooms_id) }}">Edit</a><br><br>
+            {{ r }} <a href="{{ url_for('edit_room', room_id=r.rooms_id) }}">Edit</a> or
+            <a href="{{ url_for('delete_room', room_id=r.rooms_id) }}">Delete</a> <br><br>
         {% endfor %}
     {% elif proj %}
         You can add a new projection on the schedule from the movie's details page<br>
