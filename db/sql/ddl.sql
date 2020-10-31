@@ -45,7 +45,12 @@ CREATE TABLE public.movies
     movies_genre    public.genre                                   NOT NULL,
     movies_synopsis varchar                                        NOT NULL,
     movies_date     date,
-    movies_director int REFERENCES public.directors (directors_id) NOT NULL
+    movies_director int,
+    CONSTRAINT movies_director_fkey
+        FOREIGN KEY (movies_director)
+            REFERENCES public.directors (directors_id)
+            ON UPDATE CASCADE
+            ON DELETE SET NULL
 );
 
 CREATE TABLE public.actors
