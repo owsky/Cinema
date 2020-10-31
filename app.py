@@ -14,7 +14,7 @@ from functions import get_last_movies, user_by_email, get_orders, get_projection
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
     get_seat_by_name, delete_proj, get_movies_proj, get_movie_by_id, get_projection_by_id, check_time_update, \
     get_future_projections
-from stats import get_bar, get_pie, get_bar2, get_popular_movies
+from stats import get_bar, get_pie, get_popular_movies
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
@@ -670,15 +670,11 @@ def show_echarts():
     list_title = []
     list_quantity = []
     datas = get_popular_movies()
-    print(datas)
     for d in datas:
         list_title.append(d.title)
         list_quantity.append(d.sold)
-    print(list_title)
-    print(list_quantity)
     bar = get_bar()
     pie = get_pie()
-    bar2 = get_bar2()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
                            xdatas=Markup(json.dumps(list_title)), ydatas=json.dumps(list_quantity), mov=get_popular_movies())
 
