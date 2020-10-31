@@ -15,7 +15,7 @@
         Name: {{ current_user.name }} <br>
         Surname: {{ current_user.surname }} <br>
         Email: {{ current_user.email }} <br>
-        Balance: {{ current_user.balance }} €<br><br>
+        <a href="{{ url_for('charge_balance') }}">Balance</a>: {{ current_user.balance }} €<br><br>
         Orders: <br>
         <ul>
             {% for i in info %}

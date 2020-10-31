@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block body %}
+    <form action="{{ url_for('charge_balance') }}" method="POST">
+        To charge your balance insert the coupon code:<br>
+        <label>
+            <input type="text"><br>
+        </label>
+        <input type="submit">
+    </form>
+{% endblock %}

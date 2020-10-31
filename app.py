@@ -46,8 +46,8 @@ def signup():
             flash("There's already an account set up to use this email address")
         else:
             conn = engine.connect()
-            s = text("""INSERT INTO public.users(users_name, users_surname, users_email, users_pwd, users_gender, users_is_manager)
-                        VALUES (:e1, :e2, :e3, :e4, :e5, False)""")
+            s = text("""INSERT INTO public.users(users_name, users_surname, users_email, users_pwd, users_gender, users_is_manager, users_balance)
+                        VALUES (:e1, :e2, :e3, :e4, :e5, False, 0)""")
             conn.execute(s, e1=request.form['name'], e2=request.form['surname'], e3=request.form['email'],
                          e4=request.form['pwd'], e5=request.form['gender'])
             conn.close()
@@ -108,6 +108,19 @@ def change_password():
         else:
             flash("Wrong current password")
     return render_template('user/change_password.html')
+
+
+@app.route('/charge_balance', methods=['GET', 'POST'])
+@login_required
+def charge_balance():
+    if request.method == 'POST':
+        conn = engine.connect()
+        val = 100
+        s = text("UPDATE public.users SET users_balance = users_balance + :e1 WHERE users_id = :e2")
+        conn.execute(s, e1=val, e2=current_user.id)
+        flash("Balance increased by " + str(val) + " €")
+        return redirect(url_for('profile'))
+    return render_template('user/charge_balance.html')
 
 
 # Lets the user change their profile information
