@@ -422,4 +422,3 @@ def delete_proj(proj):
             conn.execute(s, p=proj)
             flash("Projection deleted successfully!")
     conn.close()
-    return
