@@ -124,18 +124,6 @@ CREATE TABLE public.cast
             ON DELETE CASCADE
 );
 
-CREATE VIEW public.sumtickets AS
-SELECT COUNT(tickets_id) AS sum_tickets
-FROM public.tickets t
-         JOIN public.projections p on t.tickets_projection = p.projections_id;
-
-CREATE VIEW public.sumgenres AS
-SELECT movies_genre AS genre, COUNT(tickets_id) AS sum_genres
-FROM public.tickets
-         JOIN public.projections on tickets_projection = projections_id
-         JOIN public.movies on projections_movie = movies_id
-GROUP BY movies_genre;
-
 CREATE VIEW public.summale AS
 SELECT movies_genre AS genre, COUNT(tickets_id) AS summ
 FROM public.tickets

@@ -21,9 +21,9 @@ def get_bar() -> Bar:
     datas1 = conn.execute(s1).fetchall()
     conn.close()
     c = (
-        Bar().add_xaxis([data['genre'] for data in datas1]).add_yaxis("Female", [data['sumf'] for data in
-                                                                                 datas1]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres")).add_yaxis("Male", [data['summ'] for data in datas1])
+        Bar().add_xaxis([data['genre'] for data in datas1])
+             .add_yaxis("Female", [data['sumf'] for data in datas1])
+             .add_yaxis("Male", [data['summ'] for data in datas1])
     )
     return c
 
@@ -43,11 +43,15 @@ def get_popular_movies():
 # returns a pie chart of genres' popularity in percentage
 def get_pie() -> Pie:
     conn = engine.connect()
-    s = text("SELECT genre, sum_genres*100/sum_tickets AS genre_perc FROM public.sumtickets, public.sumgenres")
+    s = text("""SELECT movies_genre AS genre, COUNT(tickets_id) AS sum_genres
+                FROM public.tickets
+                JOIN public.projections on tickets_projection = projections_id
+                JOIN public.movies on projections_movie = movies_id
+                GROUP BY movies_genre""")
     datas = conn.execute(s).fetchall()
     conn.close()
     c = (
-        Pie().add("", [(data['genre'], data['genre_perc']) for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres")).set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}%"))
+        Pie().add("", [(data['genre'], data['sum_genres']) for data in datas])
+             .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {d}%"))
     )
     return c
