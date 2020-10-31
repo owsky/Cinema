@@ -2,10 +2,15 @@
 {% block body %}
     <form action="{{ url_for('signup') }}" method="POST">
         Insert your email to sign up !<br><br>
+        Name:<br>
         <input name="name" type="text" placeholder="NAME" required><br>
+        Surname:<br>
         <input name="surname" type="text" placeholder="SURNAME" required><br>
+        Email:<br>
         <input name="email" type="text" placeholder="EMAIL" required> <br>
+        Password:<br>
         <input name="pwd" type="password" placeholder="PASSWORD" required><br>
+        Gender:<br>
         <select name="gender">
             <option value="M">Male</option>
             <option value="F">Female</option>
