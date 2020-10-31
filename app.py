@@ -447,14 +447,13 @@ def edit_director(director_id):
 @app.route('/<title>/add_cast', methods=['GET', 'POST'])
 @login_required
 @man_required
-def add_cast(title):
+def add_to_cast(title):
     m = get_movies(title)
     if request.method == 'POST':
         conn = engine.connect()
         a = get_actor_by_name(request.form['actor'])
 
-        addcast = text("""INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)
-                          ON CONFLICT DO NOTHING""")
+        addcast = text("""INSERT INTO public.cast(cast_movie, cast_actor) VALUES (:m, :a)""")
         conn.execute(addcast, m=m.movies_id, a=a.actors_id)
         flash("Actor added successfully!")
         return render_template('user/movie_info.html', movie=m, projections=format_projections(get_projections(title)),
