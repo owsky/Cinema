@@ -9,7 +9,7 @@ engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/
 def get_bar() -> Bar:
     conn = engine.connect()
 
-    s1 = text("""SELECT movies_genre AS genre, summ, SUM(tickets_id) AS sumf
+    s1 = text("""SELECT movies_genre AS genre, summ, COUNT(tickets_id) AS sumf
                  FROM public.tickets
                  JOIN public.projections ON tickets_projection = projections_id
                  JOIN public.movies ON projections_movie = movies_id
