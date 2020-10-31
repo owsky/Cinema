@@ -37,7 +37,8 @@
         You can add a new projection on the schedule from the movie's details page<br>
         <strong>Warning: deleting a projections will refund all purchased tickets!</strong><br><br>
         {% for p in proj %}
-            {{ p }} <a href="{{ url_for('edit_projection_movie', proj_id=p.projections_id ) }}">Edit</a> or <a href="{{ url_for('delete_projection', title='man', proj_id=p.projections_id ) }}">Delete</a> <br>
+            {{ p }} <a href="{{ url_for('edit_projection_movie', proj_id=p.projections_id ) }}">Edit</a> or
+            <a href="{{ url_for('delete_projection', title='man', proj_id=p.projections_id ) }}">Delete</a> <br>
         {% endfor %}
     {% endif %}
 {% endblock %}

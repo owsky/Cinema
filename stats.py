@@ -1,5 +1,5 @@
 from pyecharts import options as opts
-from pyecharts.charts import Bar, Pie, Line
+from pyecharts.charts import Bar, Pie
 from sqlalchemy import text, create_engine
 
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
@@ -22,7 +22,7 @@ def get_bar() -> Bar:
     conn.close()
     c = (
         Bar().add_xaxis([data['genre'] for data in datas1]).add_yaxis("Female", [data['sumf'] for data in
-                                                                               datas1]).set_global_opts(
+                                                                                 datas1]).set_global_opts(
             title_opts=opts.TitleOpts(title="Genres")).add_yaxis("Male", [data['summ'] for data in datas1])
     )
     return c
@@ -33,7 +33,7 @@ def get_bar2() -> Bar:
     datas = get_popular_movies()
     c = (
         Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas])
-             .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+            .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
 
     )
     return c

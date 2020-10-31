@@ -2,7 +2,7 @@
 {% block body %}
 
     <script src="/static/echarts.min.js"></script>
-<body>
+    <body>
     <br>
     <h3>Movie genre preferences based on gender:</h3><br>
     <div id="bar" style="width: 1000px; height:400px"></div>
@@ -28,5 +28,5 @@
         pieChart.setOption({{ pie_options | safe }})
     </script>
 
-</body>
+    </body>
 {% endblock %}

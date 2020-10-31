@@ -4,8 +4,10 @@
         Insert your email to sign up !<br><br>
         <input name="name" type="text" placeholder="NAME" required><br>
         <input name="surname" type="text" placeholder="SURNAME" required><br>
-        <input name="email" type="text" placeholder="EMAIL" pattern="[A-z0-9\.\+_-]+@[A-z0-9\._-]+\.[A-z]{2,6}" required> <br>
-        <input name="pwd" type="password" placeholder="PASSWORD" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}" required oninvalid="this.setCustomValidity('password must be more than 6 and less than 25 characters with at least 1 number and 1 special character')"><br>
+        <input name="email" type="text" placeholder="EMAIL" pattern="[A-z0-9\.\+_-]+@[A-z0-9\._-]+\.[A-z]{2,6}"
+               required> <br>
+        <input name="pwd" type="password" placeholder="PASSWORD" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}" required
+               oninvalid="this.setCustomValidity('password must be more than 6 and less than 25 characters with at least 1 number and 1 special character')"><br>
         <select name="gender">
             <option value="M">Male</option>
             <option value="F">Female</option>

@@ -22,31 +22,33 @@
         <ul>{{ c.actors_fullname }}</ul>
     {% endfor %}<br>
     {% if current_user.is_manager %}
-    <a href="{{ url_for('add_cast', title=movie.movies_title)}}">Add</a> a new actor to this movie<br>
+        <a href="{{ url_for('add_cast', title=movie.movies_title) }}">Add</a> a new actor to this movie<br>
     {% endif %}
-        <br>
+    <br>
     {% if current_user.is_manager %}
-        <a href="{{ url_for('add_projection_movie', title=movie.movies_title)}}">Add</a> a new projection <br>
+        <a href="{{ url_for('add_projection_movie', title=movie.movies_title) }}">Add</a> a new projection <br>
     {% endif %}
     Projections schedule: <br>
     {% if projections %}
         <ul>
-        {% for p in projections %}
-            Date: {{ p.date }}<br>
-            Time: {{ p.time }} <br>
-            Room: {{ p.room }}<br>
-            Price: {{ p.price }}<br>
-            Tickets remaining: {{ p.tickets_left }} <br>
-            {% if current_user.is_manager %}
-                <a href="{{ url_for('delete_projection_movie', title=movie.movies_title, proj=p.id) }}">Delete</a><br><br>
-            {% else %}
-                {% if p.tickets_left > 0 and current_user.is_authenticated %}
-                    <a href="{{ url_for('purchase_ticket', title=movie.movies_title, projection=p.id) }}">Buy ticket</a><br>
+            {% for p in projections %}
+                Date: {{ p.date }}<br>
+                Time: {{ p.time }} <br>
+                Room: {{ p.room }}<br>
+                Price: {{ p.price }}<br>
+                Tickets remaining: {{ p.tickets_left }} <br>
+                {% if current_user.is_manager %}
+                    <a href="{{ url_for('delete_projection_movie', title=movie.movies_title, proj=p.id) }}">Delete</a>
+                    <br><br>
+                {% else %}
+                    {% if p.tickets_left > 0 and current_user.is_authenticated %}
+                        <a href="{{ url_for('purchase_ticket', title=movie.movies_title, projection=p.id) }}">Buy
+                            ticket</a><br>
+                    {% endif %}
+                    <br>
                 {% endif %}
-                <br>
-            {% endif %}
-        {% endfor %}
-    </ul>
+            {% endfor %}
+        </ul>
     {% else %}
         <br>
         We're sorry. There are no scheduled projections at the moment

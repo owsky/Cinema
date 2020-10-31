@@ -29,7 +29,8 @@ def load_user(user_id):
     rs = conn.execute(s, e1=user_id)
     u = rs.fetchone()
     conn.close()
-    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager, u.users_balance)
+    return User(u.users_id, u.users_email, u.users_name, u.users_surname, u.users_pwd, u.users_is_manager,
+                u.users_balance)
 
 
 @app.route('/')
@@ -133,13 +134,15 @@ def movies_list():
                         JOIN public.directors ON movies_director = directors_id
                         WHERE movies_genre = :e1""")
             rs = conn.execute(s, e1=request.form['genre'])
-            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(), act=get_actors(None))
+            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
+                                   act=get_actors(None))
         elif request.form['filter_select'] == 'director':
             s = text("""SELECT * FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
                         WHERE directors_name = :e1""")
             rs = conn.execute(s, e1=request.form['director'])
-            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(), act=get_actors(None))
+            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
+                                   act=get_actors(None))
         else:
             s = text("""SELECT * FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
@@ -150,8 +153,10 @@ def movies_list():
                             JOIN public.projections ON movies.movies_id = projections.projections_movie
                             WHERE actors_fullname = :e1)""")
             rs = conn.execute(s, e1=request.form['actor'])
-            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(), act=get_actors(None))
-    return render_template("movies.html", movies=get_movies_proj(), gen=get_genres(), dir=get_directors(), act=get_actors(None))
+            return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
+                                   act=get_actors(None))
+    return render_template("movies.html", movies=get_movies_proj(), gen=get_genres(), dir=get_directors(),
+                           act=get_actors(None))
 
 
 # Shows the list of coming soon movies
@@ -177,7 +182,8 @@ def movie_info(title):
     if not m:
         abort(404)
     proj = get_projections(title)
-    return render_template("user/movie_info.html", movie=m, projections=format_projections(proj), cast=get_actors(title))
+    return render_template("user/movie_info.html", movie=m, projections=format_projections(proj),
+                           cast=get_actors(title))
 
 
 # Renders the purchase page where the user can buy tickets for a specific projection
@@ -246,7 +252,8 @@ def edit_movie(title):
                 else:
                     s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
                              "movies_director=:dr, movies_duration=:d WHERE movies_id =:cod")
-                    conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, d=request.form['duration'], cod=m.movies_id)
+                    conn.execute(s, g=genre, s=synopsis, dr=director.directors_id, d=request.form['duration'],
+                                 cod=m.movies_id)
                     flash("Movie updated successfully")
             else:
                 s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
@@ -322,7 +329,8 @@ def edit_projection_movie(proj_id):
         return render_template('manager/edit_data.html')
     else:
 
-        return render_template("manager/edit_projection.html", proj=proj, date=date, time=time, movie=mov, room=get_rooms())
+        return render_template("manager/edit_projection.html", proj=proj, date=date, time=time, movie=mov,
+                               room=get_rooms())
 
 
 # Lets a manager add a new projections on the schedule from the movie info page

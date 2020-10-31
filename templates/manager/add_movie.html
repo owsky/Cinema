@@ -4,27 +4,27 @@
     <ul>
         <form action="{{ url_for("add_movie") }}" method="POST">
             Title:<br>
-        <input name="title" type="text" placeholder="TITLE" requered><br>
+            <input name="title" type="text" placeholder="TITLE" requered><br>
             Genre:<br>
-        <select name="genre">
-            {% for g in gen %}
-                <option value="{{ g.genre }}">{{ g.genre }}</option>
-            {% endfor %}
-        </select><br>
+            <select name="genre">
+                {% for g in gen %}
+                    <option value="{{ g.genre }}">{{ g.genre }}</option>
+                {% endfor %}
+            </select><br>
             Duration:<br>
-        <input name="duration" type="number" placeholder="DURATION"><br>
+            <input name="duration" type="number" placeholder="DURATION"><br>
             Synopsis:<br>
-        <input name="synopsis" type="text" placeholder="SYNOPSIS" requered><br>
+            <input name="synopsis" type="text" placeholder="SYNOPSIS" requered><br>
             Director:<br>
-        <select name="director">
-            {% for d in dir %}
-                <option value="{{ d.directors_name }}">{{ d.directors_name }}</option>
-            {% endfor %}
-        </select><br>
+            <select name="director">
+                {% for d in dir %}
+                    <option value="{{ d.directors_name }}">{{ d.directors_name }}</option>
+                {% endfor %}
+            </select><br>
             Release Date:<br>
-        <input name="day" type="date" placeholder="DAY" requered><br>
+            <input name="day" type="date" placeholder="DAY" requered><br>
             <input type="submit" value="Add"><br>
-        Can't find the director? <a href="{{ url_for('add_director') }}">Add</a><br><br>
+            Can't find the director? <a href="{{ url_for('add_director') }}">Add</a><br><br>
 
         </form>
     </ul>

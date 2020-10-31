@@ -3,7 +3,8 @@
     <form action="{{ url_for('add_room') }}" method="POST">
         Insert new room's name and capacity:<br>
         <input name="name" type="text" placeholder="NAME" pattern="Room [A-Z]$" requered><br>
-        <input name="capacity" type="int" placeholder="CAPACITY" pattern="^[1-9][0-9]?" oninvalid="this.setCustomValidity('Capacity must be greater than 0')"><br>
+        <input name="capacity" type="int" placeholder="CAPACITY" pattern="^[1-9][0-9]?"
+               oninvalid="this.setCustomValidity('Capacity must be greater than 0')"><br>
         <input type="submit" value="Add">
     </form>
 {% endblock %}

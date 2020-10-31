@@ -1,9 +1,9 @@
-
+from datetime import datetime
 
 from flask import flash
 from flask_login import current_user
 from sqlalchemy import text, create_engine
-from datetime import datetime
+
 from classes import Projection, User
 
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
@@ -151,7 +151,7 @@ def check_time_update(proj, start, end, room):
                 JOIN public.movies ON projections_movie=movies_id
                 WHERE projections_room = :r AND projections_id <>:p AND
                 (:st, :e) OVERLAPS (projections_date_time, projections_date_time + (movies_duration * interval '1 minute'))""")
-    rs = conn.execute(s,p=proj, r=room, st=start, e=end)
+    rs = conn.execute(s, p=proj, r=room, st=start, e=end)
     ris = rs.fetchone()
     conn.close()
     return ris

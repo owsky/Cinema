@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block body %}
-        Insert the director's name:
+    Insert the director's name:
     <ul>
         <form action="{{ url_for("add_director") }}" method="POST">
-        <input name="name" type="text" placeholder="FULLNAME" pattern="^[a-zA-Z][a-zA-Z\s]*[a-z]$" required><br>
+            <input name="name" type="text" placeholder="FULLNAME" pattern="^[a-zA-Z][a-zA-Z\s]*[a-z]$" required><br>
             <input type="submit" value="Add">
         </form>
     </ul>

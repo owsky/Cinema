@@ -10,6 +10,7 @@ def man_required(f):
         if not current_user.is_manager:
             abort(403)
         return f(*args, **kwargs)
+
     return decorated_function
 
 

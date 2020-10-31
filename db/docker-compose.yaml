@@ -10,7 +10,7 @@ services:
       - ./pgadmin/servers.json:/pgadmin4/servers.json
     links:
       - postgres
-    env_file: 
+    env_file:
       - pgadmin.env
     depends_on:
       - postgres
