@@ -162,21 +162,22 @@ def movies_list():
     if request.method == 'POST':
         conn = engine.connect()
         if request.form['filter_select'] == 'genre':
-            s = text("""SELECT * FROM public.movies
+            s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis
+                        FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
                         WHERE movies_genre = :e1""")
             rs = conn.execute(s, e1=request.form['genre'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
                                    act=get_actors(None))
         elif request.form['filter_select'] == 'director':
-            s = text("""SELECT * FROM public.movies
+            s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
                         WHERE directors_name = :e1""")
             rs = conn.execute(s, e1=request.form['director'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
                                    act=get_actors(None))
         else:
-            s = text("""SELECT * FROM public.movies
+            s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
                         WHERE movies_id IN (
                             SELECT movies_id FROM public.movies
@@ -509,7 +510,8 @@ def edit_actor(actor_id):
 @man_required
 def delete_movie(title):
     conn = engine.connect()
-    s = text("""SELECT * FROM public.projections JOIN public.movies ON projections.projections_movie = movies.movies_id
+    s = text("""SELECT * FROM public.projections
+                JOIN public.movies ON projections.projections_movie = movies.movies_id
                 WHERE movies_title = :e1""")
     rs = conn.execute(s, e1=title)
     if not rs.fetchall():
