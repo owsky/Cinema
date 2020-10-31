@@ -336,7 +336,7 @@ VALUES (1, 1),
 -- USERS
 INSERT INTO public.users(users_id, users_email, users_name, users_gender, users_surname, users_pwd, users_balance,
                          users_is_manager)
-VALUES (1, 'manager', 'manager', 'M', 'manager', 'manager', NULL, True),
+VALUES (1, 'manager', 'manager', 'M', 'manager', 'manager', 0, True),
        (2, 'jack@aol.com', 'Jack', 'M', 'Boeing', 'passwordsicura', 100, False),
        (3, 'jane@hotmail.com', 'Jane', 'F', 'Accounting', 'bookkeepingaf', 200, False),
        (4, 'anonymous@gmail.com', 'Anon', 'M', 'Chan', 'scriptkiddie', 150, False),
