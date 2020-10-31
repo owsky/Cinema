@@ -3,7 +3,9 @@
     Remaining seats:
     <form action="{{ url_for('purchase_ticket', title=mov, projection=proj) }}" method="post">
         {% for s in seats %}
-            {{ s.seats_name }}  <input type="checkbox" name="seat" value="{{ s.seats_id }}"> <br>
+            {{ s.seats_name }}  <label>
+            <input type="checkbox" name="seat" value="{{ s.seats_id }}">
+        </label> <br>
         {% endfor %}
         <input type="submit" value="Purchase">
     </form>
