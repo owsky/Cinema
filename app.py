@@ -91,6 +91,25 @@ def profile():
     return render_template("user/profile.html", info=get_orders(current_user.id))
 
 
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        if current_user.pwd == request.form['old']:
+            if request.form['new'] == request.form['new_conf']:
+                conn = engine.connect()
+                s = text("UPDATE public.users SET users_pwd = :e1 WHERE users_id = :e2")
+                conn.execute(s, e1=request.form['new'], e2=current_user.id)
+                conn.close()
+                flash("Password changed")
+                return redirect(url_for('profile'))
+            else:
+                flash("New password doesn't match")
+        else:
+            flash("Wrong current password")
+    return render_template('user/change_password.html')
+
+
 # Lets the user change their profile information
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required

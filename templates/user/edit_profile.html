@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
 {% block body %}
+    <a href="{{ url_for('change_password') }}">Change password</a><br>
     <form action="{{ url_for('edit_profile') }}" method="POST">
         <label>
-            <input type="text" name="name" value="{{ current_user.name }}">
+            Name: <input type="text" name="name" value="{{ current_user.name }}">
         </label> <br>
         <label>
-            <input type="text" name="surname" value="{{ current_user.surname }}">
+            Surname: <input type="text" name="surname" value="{{ current_user.surname }}">
         </label> <br>
         <label>
-            <input type="text" name="email" value="{{ current_user.email }}">
+            Email: <input type="text" name="email" value="{{ current_user.email }}">
         </label> <br>
         <input type="submit" value="Edit">
     </form>
