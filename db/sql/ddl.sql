@@ -20,7 +20,7 @@ CREATE TABLE public.users
     users_gender     public.gender NOT NULL,
     users_surname    varchar       NOT NULL,
     users_pwd        varchar       NOT NULL,
-    users_balance    Numeric(12, 2) DEFAULT 0 CHECK ( users_balance >= 0 ),
+    users_balance    Numeric(12, 2) DEFAULT 0 CHECK ( users_balance >= 0 ) NOT NULL,
     users_is_manager boolean       NOT NULL
 );
 
@@ -75,7 +75,7 @@ CREATE TABLE public.projections
 CREATE TABLE public.seats
 (
     seats_id   serial PRIMARY KEY,
-    seats_name varchar UNIQUE NOT NULL,
+    seats_name varchar NOT NULL,
     seats_room int            NOT NULL,
     CONSTRAINT seats_room_fkey
         FOREIGN KEY (seats_room)
