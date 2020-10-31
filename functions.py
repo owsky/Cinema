@@ -52,7 +52,7 @@ def get_actor_by_name(name):
     # if name is None then returns all actors
     if not name:
         conn = engine.connect()
-        s1 = text("SELECT * FROM actors")
+        s1 = text("SELECT * FROM actors ORDER BY actors_fullname")
         rs = conn.execute(s1)
         act = rs.fetchall()
     else:
@@ -199,7 +199,8 @@ def get_movies(mov):
     else:
         s = text("""SELECT movies_id, movies_title, movies_duration, movies_genre, movies_synopsis, movies_date, directors_name
                     FROM public.movies
-                    LEFT JOIN directors ON movies_director = directors_id""")
+                    LEFT JOIN directors ON movies_director = directors_id
+                    ORDER BY movies_title""")
         rs = conn.execute(s)
         films = rs.fetchall()
     conn.close()
@@ -215,7 +216,8 @@ def get_movies_proj():
                 WHERE movies_id IN (
                     SELECT movies_id
                     FROM public.movies
-                    JOIN public.projections ON movies.movies_id = projections.projections_movie)""")
+                    JOIN public.projections ON movies.movies_id = projections.projections_movie)
+                ORDER BY movies_title""")
     rs = conn.execute(s)
     films = rs.fetchall()
     conn.close()

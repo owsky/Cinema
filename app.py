@@ -165,14 +165,16 @@ def movies_list():
             s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis
                         FROM public.movies
                         LEFT JOIN public.directors ON movies_director = directors_id
-                        WHERE movies_genre = :e1""")
+                        WHERE movies_genre = :e1
+                        ORDER BY movies_title""")
             rs = conn.execute(s, e1=request.form['genre'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
                                    act=get_actors(None))
         elif request.form['filter_select'] == 'director':
             s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis FROM public.movies
                         JOIN public.directors ON movies_director = directors_id
-                        WHERE directors_name = :e1""")
+                        WHERE directors_name = :e1
+                        ORDER BY movies_title""")
             rs = conn.execute(s, e1=request.form['director'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
                                    act=get_actors(None))
@@ -184,7 +186,8 @@ def movies_list():
                             JOIN public.cast ON movies_id = cast_movie
                             JOIN public.actors ON cast_actor = actors_id
                             JOIN public.projections ON movies.movies_id = projections.projections_movie
-                            WHERE actors_fullname = :e1)""")
+                            WHERE actors_fullname = :e1)
+                        ORDER BY movies_title""")
             rs = conn.execute(s, e1=request.form['actor'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
                                    act=get_actors(None))
@@ -202,7 +205,8 @@ def coming_soon():
                 WHERE movies_id NOT IN (
                     SELECT movies_id FROM public.movies
                     JOIN public.projections ON movies.movies_id = projections.projections_movie)
-                AND (movies_date > current_date OR movies_date IS NULL)""")
+                AND (movies_date > current_date OR movies_date IS NULL)
+                ORDER BY movies_id DESC""")
     c = conn.execute(s).fetchall()
     conn.close()
     return render_template('user/coming_soon.html', mov=c)
