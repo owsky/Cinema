@@ -235,9 +235,12 @@ def get_movies(mov):
 def get_movies_proj():
     conn = engine.connect()
     s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis, movies_date, directors_name
-                FROM movies
+                FROM public.movies
                 JOIN directors ON movies_director = directors_id
-                JOIN public.projections ON movies.movies_id = projections.projections_movie""")
+                WHERE movies_id IN (
+                    SELECT movies_id
+                    FROM public.movies
+                    JOIN public.projections ON movies.movies_id = projections.projections_movie)""")
     rs = conn.execute(s)
     films = rs.fetchall()
     conn.close()
