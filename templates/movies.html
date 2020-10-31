@@ -36,11 +36,11 @@
                 </select>
             </label>
         </div>
-            <input type="submit"><br><br>
+            <input type="submit" value="Submit"><br><br>
     </form>
     <form action="{{ url_for('movies_list') }}" method="GET">
         Remove filter<br>
-        <input type="submit">
+        <input type="submit" value="Submit">
     </form><br><br>
     <ul>
         {% if current_user.is_manager %}

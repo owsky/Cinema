@@ -111,16 +111,16 @@ CREATE TABLE public.cast (
 );
 
 CREATE VIEW public.sumtickets AS
-    SELECT SUM(tickets_id) AS sum_tickets
+    SELECT COUNT(tickets_id) AS sum_tickets
     FROM public.tickets t JOIN public.projections p on t.tickets_projection = p.projections_id;
 
 CREATE VIEW public.sumgenres AS
-    SELECT movies_genre AS genre, SUM(tickets_id) AS sum_genres
+    SELECT movies_genre AS genre, COUNT(tickets_id) AS sum_genres
     FROM public.tickets JOIN public.projections on tickets_projection = projections_id JOIN public.movies on projections_movie = movies_id
     GROUP BY movies_genre;
 
 CREATE VIEW public.summale AS
-    SELECT movies_genre AS genre, SUM(tickets_id) AS summ
+    SELECT movies_genre AS genre, COUNT(tickets_id) AS summ
                  FROM public.tickets
                  JOIN public.projections ON tickets_projection = projections_id
                  JOIN public.movies ON projections_movie = movies_id
@@ -128,7 +128,7 @@ CREATE VIEW public.summale AS
                  WHERE users_gender='M' GROUP BY movies_genre;
 
 CREATE VIEW public.rankmovie AS
-    SELECT movies_id AS id, movies_title AS title, SUM(tickets_id) AS sold
+    SELECT movies_id AS id, movies_title AS title, COUNT(tickets_id) AS sold
                  FROM public.tickets
                  JOIN public.projections ON tickets_projection = projections_id
                  JOIN public.movies ON projections_movie = movies_id
