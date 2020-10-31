@@ -32,8 +32,7 @@ def get_bar() -> Bar:
 def get_bar2() -> Bar:
     datas = get_popular_movies()
     c = (
-        Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas])
-            .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
+        Bar().add_xaxis([data['title'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas])
 
     )
     return c

@@ -3,7 +3,10 @@ from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from jinja2 import Markup
 from sqlalchemy import text, create_engine
+import json
+
 
 from classes import User, Anonymous, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
@@ -664,11 +667,20 @@ def add_room():
 @login_required
 @man_required
 def show_echarts():
+    list_title = []
+    list_quantity = []
+    datas = get_popular_movies()
+    print(datas)
+    for d in datas:
+        list_title.append(d.title)
+        list_quantity.append(d.sold)
+    print(list_title)
+    print(list_quantity)
     bar = get_bar()
     pie = get_pie()
     bar2 = get_bar2()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
-                           bar_options2=bar2.dump_options(), mov=get_popular_movies())
+                           xdatas=Markup(json.dumps(list_title)), ydatas=json.dumps(list_quantity), mov=get_popular_movies())
 
 
 if __name__ == '__main__':
