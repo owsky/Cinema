@@ -9,31 +9,6 @@ from classes import Projection, User
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 
 
-# Buy a ticket after checking whether the user has enough money
-def purchase(proj_id, selected_seats):
-    with engine.connect().execution_options(isolation_level="SERIALIZABLE") as connection:
-        with connection.begin():
-            s1 = text("SELECT users_balance FROM public.users WHERE users_id = :e1")
-            rs1 = connection.execute(s1, e1=current_user.id)
-            balance = rs1.fetchone()
-
-            s2 = text("SELECT projections_price FROM public.projections WHERE projections_id = :e2")
-            rs2 = connection.execute(s2, e2=proj_id)
-            tprice = rs2.fetchone()
-            total = balance.users_balance - (tprice.projections_price * len(selected_seats))
-            if total < 0:
-                connection.close()
-            else:
-                for x in selected_seats:
-                    s = text(
-                        "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
-                    connection.execute(s, e1=current_user.id, e2=proj_id, e3=x)
-                s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
-                connection.execute(s, e1=total, e2=current_user.id)
-                connection.close()
-    return
-
-
 # Given a projection's id it returns a new Projection object with formatted date and time
 def format_projections(proj):
     proj_list = list()

@@ -10,7 +10,7 @@ import json
 
 from classes import User, Anonymous, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
-    format_projections, purchase, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
+    format_projections, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
     get_seat_by_name, delete_proj, get_movies_proj, get_movie_by_id, get_projection_by_id, check_time_update, \
     get_future_projections
@@ -230,8 +230,28 @@ def purchase_ticket(title, projection):
     if not m:
         abort(404)
     if request.method == 'POST':
-        purchase(projection, request.form.getlist('seat'))
-        flash("Successfully purchased tickets")
+        with engine.connect().execution_options(isolation_level="SERIALIZABLE") as connection:
+            with connection.begin():
+                s1 = text("SELECT users_balance FROM public.users WHERE users_id = :e1")
+                rs1 = connection.execute(s1, e1=current_user.id)
+                balance = rs1.fetchone()
+
+                s2 = text("SELECT projections_price FROM public.projections WHERE projections_id = :e2")
+                rs2 = connection.execute(s2, e2=projection)
+                tprice = rs2.fetchone()
+                total = balance.users_balance - (tprice.projections_price * len(request.form.getlist('seat')))
+                if total < 0:
+                    connection.close()
+                    flash("Insufficient balance")
+                else:
+                    for x in request.form.getlist('seat'):
+                        s = text(
+                            "INSERT INTO public.tickets(tickets_user, tickets_projection, tickets_seat) VALUES (:e1, :e2, :e3)")
+                        connection.execute(s, e1=current_user.id, e2=projection, e3=x)
+                    s = text("UPDATE public.users SET users_balance = :e1 WHERE users_id = :e2")
+                    connection.execute(s, e1=total, e2=current_user.id)
+                    flash("Successfully purchased tickets")
+                return redirect(url_for('movie_info', title=title))
     return render_template("user/purchase.html", seats=free_seats(projection), mov=m.movies_title, proj=projection)
 
 
