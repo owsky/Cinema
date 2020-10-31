@@ -254,8 +254,6 @@ def edit_data():
 
 
 @app.route('/all_movies')
-@login_required
-@man_required
 def all_movies():
     return render_template('manager/all_movies.html', mov=get_movies(None))
 
