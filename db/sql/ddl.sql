@@ -120,26 +120,30 @@ CREATE TABLE public.cast
 );
 
 CREATE VIEW public.sumtickets AS
-    SELECT COUNT(tickets_id) AS sum_tickets
-    FROM public.tickets t JOIN public.projections p on t.tickets_projection = p.projections_id;
+SELECT COUNT(tickets_id) AS sum_tickets
+FROM public.tickets t
+         JOIN public.projections p on t.tickets_projection = p.projections_id;
 
 CREATE VIEW public.sumgenres AS
-    SELECT movies_genre AS genre, COUNT(tickets_id) AS sum_genres
-    FROM public.tickets JOIN public.projections on tickets_projection = projections_id JOIN public.movies on projections_movie = movies_id
-    GROUP BY movies_genre;
+SELECT movies_genre AS genre, COUNT(tickets_id) AS sum_genres
+FROM public.tickets
+         JOIN public.projections on tickets_projection = projections_id
+         JOIN public.movies on projections_movie = movies_id
+GROUP BY movies_genre;
 
 CREATE VIEW public.summale AS
-    SELECT movies_genre AS genre, COUNT(tickets_id) AS summ
-                 FROM public.tickets
-                 JOIN public.projections ON tickets_projection = projections_id
-                 JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user
-                 WHERE users_gender='M' GROUP BY movies_genre;
+SELECT movies_genre AS genre, COUNT(tickets_id) AS summ
+FROM public.tickets
+         JOIN public.projections ON tickets_projection = projections_id
+         JOIN public.movies ON projections_movie = movies_id
+         JOIN public.users ON users_id = tickets_user
+WHERE users_gender = 'M'
+GROUP BY movies_genre;
 
 CREATE VIEW public.rankmovie AS
-    SELECT movies_id AS id, movies_title AS title, COUNT(tickets_id) AS sold
-                 FROM public.tickets
-                 JOIN public.projections ON tickets_projection = projections_id
-                 JOIN public.movies ON projections_movie = movies_id
-                 JOIN public.users ON users_id = tickets_user
-                 GROUP BY movies_id, movies_title;
+SELECT movies_id AS id, movies_title AS title, COUNT(tickets_id) AS sold
+FROM public.tickets
+         JOIN public.projections ON tickets_projection = projections_id
+         JOIN public.movies ON projections_movie = movies_id
+         JOIN public.users ON users_id = tickets_user
+GROUP BY movies_id, movies_title;
