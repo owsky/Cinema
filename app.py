@@ -67,7 +67,7 @@ def login():
         conn.close()
         if u and request.form['pass'] == u.users_pwd:
             u = user_by_email(request.form['user'])
-            login_user(u)
+            login_user(u, remember=True)
             return redirect(url_for('home'))
         else:
             flash("Incorrect username or password")
