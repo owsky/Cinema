@@ -676,6 +676,8 @@ def add_room():
         if get_rooms_by_name(request.form['name']):
             flash("Room already exists")
         # altrimenti procede con l'inserimento
+        elif int(request.form['capacity']) <= 0:
+            flash("Capacity must be greater than 0")
         else:
             conn = engine.connect()
             s = text("INSERT INTO public.rooms(rooms_name, rooms_capacity) VALUES (:n, :c)")
