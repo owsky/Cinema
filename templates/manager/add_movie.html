@@ -1,31 +1,61 @@
 {% extends "base.html" %}
 {% block body %}
     Compile the following data to add a movie:<br>
-    <ul>
-        <form action="{{ url_for("add_movie") }}" method="POST">
+    <form action="{{ url_for("add_movie") }}" method="POST">
+        Coming Soon: <label>
+        <input type="checkbox" name="cs" onchange="showDiv(this)">
+    </label>
+        <ul>
             Title:<br>
-            <input name="title" type="text" placeholder="TITLE" requered><br>
+            <label>
+                <input name="title" type="text" required>
+            </label><br>
             Genre:<br>
-            <select name="genre">
-                {% for g in gen %}
-                    <option value="{{ g.genre }}">{{ g.genre }}</option>
-                {% endfor %}
-            </select><br>
-            Duration:<br>
-            <input name="duration" type="number" placeholder="DURATION"><br>
+            <label>
+                <select name="genre">
+                    {% for g in gen %}
+                        <option value="{{ g.genre }}">{{ g.genre }}</option>
+                    {% endfor %}
+                </select>
+            </label><br>
+            <div id="released">
+                Duration:<br>
+                <label>
+                    <input name="duration" type="number">
+                </label><br>
+            </div>
             Synopsis:<br>
-            <input name="synopsis" type="text" placeholder="SYNOPSIS" requered><br>
+            <label>
+                <input name="synopsis" type="text" required>
+            </label><br>
             Director:<br>
-            <select name="director">
-                {% for d in dir %}
-                    <option value="{{ d.directors_name }}">{{ d.directors_name }}</option>
-                {% endfor %}
-            </select><br>
-            Release Date:<br>
-            <input name="day" type="date" placeholder="DAY" requered><br>
+            <label>
+                <select name="director">
+                    {% for d in dir %}
+                        <option value="{{ d.directors_name }}">{{ d.directors_name }}</option>
+                    {% endfor %}
+                </select>
+            </label><br>
+            <div id="released2">
+                Release Date:<br>
+                <label>
+                    <input name="day" type="date">
+                </label><br>
+            </div>
             <input type="submit" value="Add"><br>
             Can't find the director? <a href="{{ url_for('add_director') }}">Add</a><br><br>
+        </ul>
+    </form>
 
-        </form>
-    </ul>
+    <script type="text/javascript">
+        function showDiv(checkbox) {
+            if (checkbox.checked) {
+                document.getElementById('released').style.display = "none";
+                document.getElementById('released2').style.display = "none";
+            } else {
+                document.getElementById('released').style.display = "block";
+                document.getElementById('released2').style.display = "block";
+            }
+        }
+    </script>
 {% endblock %}

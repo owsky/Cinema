@@ -281,11 +281,17 @@ def add_movie():
         director = get_directors_by_name(request.form['director'])
 
         if get_movies(request.form['title']):
-            flash("Movie's name already exists, add at the end it's release date in brackets")
-
-        s = text("INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, "
-                 "movies_director) VALUES (:t, :g, :d, :s, :dt, :dr)")
-        conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=rel_date, dr=director.directors_id)
+            flash("Movie's name already exists, add at the end its release date in brackets")
+        if request.form.get('cs'):
+            s = text("""INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date,
+                                            movies_director)
+                        VALUES (:t, :g, NULL, :s, NULL, :dr)""")
+            conn.execute(s, t=title, g=genre, s=synopsis, dr=director.directors_id)
+        else:
+            s = text("""INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, 
+                                            movies_director)
+                        VALUES (:t, :g, :d, :s, :dt, :dr)""")
+            conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=rel_date, dr=director.directors_id)
         conn.close()
         flash("Movie added successfully!")
         return redirect(url_for('movies_list'))
