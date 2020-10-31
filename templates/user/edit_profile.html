@@ -3,13 +3,13 @@
     <a href="{{ url_for('change_password') }}">Change password</a><br>
     <form action="{{ url_for('edit_profile') }}" method="POST">
         <label>
-            Name: <input type="text" name="name" value="{{ current_user.name }}">
+            Name: <input type="text" name="name" value="{{ current_user.name }}" required>
         </label> <br>
         <label>
-            Surname: <input type="text" name="surname" value="{{ current_user.surname }}">
+            Surname: <input type="text" name="surname" value="{{ current_user.surname }}" required>
         </label> <br>
         <label>
-            Email: <input type="text" name="email" value="{{ current_user.email }}">
+            Email: <input type="text" name="email" value="{{ current_user.email }}" required>
         </label> <br>
         <input type="submit" value="Edit">
     </form>
