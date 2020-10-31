@@ -22,7 +22,7 @@
         <ul>{{ c.actors_fullname }}</ul>
     {% endfor %}<br>
     {% if current_user.is_manager %}
-        <a href="{{ url_for('add_cast', title=movie.movies_title) }}">Add</a> a new actor to this movie<br>
+        <a href="{{ url_for('add_to_cast', title=movie.movies_title) }}">Add</a> a new actor to this movie<br>
     {% endif %}
     <br>
     {% if movie.movies_duration and movie.movies_date %}
