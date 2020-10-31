@@ -164,7 +164,7 @@ def movies_list():
         if request.form['filter_select'] == 'genre':
             s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis
                         FROM public.movies
-                        JOIN public.directors ON movies_director = directors_id
+                        LEFT JOIN public.directors ON movies_director = directors_id
                         WHERE movies_genre = :e1""")
             rs = conn.execute(s, e1=request.form['genre'])
             return render_template('movies.html', movies=rs, gen=get_genres(), dir=get_directors(),
@@ -178,7 +178,7 @@ def movies_list():
                                    act=get_actors(None))
         else:
             s = text("""SELECT movies_title, movies_duration, movies_genre, movies_synopsis FROM public.movies
-                        JOIN public.directors ON movies_director = directors_id
+                        LEFT JOIN public.directors ON movies_director = directors_id
                         WHERE movies_id IN (
                             SELECT movies_id FROM public.movies
                             JOIN public.cast ON movies_id = cast_movie
@@ -198,7 +198,7 @@ def coming_soon():
     conn = engine.connect()
     s = text("""SELECT movies_title, movies_genre, movies_synopsis, directors_name
                 FROM public.movies
-                JOIN public.directors ON movies.movies_director = directors.directors_id
+                LEFT JOIN public.directors ON movies.movies_director = directors.directors_id
                 WHERE movies_id NOT IN (
                     SELECT movies_id FROM public.movies
                     JOIN public.projections ON movies.movies_id = projections.projections_movie)
@@ -314,12 +314,12 @@ def add_movie():
         if get_movies(request.form['title']):
             flash("Movie's name already exists, add at the end its release date in brackets")
         if request.form.get('cs'):
-            s = text("""INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date,
+            s = text("""INSERT INTO public.movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date,
                                             movies_director)
                         VALUES (:t, :g, NULL, :s, NULL, :dr)""")
             conn.execute(s, t=title, g=genre, s=synopsis, dr=director.directors_id)
         else:
-            s = text("""INSERT INTO movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, 
+            s = text("""INSERT INTO public.movies (movies_title, movies_genre, movies_duration, movies_synopsis, movies_date, 
                                             movies_director)
                         VALUES (:t, :g, :d, :s, :dt, :dr)""")
             conn.execute(s, t=title, g=genre, d=duration, s=synopsis, dt=rel_date, dr=director.directors_id)
@@ -389,9 +389,9 @@ def add_projection_movie(title):
 
                     # Checks if the projection's timestamp overlaps with preexisting projections on the schedule
                     if not check_time(dt, endtime, room.rooms_id):
-                        s1 = text(
-                            "INSERT INTO public.projections(projections_movie, projections_date_time, projections_room,"
-                            "projections_price) VALUES (:m,:t,:r,:p)")
+                        s1 = text("""INSERT INTO public.projections(projections_movie, projections_date_time,
+                                     projections_room,projections_price)
+                                     VALUES (:m,:t,:r,:p)""")
                         conn.execute(s1, m=mov.movies_id, t=dt, r=room.rooms_id,
                                      p=request.form['price'])
                         conn.close()
@@ -603,19 +603,20 @@ def edit_room(room_id):
 @login_required
 @man_required
 def delete_room(room_id):
-    conn = engine.connect()
-    s = text("""SELECT * FROM public.projections
-                JOIN public.rooms ON projections.projections_room = rooms.rooms_id
-                WHERE rooms_id = :e1""")
-    rs = conn.execute(s, e1=room_id)
-    proj = rs.fetchall()
-    if proj:
-        flash("You can't delete a room with associated projections")
-    else:
-        s = text("DELETE FROM public.rooms WHERE rooms_id = :e1")
-        conn.execute(s, e1=room_id)
-        conn.close()
-        flash("Room deleted")
+    with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+        with conn.begin():
+            s = text("""SELECT projections_id FROM public.projections
+                        JOIN public.rooms ON projections.projections_room = rooms.rooms_id
+                        WHERE rooms_id = :e1""")
+            rs = conn.execute(s, e1=room_id)
+            proj = rs.fetchall()
+            if proj:
+                flash("You can't delete a room with associated projections")
+                conn.close()
+            else:
+                s = text("DELETE FROM public.rooms WHERE rooms_id = :e1")
+                conn.execute(s, e1=room_id)
+                flash("Room deleted")
     return redirect(url_for('edit_data'))
 
 
@@ -624,10 +625,18 @@ def delete_room(room_id):
 @login_required
 @man_required
 def delete_seat(seat_id, room_id):
-    conn = engine.connect()
-    s = text("DELETE FROM public.seats WHERE seats_id = :e1")
-    conn.execute(s, e1=seat_id)
-    conn.close()
+    with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
+        with conn.begin():
+            s = text("""SELECT rooms_id FROM public.rooms
+                        JOIN public.projections ON rooms.rooms_id = projections.projections_room
+                        WHERE rooms_id = :e1""")
+            rs = conn.execute(s, e1=room_id)
+            if rs.fetchone():
+                flash("You can't delete a seat from a room associated with a projection")
+                conn.close()
+            else:
+                s = text("DELETE FROM public.seats WHERE seats_id = :e1")
+                conn.execute(s, e1=seat_id)
     return redirect(url_for('edit_room', room_id=room_id))
 
 
