@@ -1,10 +1,10 @@
 -- ROOMS
 INSERT INTO public.rooms(rooms_id, rooms_name, rooms_capacity)
-VALUES (1, 'Room A', 20),
-       (2, 'Room B', 30),
-       (3, 'Room C', 15),
-       (4, 'Room D', 40),
-       (5, 'Room E', 10);
+VALUES (1, 'Room A', 40),
+       (2, 'Room B', 50),
+       (3, 'Room C', 80),
+       (4, 'Room D', 55),
+       (5, 'Room E', 65);
 
 SELECT setval('rooms_rooms_id_seq', (SELECT MAX(rooms_id) from "rooms"));
 
