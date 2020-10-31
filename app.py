@@ -292,9 +292,9 @@ def edit_movie(title):
             director = get_directors_by_name(request.form['director'])
             genre = request.form['genre']
             synopsis = request.form['synopsis']
-            date = request.form['duration']
+            dur = request.form['duration']
             # if he wants to change movie's duration
-            if date != m.movies_duration:
+            if dur != m.movies_duration:
                 if get_future_projections(title):
                     s = text("UPDATE movies SET movies_genre=:g, movies_synopsis=:s, "
                              "movies_director=:dr WHERE movies_id =:cod")
@@ -356,11 +356,11 @@ def add_movie():
 def edit_projection_movie(proj_id):
     proj = get_projection_by_id(proj_id)
     mov = get_movie_by_id(proj.projections_movie)
-    date = proj.projections_date_time.strftime("%m/%d/%Y")
+    date = proj.projections_date_time.strftime("%m-%d-%Y")
     time = proj.projections_date_time.strftime("%H:%M:%S")[:5]
     if request.method == 'POST':
         dt = request.form['date'] + " " + request.form['time']
-        datetimeobj = datetime.strptime(dt, '%Y/%m/%d %H:%M')
+        datetimeobj = datetime.strptime(dt, '%Y-%m-%d %H:%M')
         room = get_rooms_by_name(request.form['room'])
         if not get_projection_by_id(proj_id):
             flash("This projection does not exist")
@@ -379,7 +379,6 @@ def edit_projection_movie(proj_id):
                         conn.execute(s1, t=dt, r=room.rooms_id,
                                      p=request.form['price'], cod=proj_id)
                         flash("Projection updated successfully")
-                        conn.close()
                     else:
                         conn.close()
                         flash("Couldn't edit projection due to time overlap")
@@ -414,7 +413,6 @@ def add_projection_movie(title):
                                      VALUES (:m,:t,:r,:p)""")
                         conn.execute(s1, m=mov.movies_id, t=dt, r=room.rooms_id,
                                      p=request.form['price'])
-                        conn.close()
                         flash("Projection added successfully")
                     else:
                         conn.close()
@@ -440,7 +438,7 @@ def add_director():
             s = text("INSERT INTO directors (directors_name) VALUES (:n)")
             conn.execute(s, n=name)
             conn.close()
-            return redirect(url_for('add_movie'))
+            flash("Director added")
     return render_template("manager/add_director.html")
 
 
@@ -563,8 +561,7 @@ def delete_movie(title):
     else:
         flash("You can't delete movies that have been/are being projected")
         conn.close()
-    return render_template('manager/edit_movie.html', movie_to_update=get_movies(title), gen=get_genres(),
-                           dir=get_directors_by_name(None), c=get_actors(title))
+    return redirect(url_for('edit_data'))
 
 
 # Lets a manager delete a projection and refunds sold tickets from the edit data page
