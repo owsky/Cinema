@@ -1,13 +1,10 @@
 import secrets
 from datetime import datetime, timedelta
-
 from flask import Flask, render_template, request, redirect, url_for, abort, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from jinja2 import Markup
 from sqlalchemy import text, create_engine
 import json
-
-
 from classes import User, Anonymous, man_required
 from functions import get_last_movies, user_by_email, get_orders, get_projections, get_movies, get_actors, \
     format_projections, free_seats, get_genres, get_directors_by_name, get_directors_by_id, get_directors, \

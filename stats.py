@@ -28,16 +28,6 @@ def get_bar() -> Bar:
     return c
 
 
-# returns a pie chart of 10 most popular movies
-def get_bar2() -> Bar:
-    datas = get_popular_movies()
-    c = (
-        Bar().add_xaxis([data['title'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas])
-
-    )
-    return c
-
-
 # function that returns 10 most popular movies
 def get_popular_movies():
     conn = engine.connect()
