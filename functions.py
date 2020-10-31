@@ -407,4 +407,3 @@ def delete_proj(proj):
             s = text("DELETE FROM public.projections WHERE projections_id=:p")
             conn.execute(s, p=proj)
             flash("Projection deleted successfully!")
-    conn.close()
