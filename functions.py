@@ -72,6 +72,7 @@ def get_orders(uid):
     return orders
 
 
+# returns a specific actors (by the given name) or all actors on DB
 def get_actor_by_name(name):
     # if name is None then returns all actors
     if not name:
@@ -88,6 +89,7 @@ def get_actor_by_name(name):
     return act
 
 
+# returns a specific actors (by the given id)
 def get_actor_by_id(aid):
     conn = engine.connect()
     s = text("SELECT * FROM public.actors WHERE actors_id = :e")
@@ -97,6 +99,7 @@ def get_actor_by_id(aid):
     return act
 
 
+# returns a specific room (by the given name) or all rooms on DB
 def get_rooms_by_name(name):
     conn = engine.connect()
     if name:
@@ -112,6 +115,7 @@ def get_rooms_by_name(name):
     return rid
 
 
+# returns a specific room (by the given id) or all rooms on DB
 def get_rooms_by_id(cod):
     conn = engine.connect()
     if cod:
@@ -163,6 +167,7 @@ def check_cast(movid, actid):
     return check
 
 
+# returns a specific director (by the given id) or all directors on DB
 def get_directors_by_id(cod):
     conn = engine.connect()
     if cod:
@@ -177,6 +182,7 @@ def get_directors_by_id(cod):
     return did
 
 
+# returns a specific director (by the given name) or all directors on DB
 def get_directors_by_name(name):
     conn = engine.connect()
     if name:
@@ -255,6 +261,7 @@ def get_actors(mov):
     return act
 
 
+# returns a specific movie (by the given id)
 def get_movie_by_id(id):
     conn = engine.connect()
     s = text("SELECT * FROM movies WHERE movies_id =:cod")
@@ -264,6 +271,7 @@ def get_movie_by_id(id):
     return ris
 
 
+# returns a specific projection (by the given id)
 def get_projection_by_id(id):
     conn = engine.connect()
     s = text("SELECT * FROM projections WHERE projections_id =:cod")
@@ -273,6 +281,7 @@ def get_projection_by_id(id):
     return ris
 
 
+# returns all future projections (by the given movie's title)
 def get_future_projections(title):
     conn = engine.connect()
     s = text("""SELECT * FROM public.projections JOIN public.movies ON projections_movie=movies_id 
@@ -283,6 +292,7 @@ def get_future_projections(title):
     return ris
 
 
+# returns five movies most recently inserted
 def get_last_movies():
     conn = engine.connect()
     s = text("""SELECT movies_title, movies_genre, movies_synopsis, directors_name
@@ -371,6 +381,7 @@ def get_seat_by_name(room_id, seat_name):
     return se
 
 
+# returns all directors on the DB
 def get_directors():
     conn = engine.connect()
     s = text("SELECT * FROM public.directors")
@@ -380,6 +391,7 @@ def get_directors():
     return dire
 
 
+# returns all rooms on the DB
 def get_rooms():
     conn = engine.connect()
     s = text("SELECT * FROM public.rooms")

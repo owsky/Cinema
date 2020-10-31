@@ -11,7 +11,7 @@ from functions import get_last_movies, user_by_email, get_orders, get_projection
     get_rooms, get_rooms_by_name, check_time, get_rooms_by_id, get_actor_by_name, get_actor_by_id, \
     get_seat_by_name, delete_proj, get_movies_proj, get_movie_by_id, get_projection_by_id, check_time_update, \
     get_future_projections
-from stats import get_bar, get_pie, get_bar2
+from stats import get_bar, get_pie, get_bar2, get_popular_movies
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
@@ -338,7 +338,6 @@ def add_projection_movie(title):
         if datetimeobj <= datetime.now():
             flash("Can not add a projection in the past")
         else:
-            print(str(datetimeobj + timedelta(minutes=mov.movies_duration)))
             with engine.connect().execution_options(isolation_level="SERIALIZABLE") as conn:
                 with conn.begin():
                     endtime = str(datetimeobj + timedelta(minutes=mov.movies_duration))
@@ -370,7 +369,6 @@ def add_director():
     if request.method == 'POST':
         if get_directors_by_name(request.form['name']):
             flash("Director has already been added")
-
         else:
             conn = engine.connect()
             name = request.form['name']
@@ -569,7 +567,7 @@ def show_echarts():
     pie = get_pie()
     bar2 = get_bar2()
     return render_template("manager/show_echarts.html", bar_options=bar.dump_options(), pie_options=pie.dump_options(),
-                           bar_options2=bar2.dump_options())
+                           bar_options2=bar2.dump_options(), mov=get_popular_movies())
 
 
 if __name__ == '__main__':

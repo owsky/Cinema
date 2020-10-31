@@ -7,7 +7,10 @@
     <h3>Movie genre preferences based on gender:</h3><br>
     <div id="bar" style="width: 1000px; height:400px"></div>
     <br>
-    <h3>10 most popular movies in the Cinema:</h3><br>
+    <h3>10 most popular movies in the Cinema:</h3>
+    {% for m in mov %}
+        ID{{ m.id }}: {{ m.title }}<br>
+    {% endfor %}
     <div id="bar2" style="width: 800px; height:400px"></div>
     <br>
     <h3>Statistics for movie genres:</h3><br>

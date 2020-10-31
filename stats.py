@@ -5,24 +5,7 @@ from sqlalchemy import text, create_engine
 engine = create_engine('postgresql://cinema_user:cinema_password@localhost:5432/cinema_database')
 
 
-# grafico a linee: può non essere inserita
-def get_line() -> Line:
-    conn = engine.connect()
-    s = text("""SELECT movies_genre AS genre, SUM(CASE WHEN (tickets_id IS NOT NULL) THEN 1 ELSE 0 END) AS sum
-                FROM public.tickets
-                LEFT JOIN public.projections on tickets_projection = projections_id
-                LEFT JOIN public.movies on projections_movie = movies_id GROUP BY movies_genre""")
-    datas = conn.execute(s).fetchall()
-    conn.close()
-    c = (
-        Line().add_xaxis([data['genre'] for data in datas]).add_yaxis("Quantity",
-                                                                      [data['sum'] for data in datas]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genre"))
-    )
-    return c
-
-
-# grafico a barre: seleziona i film in base ai biglietti venduti
+# returns the most popular genres based on gender
 def get_bar() -> Bar:
     conn = engine.connect()
 
@@ -38,22 +21,16 @@ def get_bar() -> Bar:
     datas1 = conn.execute(s1).fetchall()
     conn.close()
     c = (
-        Bar().add_xaxis([data['genre'] for data in datas1]).add_yaxis("Male", [data['summ'] for data in
+        Bar().add_xaxis([data['genre'] for data in datas1]).add_yaxis("Female", [data['sumf'] for data in
                                                                                datas1]).set_global_opts(
-            title_opts=opts.TitleOpts(title="Genres")).add_yaxis("Female", [data['sumf'] for data in datas1])
+            title_opts=opts.TitleOpts(title="Genres")).add_yaxis("Male", [data['summ'] for data in datas1])
     )
     return c
 
 
+# returns a pie chart of 10 most popular movies
 def get_bar2() -> Bar:
-    conn = engine.connect()
-    s1 = text("""SELECT *
-                 FROM public.rankmovie 
-                 ORDER BY sold DESC LIMIT 10""")
-
-    datas = conn.execute(s1).fetchall()
-    print(datas)
-    conn.close()
+    datas = get_popular_movies()
     c = (
         Bar().add_xaxis([data['id'] for data in datas]).add_yaxis("Quantity", [data['sold'] for data in datas])
              .set_global_opts(title_opts=opts.TitleOpts(title="Movies"))
@@ -62,12 +39,23 @@ def get_bar2() -> Bar:
     return c
 
 
-# grafico a cerchio: seleziona i generi più preferiti dalle persone
+# function that returns 10 most popular movies
+def get_popular_movies():
+    conn = engine.connect()
+    s = text("""SELECT *
+                 FROM public.rankmovie 
+                 ORDER BY sold DESC LIMIT 10""")
+    rs = conn.execute(s)
+    ris = rs.fetchall()
+    conn.close()
+    return ris
+
+
+# returns a pie chart of genres' popularity in percentage
 def get_pie() -> Pie:
     conn = engine.connect()
     s = text("SELECT genre, sum_genres*100/sum_tickets AS genre_perc FROM public.sumtickets, public.sumgenres")
     datas = conn.execute(s).fetchall()
-    print(datas)
     conn.close()
     c = (
         Pie().add("", [(data['genre'], data['genre_perc']) for data in datas]).set_global_opts(
