@@ -16,7 +16,7 @@ services:
       - postgres
 
   postgres:
-    image: "postgres:12-alpine"
+    image: "postgres:13-alpine"
     restart: always
     ports:
       - "5432:5432"
