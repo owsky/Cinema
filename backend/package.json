@@ -1,0 +1,34 @@
+{
+  "name": "cinema-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx nodemon src/index.ts"
+  },
+  "author": "owsky",
+  "license": "ISC",
+  "dependencies": {
+    "argon2": "^0.28.5",
+    "fastify": "^3.28.0",
+    "fastify-env": "^2.1.1",
+    "fastify-plugin": "^3.0.1",
+    "fastify-postgres": "^3.6.0",
+    "node": "^17.7.2",
+    "pg": "^8.7.3"
+  },
+  "devDependencies": {
+    "@tsconfig/node17": "^1.0.0",
+    "@types/node": "^17.0.23",
+    "@types/pg": "^8.6.5",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
+    "@typescript-eslint/parser": "^5.18.0",
+    "eslint": "^8.12.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^8.5.0",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  },
+  "types": "index.d.ts"
+}
