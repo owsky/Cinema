@@ -1,4 +1,4 @@
-import { postgres } from "../../.."
+import { logger, postgres } from "../../.."
 import createUserQuery from "../queries/createUserQuery"
 
 export default async function createUser(
@@ -12,7 +12,7 @@ export default async function createUser(
     const client = await postgres.connect()
     await createUserQuery(client, email, fullName, password, salt, role)
   } catch (e) {
-    console.error(e)
+    logger.error(e)
     throw e
   }
 }

@@ -25,9 +25,13 @@ const userPutHandler = async (
       }
     }
     reply.code(200).send({ message: "User created successfully" })
-  } catch (e) {
-    console.error(e)
-    reply.code(500).send({ error: "Couldn't create the user" })
+  } catch (e: any) {
+    request.log.error(e)
+    if (e.code === "23505")
+      reply
+        .code(400)
+        .send({ error: "The provided email address is already in use" })
+    reply.code(500).send({ error: e.message })
   }
 }
 export default userPutHandler

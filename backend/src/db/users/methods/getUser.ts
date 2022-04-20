@@ -1,4 +1,4 @@
-import { postgres } from "../../.."
+import { logger, postgres } from "../../.."
 import User from "../../../models/user"
 import getUserQuery from "../queries/getUserQuery"
 
@@ -16,7 +16,7 @@ export default async function getUser(email: string): Promise<User | null> {
     client.release()
     return user
   } catch (e) {
-    console.error(e)
+    logger.error(e)
     return null
   }
 }

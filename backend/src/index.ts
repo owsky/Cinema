@@ -1,9 +1,10 @@
-import Fastify from "fastify"
+import Fastify, { FastifyLoggerInstance } from "fastify"
 import { PostgresDb } from "fastify-postgres"
 import config from "./config"
 import routes from "./routes"
 
 export let postgres: PostgresDb
+export let logger: FastifyLoggerInstance
 
 async function start() {
   const fastify = Fastify({
@@ -19,6 +20,7 @@ async function start() {
     if (err) fastify.log.error(err)
     else {
       postgres = fastify.pg
+      logger = fastify.log
       fastify.listen(fastify.config.PORT, fastify.config.HOST)
     }
   })
