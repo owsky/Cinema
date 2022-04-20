@@ -8,7 +8,7 @@ export default async function getUser(
 ): Promise<User | null> {
   try {
     const client = await db.connect()
-    const { rows } = await client.query(getUserQuery, [email])
+    const { rows } = await getUserQuery(client, email)
     const user: User = {
       email: rows.at(0).email,
       full_name: rows.at(0).full_name,

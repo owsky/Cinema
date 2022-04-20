@@ -10,6 +10,7 @@ export default interface IUsersMethods {
     db: PostgresDb & Record<string, PostgresDb>,
     email: string,
     fullName: string,
-    password: string
+    password: string,
+    salt: string
   ): Promise<void>
 }

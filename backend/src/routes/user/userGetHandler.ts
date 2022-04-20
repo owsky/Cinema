@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify"
 import { PostgresDb } from "fastify-postgres"
 import usersMethodsImpl from "../../db/users/usersMethodsImpl"
 
-const userGetController = async (
+const userGetHandler = async (
   request: FastifyRequest<{ Querystring: { email: string } }>,
   reply: FastifyReply,
   postgres: PostgresDb & Record<string, PostgresDb>
@@ -17,4 +17,4 @@ const userGetController = async (
     reply.code(400).send({ message: "Error" })
   }
 }
-export default userGetController
+export default userGetHandler

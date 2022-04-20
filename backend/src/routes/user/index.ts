@@ -1,21 +1,37 @@
 import { FastifyPluginAsync, FastifyRequest } from "fastify"
-import userGetController from "../../controllers/user/userGetController"
-import userPutController from "../../controllers/user/userPutController"
+import userGetHandler from "./userGetHandler"
+import userPutHandler from "./userPutHandler"
 
 const route: FastifyPluginAsync = async (fastify, _opts) => {
   const postgres = fastify.pg
 
   fastify.route({
     method: "GET",
-    url: "/user",
+    url: "/",
     handler: async (
       request: FastifyRequest<{ Querystring: { email: string } }>,
       reply
-    ) => userGetController(request, reply, postgres),
+    ) => userGetHandler(request, reply, postgres),
     schema: {
       querystring: {
         email: {
           type: "string",
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            email: {
+              type: "string",
+            },
+            full_name: {
+              type: "string",
+            },
+            user_role: {
+              type: "string",
+            },
+          },
         },
       },
     },
@@ -23,14 +39,14 @@ const route: FastifyPluginAsync = async (fastify, _opts) => {
 
   fastify.route({
     method: "PUT",
-    url: "/user",
+    url: "/",
     handler: async (
       request: FastifyRequest<{
         Body: { email: string; password: string; full_name: string }
       }>,
       reply
     ) => {
-      userPutController(request, reply, postgres)
+      userPutHandler(request, reply, postgres, fastify.config.SECRET)
     },
     schema: {
       body: {
