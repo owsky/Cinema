@@ -1,5 +1,4 @@
 import { FastifyReply, FastifyRequest } from "fastify"
-import { PostgresDb } from "fastify-postgres"
 import { UserType } from "."
 import usersMethodsImpl from "../../db/users/usersMethodsImpl"
 import createPassword from "../../utils/createPassword"
@@ -10,7 +9,6 @@ const userPutHandler = async (
     Body: UserType
   }>,
   reply: FastifyReply,
-  postgres: PostgresDb & Record<string, PostgresDb>,
   secret: string
 ) => {
   try {
@@ -19,7 +17,6 @@ const userPutHandler = async (
       const password = await createPassword(request.body.password, salt, secret)
       if (password) {
         await usersMethodsImpl.createUser(
-          postgres,
           request.body.email,
           request.body.full_name,
           password,

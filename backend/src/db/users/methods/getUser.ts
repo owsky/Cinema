@@ -1,13 +1,10 @@
-import { PostgresDb } from "fastify-postgres"
+import { postgres } from "../../.."
 import User from "../../../models/user"
 import getUserQuery from "../queries/getUserQuery"
 
-export default async function getUser(
-  db: PostgresDb & Record<string, PostgresDb>,
-  email: string
-): Promise<User | null> {
+export default async function getUser(email: string): Promise<User | null> {
   try {
-    const client = await db.connect()
+    const client = await postgres.connect()
     const { rows } = await getUserQuery(client, email)
     const user: User = {
       email: rows.at(0).email,

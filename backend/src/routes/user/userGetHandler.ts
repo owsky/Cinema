@@ -1,16 +1,14 @@
 import { FastifyReply, FastifyRequest } from "fastify"
-import { PostgresDb } from "fastify-postgres"
 import { EmailType } from "."
 import usersMethodsImpl from "../../db/users/usersMethodsImpl"
 
 const userGetHandler = async (
   request: FastifyRequest<{ Querystring: EmailType }>,
-  reply: FastifyReply,
-  postgres: PostgresDb & Record<string, PostgresDb>
+  reply: FastifyReply
 ) => {
   const email = request.query.email
   try {
-    const user = await usersMethodsImpl.getUser(postgres, email)
+    const user = await usersMethodsImpl.getUser(email)
     if (!user) reply.code(404).send({ message: "User not found" })
     reply.send(user)
   } catch (e) {

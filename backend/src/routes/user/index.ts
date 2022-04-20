@@ -13,20 +13,18 @@ const User = Type.Object({
   email: Type.String(),
   full_name: Type.String(),
   password: Type.String(),
-  user_role: Type.String(),
+  user_role: Type.Optional(Type.String()),
 })
 export type UserType = Static<typeof User>
 
 const route: FastifyPluginAsync = async (fastify, _opts) => {
-  const postgres = fastify.pg
-
   fastify.route({
     method: "GET",
     url: "/",
     handler: async (
       request: FastifyRequest<{ Querystring: EmailType }>,
       reply
-    ) => userGetHandler(request, reply, postgres),
+    ) => userGetHandler(request, reply),
     schema: {
       querystring: {
         Email,
@@ -53,7 +51,7 @@ const route: FastifyPluginAsync = async (fastify, _opts) => {
       }>,
       reply
     ) => {
-      userPutHandler(request, reply, postgres, fastify.config.SECRET)
+      userPutHandler(request, reply, fastify.config.SECRET)
     },
     schema: {
       body: User,

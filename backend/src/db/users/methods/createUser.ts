@@ -1,8 +1,7 @@
-import { PostgresDb } from "fastify-postgres"
+import { postgres } from "../../.."
 import createUserQuery from "../queries/createUserQuery"
 
 export default async function createUser(
-  db: PostgresDb & Record<string, PostgresDb>,
   email: string,
   fullName: string,
   password: string,
@@ -10,7 +9,7 @@ export default async function createUser(
   role = "user"
 ): Promise<void> {
   try {
-    const client = await db.connect()
+    const client = await postgres.connect()
     await createUserQuery(client, email, fullName, password, salt, role)
   } catch (e) {
     console.error(e)
