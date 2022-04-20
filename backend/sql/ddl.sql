@@ -60,6 +60,7 @@ CREATE TABLE public.users (
   email varchar PRIMARY KEY,
   full_name varchar NOT NULL,
   password varchar NOT NULL,
+  salt varchar NOT NULL,
   user_role public.user_role_type DEFAULT 'user'
 );
 
