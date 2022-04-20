@@ -9,6 +9,7 @@
   "author": "owsky",
   "license": "ISC",
   "dependencies": {
+    "@sinclair/typebox": "^0.23.4",
     "argon2": "^0.28.5",
     "fastify": "^3.28.0",
     "fastify-env": "^2.1.1",

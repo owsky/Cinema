@@ -1,9 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify"
 import { PostgresDb } from "fastify-postgres"
+import { EmailType } from "."
 import usersMethodsImpl from "../../db/users/usersMethodsImpl"
 
 const userGetHandler = async (
-  request: FastifyRequest<{ Querystring: { email: string } }>,
+  request: FastifyRequest<{ Querystring: EmailType }>,
   reply: FastifyReply,
   postgres: PostgresDb & Record<string, PostgresDb>
 ) => {

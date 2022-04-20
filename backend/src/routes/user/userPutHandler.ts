@@ -1,12 +1,13 @@
 import { FastifyReply, FastifyRequest } from "fastify"
 import { PostgresDb } from "fastify-postgres"
+import { UserType } from "."
 import usersMethodsImpl from "../../db/users/usersMethodsImpl"
 import createPassword from "../../utils/createPassword"
 import generateSalt from "../../utils/generateSalt"
 
 const userPutHandler = async (
   request: FastifyRequest<{
-    Body: { email: string; password: string; full_name: string }
+    Body: UserType
   }>,
   reply: FastifyReply,
   postgres: PostgresDb & Record<string, PostgresDb>,
