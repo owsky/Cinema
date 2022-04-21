@@ -25,17 +25,12 @@ export default function getUsersMethods(pool: Pool) {
     salt: string,
     role = "user"
   ) {
-    try {
-      const client = await pool.connect()
-      await client.query(
-        "INSERT INTO Users(email, full_name, password, salt, role) VALUES($1, $2, $3, $4, $5)",
-        [email, fullName, password, salt, role]
-      )
-      client.release()
-    } catch (e) {
-      logger.error(e)
-      return null
-    }
+    const client = await pool.connect()
+    await client.query(
+      "INSERT INTO Users(email, full_name, password, salt, user_role) VALUES($1, $2, $3, $4, $5)",
+      [email, fullName, password, salt, role]
+    )
+    client.release()
   }
 
   return {
