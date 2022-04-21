@@ -17,9 +17,7 @@
     "useDefineForClassFields": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "lib": [
-      "esnext"
-    ]
+    "lib": ["esnext"]
   },
   "include": ["src/**/*.ts"]
 }

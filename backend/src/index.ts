@@ -1,28 +1,16 @@
-import Fastify, { FastifyLoggerInstance } from "fastify"
-import { PostgresDb } from "fastify-postgres"
-import config from "./config"
-import routes from "./routes"
-
-export let postgres: PostgresDb
-export let logger: FastifyLoggerInstance
+import dbConnect from "./config/dbConnect"
+import config from "./config/setupEnvinronment"
+import logger from "./logger"
+import createServer from "./server"
 
 async function start() {
-  const fastify = Fastify({
-    logger: true,
-  })
   try {
-    await config(fastify)
-    fastify.register(routes)
+    await dbConnect()
+    const fastify = await createServer()
+    fastify.listen(config.PORT, config.HOST)
   } catch (e) {
-    fastify.log.error(e)
+    logger.error(e)
+    process.exit(-1)
   }
-  fastify.ready(err => {
-    if (err) fastify.log.error(err)
-    else {
-      postgres = fastify.pg
-      logger = fastify.log
-      fastify.listen(fastify.config.PORT, fastify.config.HOST)
-    }
-  })
 }
 start()

@@ -1,5 +1,6 @@
 import { Static, Type } from "@sinclair/typebox"
 import { FastifyPluginAsync, FastifyRequest } from "fastify"
+import config from "../../config/setupEnvinronment"
 import User from "../../models/user"
 import userGetHandler from "./userGetHandler"
 import userPutHandler from "./userPutHandler"
@@ -12,10 +13,16 @@ export type EmailType = Static<typeof Email>
 const User = Type.Object({
   email: Type.String(),
   full_name: Type.String(),
-  password: Type.String(),
   user_role: Type.Optional(Type.String()),
 })
 export type UserType = Static<typeof User>
+const UserWithPassword = Type.Object({
+  email: Type.String(),
+  full_name: Type.String(),
+  password: Type.String(),
+  user_role: Type.Optional(Type.String()),
+})
+export type UserWithPasswordType = Static<typeof UserWithPassword>
 
 const route: FastifyPluginAsync = async (fastify, _opts) => {
   fastify.route({
@@ -30,14 +37,7 @@ const route: FastifyPluginAsync = async (fastify, _opts) => {
         Email,
       },
       response: {
-        200: {
-          type: "object",
-          properties: {
-            email: { type: "string" },
-            full_name: { type: "string" },
-            user_role: { type: "string" },
-          },
-        },
+        200: User,
       },
     },
   })
@@ -47,14 +47,14 @@ const route: FastifyPluginAsync = async (fastify, _opts) => {
     url: "/",
     handler: async (
       request: FastifyRequest<{
-        Body: UserType
+        Body: UserWithPasswordType
       }>,
       reply
     ) => {
-      userPutHandler(request, reply, fastify.config.SECRET)
+      userPutHandler(request, reply, config.SECRET)
     },
     schema: {
-      body: User,
+      body: UserWithPassword,
     },
   })
 }
