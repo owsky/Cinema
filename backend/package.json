@@ -14,12 +14,14 @@
     "dotenv": "^16.0.0",
     "fastify": "^3.28.0",
     "fastify-plugin": "^3.0.1",
+    "jsonwebtoken": "^8.5.1",
     "node": "^17.7.2",
     "pg": "^8.7.3",
     "pino": "^7.10.0"
   },
   "devDependencies": {
     "@tsconfig/node17": "^1.0.0",
+    "@types/jsonwebtoken": "^8.5.8",
     "@types/node": "^17.0.23",
     "@types/pg": "^8.6.5",
     "@typescript-eslint/eslint-plugin": "^5.18.0",
