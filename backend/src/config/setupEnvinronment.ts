@@ -9,6 +9,7 @@ interface EnvI {
   PGDATABASE: string | undefined
   PGUSER: string | undefined
   PGPASSWORD: string | undefined
+  CONTEXT: string | undefined
 }
 
 export interface Config {
@@ -20,6 +21,7 @@ export interface Config {
   PGDATABASE: string
   PGUSER: string
   PGPASSWORD: string
+  CONTEXT: string
 }
 
 export function setupEnvironment(): Config {
@@ -35,6 +37,7 @@ export function setupEnvironment(): Config {
     PGDATABASE: process.env.PGDATABASE,
     PGUSER: process.env.PGUSER,
     PGPASSWORD: process.env.PGPASSWORD,
+    CONTEXT: process.env.CONTEXT,
   }
 
   for (const [key, value] of Object.entries(envVariables)) {
