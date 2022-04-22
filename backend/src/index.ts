@@ -1,5 +1,5 @@
 import dbConnect from "./config/dbConnect"
-import config from "./config/setupEnvinronment"
+import config from "./config"
 import logger from "./logger"
 import createServer from "./server"
 

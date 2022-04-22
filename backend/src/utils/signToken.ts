@@ -1,5 +1,5 @@
 import * as jwt from "jsonwebtoken"
-import config from "../config/setupEnvinronment"
+import config from "../config"
 
 export default function signToken(
   email: string,

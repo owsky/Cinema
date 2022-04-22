@@ -1,4 +1,4 @@
-import config from "../../config/setupEnvinronment"
+import config from "../../config"
 import postgres from "../../db"
 import createPassword from "../../utils/createPassword"
 import signToken from "../../utils/signToken"

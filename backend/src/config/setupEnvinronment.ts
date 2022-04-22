@@ -11,7 +11,7 @@ interface EnvI {
   PGPASSWORD: string | undefined
 }
 
-interface Config {
+export interface Config {
   HOST: string
   PORT: string
   SECRET: string
@@ -22,7 +22,7 @@ interface Config {
   PGPASSWORD: string
 }
 
-function setupEnvironment(): Config {
+export function setupEnvironment(): Config {
   const env = dotenv.config()
   if (env.error) throw env.error
 
@@ -43,6 +43,3 @@ function setupEnvironment(): Config {
 
   return envVariables as Config
 }
-
-const config = setupEnvironment()
-export default config
