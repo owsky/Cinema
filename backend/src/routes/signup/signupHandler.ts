@@ -3,7 +3,7 @@ import postgres from "../../db"
 import createPassword from "../../utils/createPassword"
 import generateSalt from "../../utils/generateSalt"
 
-const userPutHandler = async (
+const signupHandler = async (
   email: string,
   fullName: string,
   plainText: string
@@ -20,4 +20,4 @@ const userPutHandler = async (
     throw new Error("Couldn't generate salt")
   }
 }
-export default userPutHandler
+export default signupHandler
