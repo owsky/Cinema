@@ -11,7 +11,7 @@ export default function getUsersMethods(pool: Pool) {
         [email]
       )
       client.release()
-      return rows.at(0)
+      return rows.at(0) as User
     } catch (e) {
       logger.error(e)
       return null
