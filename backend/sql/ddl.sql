@@ -1,13 +1,8 @@
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-SET row_security = off;
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+SET search_path to public;
 
-CREATE SCHEMA IF NOT EXISTS public;
-
-CREATE TYPE public.movie_genre_type AS ENUM (
+CREATE TYPE movie_genre_type AS ENUM (
   'Action',
   'Adventure',
   'Animation',
@@ -22,84 +17,95 @@ CREATE TYPE public.movie_genre_type AS ENUM (
   'Western'
 );
 
-CREATE TYPE public.user_role_type AS ENUM (
+CREATE TYPE user_role_type AS ENUM (
   'user',
   'admin'
 );
 
-CREATE TABLE public.actors (
+CREATE TABLE actors (
   actor_id serial PRIMARY KEY,
   full_name varchar NOT NULL
 );
 
-CREATE TABLE public.movies (
-  movie_id serial PRIMARY KEY,
-  title varchar NOT NULL,
-  synopsys varchar NOT NULL,
-  genre public.movie_genre_type NOT NULL
+CREATE TABLE directors (
+  director_id serial PRIMARY KEY,
+  full_name varchar NOT NULL
 );
 
-CREATE TABLE public.cast (
+CREATE TABLE movies (
+  movie_id serial PRIMARY KEY,
+  title varchar NOT NULL,
+  duration integer,
+  release_date Date,
+  synopsys varchar NOT NULL,
+  director integer NOT NULL,
+  genre movie_genre_type NOT NULL,
+  CONSTRAINT director_fkey
+    FOREIGN KEY (director)
+    REFERENCES directors(director_id)
+);
+
+CREATE TABLE cast_entry (
   actor integer,
   movie integer,
   PRIMARY KEY (actor, movie),
   CONSTRAINT actor_fkey
     FOREIGN KEY (actor)
-    REFERENCES public.actors(actor_id)
+    REFERENCES actors(actor_id)
     ON UPDATE CASCADE
     ON DELETE CASCADE
   ,
   CONSTRAINT movie_fkey
     FOREIGN KEY (movie)
-    REFERENCES public.movies(movie_id)
+    REFERENCES movies(movie_id)
     ON UPDATE CASCADE
     ON DELETE CASCADE
 );
 
-CREATE TABLE public.users (
+CREATE TABLE users (
   email varchar PRIMARY KEY,
   full_name varchar NOT NULL,
   password varchar NOT NULL,
   salt varchar NOT NULL,
-  user_role public.user_role_type DEFAULT 'user'
+  user_role user_role_type DEFAULT 'user'
 );
 
-CREATE TABLE public.rooms (
-  room_id serial PRIMARY KEY,
-  name varchar NOT NULL
+CREATE TABLE rooms (
+  room_name varchar PRIMARY KEY
 );
 
-CREATE TABLE public.seats (
+CREATE TABLE seats (
   code integer,
-  room integer NOT NULL,
+  room varchar NOT NULL,
   PRIMARY KEY (code, room),
   CONSTRAINT room_fkey
     FOREIGN KEY (room)
-    REFERENCES public.rooms(room_id)
+    REFERENCES rooms(room_name)
 );
 
-CREATE TABLE public.projections (
+CREATE TABLE projections (
   projection_id serial PRIMARY KEY,
   movie integer NOT NULL,
-  room integer NOT NULL,
+  room varchar NOT NULL,
   start_date date NOT NULL,
   end_date date NOT NULL,
+  price money NOT NULL,
   CONSTRAINT movie_fkey
     FOREIGN KEY (movie)
-    REFERENCES public.movies(movie_id),
+    REFERENCES movies(movie_id),
   CONSTRAINT room_fkey
     FOREIGN KEY (room)
-    REFERENCES public.rooms(room_id)
+    REFERENCES rooms(room_name)
 );
 
-CREATE TABLE public.tickets (
+CREATE TABLE tickets (
   user_email varchar,
   projection integer,
   PRIMARY KEY (user_email, projection),
   CONSTRAINT user_email_fkey
     FOREIGN KEY (user_email)
-    REFERENCES public.users(email),
+    REFERENCES users(email),
   CONSTRAINT projection_fkey
     FOREIGN KEY (projection)
-    REFERENCES public.projections(projection_id)
+    REFERENCES projections(projection_id)
 );
