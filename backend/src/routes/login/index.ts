@@ -14,7 +14,7 @@ const route: FastifyPluginCallback = (fastify, _opts, done) => {
         )
         if (token)
           void reply.code(200).send({ message: "Login successful", token })
-        void reply.code(401).send({ error: "Authentication failed" })
+        else void reply.code(401).send({ error: "Authentication failed" })
       } catch (e) {
         request.log.error(e)
         void reply.code(500).send({ error: "Internal server error" })
