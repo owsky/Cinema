@@ -6,7 +6,9 @@ export default function signToken(
   full_name: string,
   user_role: string
 ) {
-  return jwt.sign({ email, full_name, user_role }, config.SECRET, {
-    algorithm: "HS256",
+  const rawToken = jwt.sign({ email, full_name, user_role }, config.SECRET, {
+    algorithm: "HS384",
+    expiresIn: "7d",
   })
+  return `Bearer ${rawToken}`
 }
