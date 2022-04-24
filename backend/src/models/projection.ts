@@ -1,10 +1,17 @@
-import Movie from "./movie"
-import Room from "./room"
+import { Static, Type } from "@sinclair/typebox"
 
-export default interface Projection {
-  projectionId: number
-  movie: Movie
-  room: Room
-  startDate: Date
-  endDate: Date
-}
+export const Projection = Type.Object({
+  projection_id: Type.Integer(),
+  room: Type.String(),
+  start_date: Type.String(),
+  end_date: Type.String(),
+  price: Type.String(),
+  title: Type.String(),
+  duration: Type.String(),
+  release_date: Type.String(),
+  synopsys: Type.String(),
+  genre: Type.String(),
+  director: Type.String(),
+})
+
+export type ProjectionType = Static<typeof Projection>

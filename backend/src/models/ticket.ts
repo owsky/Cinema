@@ -1,7 +1,8 @@
-import User from "./user"
-import Projection from "./projection"
+import { Type } from "@sinclair/typebox"
+import { User } from "./User"
+import { Projection } from "./Projection"
 
-export default interface Ticket {
-  user: User
-  projection: Projection
-}
+export const Ticket = Type.Object({
+  user: User,
+  projection: Projection,
+})

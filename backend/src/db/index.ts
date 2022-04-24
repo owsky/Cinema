@@ -1,5 +1,6 @@
 import { Pool } from "pg"
 import logger from "../logger"
+import getMoviesMethods from "./movies/moviesMethods"
 import getUsersMethods from "./users/usersMethods"
 
 const pool = new Pool({
@@ -13,5 +14,6 @@ pool.on("error", (err, _client) => {
 
 const postgres = {
   usersMethods: getUsersMethods(pool),
+  moviesMethods: getMoviesMethods(pool),
 }
 export default postgres

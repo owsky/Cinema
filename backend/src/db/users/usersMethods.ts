@@ -1,9 +1,9 @@
 import { Pool } from "pg"
 import logger from "../../logger"
-import User from "../../models/user"
+import { UserType } from "../../models/User"
 
 export default function getUsersMethods(pool: Pool) {
-  async function getUser(email: string): Promise<User | null> {
+  async function getUser(email: string): Promise<UserType | null> {
     try {
       const client = await pool.connect()
       const { rows } = await client.query(
@@ -11,7 +11,7 @@ export default function getUsersMethods(pool: Pool) {
         [email]
       )
       client.release()
-      return rows.at(0) as User
+      return rows.at(0) as UserType
     } catch (e) {
       logger.error(e)
       return null

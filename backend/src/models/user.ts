@@ -1,7 +1,11 @@
-export default interface User {
-  email: string
-  full_name: string
-  password: string
-  salt: string
-  user_role: string
-}
+import { Static, Type } from "@sinclair/typebox"
+
+export const User = Type.Object({
+  email: Type.String(),
+  full_name: Type.String(),
+  password: Type.String(),
+  salt: Type.String(),
+  user_role: Type.String(),
+})
+
+export type UserType = Static<typeof User>
