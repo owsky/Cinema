@@ -11,14 +11,14 @@ Current completion of features
 ✔️ Signup  
 ✔️ Login  
 ✔️ View all movies on schedule  
-⬜ View current week's schedule  
+✔️ View current week's schedule  
 ⬜ View specific movie's information  
 ⬜ View specific movie's schedule  
 ⬜ Purchase tickets  
 ⬜ View orders history  
 ⬜ Search movies  
 ⬜ Search actors  
-⬜ View specific actor's information  
+⬜ View specific actor's information
 
 ### Admins
 
@@ -26,4 +26,4 @@ Current completion of features
 ⬜ Add new movies  
 ⬜ Edit existing movies  
 ⬜ Add new actors  
-⬜ Edit existing actors  
+⬜ Edit existing actors
