@@ -2,6 +2,7 @@ import { Pool } from "pg"
 import logger from "../../logger"
 import { ProjectionType } from "../../models/Projection"
 import { endOfWeek, addYears } from "date-fns"
+import { MovieType } from "../../models/Movie"
 
 export default function getMoviesMethods(pool: Pool) {
   async function getCurrentSchedule(currentWeek?: boolean) {
@@ -38,7 +39,40 @@ export default function getMoviesMethods(pool: Pool) {
       `,
         [cap.getTime() / 1000]
       )
+      client.release()
       return rows as ProjectionType[]
+    } catch (e) {
+      logger.error(e)
+    }
+  }
+
+  async function getAllMovies() {
+    try {
+      const client = await pool.connect()
+      const { rows } = await client.query(`
+        SELECT *
+        FROM movies
+      `)
+      return rows as MovieType[]
+    } catch (e) {
+      logger.error(e)
+    }
+  }
+
+  async function getMovie(movieId: number) {
+    try {
+      const client = await pool.connect()
+      const { rows } = await client.query(
+        `
+        SELECT *
+        FROM movies
+        WHERE movie_id = $1
+      `,
+        [movieId]
+      )
+      logger.info(rows)
+      client.release()
+      return rows.at(0) as MovieType
     } catch (e) {
       logger.error(e)
     }
@@ -46,5 +80,7 @@ export default function getMoviesMethods(pool: Pool) {
 
   return {
     getCurrentSchedule,
+    getMovie,
+    getAllMovies,
   }
 }
