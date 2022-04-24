@@ -1,12 +1,16 @@
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
+import { ErrorResponse } from "../ErrorTypebox"
+import { LoginRequest, LoginRequestType, LoginResponse } from "./loginTypebox"
 import loginHandler from "./loginHandler"
-import { Login, LoginType } from "./loginTypebox"
 
 const route: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "POST",
     url: "/",
-    handler: async (request: FastifyRequest<{ Body: LoginType }>, reply) => {
+    handler: async (
+      request: FastifyRequest<{ Body: LoginRequestType }>,
+      reply
+    ) => {
       try {
         const token = await loginHandler(
           request.body.email,
@@ -21,16 +25,11 @@ const route: FastifyPluginCallback = (fastify, _opts, done) => {
       }
     },
     schema: {
-      body: Login,
+      body: LoginRequest,
       response: {
-        200: {
-          message: { type: "string" },
-          token: { type: "string" },
-        },
-        403: {
-          error: { type: "string" },
-        },
-        500: { error: { type: "string" } },
+        200: LoginResponse,
+        403: ErrorResponse,
+        500: ErrorResponse,
       },
     },
   })
