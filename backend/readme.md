@@ -12,7 +12,7 @@ Current completion of features
 ✔️ Login  
 ✔️ View all movies on schedule  
 ✔️ View current week's schedule  
-⬜ View specific movie's information  
+✔️ View specific movie's information  
 ⬜ View specific movie's schedule  
 ⬜ Purchase tickets  
 ⬜ View orders history  
