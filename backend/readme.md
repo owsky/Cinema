@@ -10,7 +10,7 @@ Current completion of features
 
 - [x] Signup
 - [x] Login
-- [ ] View all movies on schedule
+- [x] View all movies on schedule
 - [ ] View current week's schedule
 - [ ] View specific movie's information
 - [ ] View specific movie's schedule
