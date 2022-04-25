@@ -1,7 +1,7 @@
 import { Pool } from "pg"
 import logger from "../logger"
 import moviesMethods from "./moviesMethods"
-import usersMethods from "./users/usersMethods"
+import usersMethods from "./users"
 
 export const pool = new Pool({
   idleTimeoutMillis: 30000,

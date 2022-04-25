@@ -1,5 +1,5 @@
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA IF NOT EXISTS public;
 SET search_path to public;
 
 CREATE TYPE movie_genre_type AS ENUM (
@@ -75,9 +75,9 @@ CREATE TABLE rooms (
 );
 
 CREATE TABLE seats (
-  code integer,
+  seat_id serial PRIMARY KEY,
+  code integer NOT NULL,
   room varchar NOT NULL,
-  PRIMARY KEY (code, room),
   CONSTRAINT room_fkey
     FOREIGN KEY (room)
     REFERENCES rooms(room_name)
@@ -99,13 +99,41 @@ CREATE TABLE projections (
 );
 
 CREATE TABLE tickets (
-  user_email varchar,
-  projection integer,
-  PRIMARY KEY (user_email, projection),
+  ticket_id serial PRIMARY KEY,
+  user_email varchar NOT NULL,
+  projection integer NOT NULL,
+  seat integer NOT NULL,
   CONSTRAINT user_email_fkey
     FOREIGN KEY (user_email)
     REFERENCES users(email),
   CONSTRAINT projection_fkey
     FOREIGN KEY (projection)
-    REFERENCES projections(projection_id)
+    REFERENCES projections(projection_id),
+  CONSTRAINT seat_fkey
+    FOREIGN KEY (seat)
+    REFERENCES seats(seat_id)
 );
+
+CREATE OR REPLACE FUNCTION check_available_seat()
+	RETURNS TRIGGER
+	LANGUAGE PLPGSQL
+AS
+$$
+DECLARE
+	occupied INTEGER[];
+BEGIN
+	occupied := ARRAY(SELECT seat FROM tickets WHERE projection = NEW.projection);
+	IF NEW.seat = ANY(occupied) THEN
+		RAISE EXCEPTION 'seat % is already occupied', NEW.seat;
+	END IF;
+	RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS check_available_seat_trigger on tickets;
+
+CREATE TRIGGER check_available_seat_trigger
+	BEFORE INSERT
+	ON "tickets"
+	FOR EACH ROW
+EXECUTE PROCEDURE check_available_seat();

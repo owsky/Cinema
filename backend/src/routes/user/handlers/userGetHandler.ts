@@ -1,4 +1,4 @@
-import postgres from "../../db/index"
+import postgres from "../../../db/index"
 
 const userGetHandler = async (email: string) => {
   const user = await postgres.usersMethods.getUser(email)

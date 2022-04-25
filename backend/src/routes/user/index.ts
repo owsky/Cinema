@@ -1,6 +1,6 @@
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
 import { Email, EmailType } from "./emailTypebox"
-import userGetHandler from "./userGetHandler"
+import userGetHandler from "./handlers/userGetHandler"
 import { User } from "./userTypebox"
 
 const route: FastifyPluginCallback = (fastify, _opts, done) => {
@@ -30,6 +30,7 @@ const route: FastifyPluginCallback = (fastify, _opts, done) => {
       },
     },
   })
+
   done()
 }
 
