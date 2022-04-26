@@ -3,6 +3,7 @@
     "target": "es2015",
     "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,

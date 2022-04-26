@@ -4,13 +4,13 @@ import logger from "../../../logger"
 export default async function purchaseTicketHandler(
   userEmail: string,
   projectionId: number,
-  seatCode: number
+  seatCodes: number[]
 ) {
   try {
     return await postgres.usersMethods.buyTicket(
       userEmail,
       projectionId,
-      seatCode
+      seatCodes
     )
   } catch (e) {
     logger.error(e)

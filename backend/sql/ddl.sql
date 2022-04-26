@@ -121,10 +121,12 @@ AS
 $$
 DECLARE
 	occupied INTEGER[];
+  seatCode INTEGER;
 BEGIN
 	occupied := ARRAY(SELECT seat FROM tickets WHERE projection = NEW.projection);
 	IF NEW.seat = ANY(occupied) THEN
-		RAISE EXCEPTION 'seat % is already occupied', NEW.seat;
+    SELECT code INTO seatCode FROM seats WHERE seat_id = NEW.seat;
+		RAISE EXCEPTION 'seat % is already occupied', seatCode;
 	END IF;
 	RETURN NEW;
 END;

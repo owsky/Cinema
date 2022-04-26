@@ -6,7 +6,7 @@ import purchaseTicketHandler from "./handlers/purchaseTicketHandler"
 const TicketPurchaseBody = Type.Object({
   user_email: Type.String(),
   projection_id: Type.Number(),
-  seat_code: Type.Number(),
+  seat_code: Type.Array(Type.Number()),
 })
 type TicketPurchaseBodyType = Static<typeof TicketPurchaseBody>
 
