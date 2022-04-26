@@ -1,5 +1,5 @@
 import * as jwt from "jsonwebtoken"
-import config from "../config"
+import config from "../../config"
 
 export default function verifyToken(token: string) {
   const rawToken = token.split(" ").at(1)

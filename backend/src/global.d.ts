@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-namespace NodeJS {
-  interface ProcessEnv {
+export namespace NodeJS {
+  export interface ProcessEnv {
     HOST: string
     PORT: string
     SECRET: string

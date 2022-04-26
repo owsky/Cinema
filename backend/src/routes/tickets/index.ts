@@ -1,37 +1,56 @@
-import { Static, Type } from "@sinclair/typebox"
+import { Type } from "@sinclair/typebox"
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
-import authenticationHook from "../../hooks/authenticationHook"
+import { ErrorResponse } from "../ErrorTypebox"
+import { SuccessResponse } from "../SuccessTypebox"
+import purchaseHistoryHandler from "./handlers/purchaseHistoryHandler"
 import purchaseTicketHandler from "./handlers/purchaseTicketHandler"
-
-const TicketPurchaseBody = Type.Object({
-  user_email: Type.String(),
-  projection_id: Type.Number(),
-  seat_code: Type.Array(Type.Number()),
-})
-type TicketPurchaseBodyType = Static<typeof TicketPurchaseBody>
+import {
+  TicketPurchaseBodyType,
+  TicketPurchaseBody,
+} from "./TicketPurchaseBody"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
+    method: "GET",
+    url: "/",
+    onRequest: [fastify.jwtAuth],
+    handler: async (request, reply) => {
+      try {
+        const history = await purchaseHistoryHandler(request.user.email)
+        void reply.code(200).send(history)
+      } catch (e) {
+        request.log.error(e)
+        void reply.code(500).send({ error: "Couldn't purchase the ticket" })
+      }
+    },
+    schema: {
+      response: {
+        200: Type.Array(
+          Type.Object({
+            title: Type.String(),
+            start_date: Type.String(),
+            room: Type.String(),
+            seat: Type.Integer(),
+          })
+        ),
+        500: ErrorResponse,
+      },
+    },
+  })
+
+  fastify.route({
     method: "POST",
     url: "/",
-    onRequest: (
-      request: FastifyRequest<{ Body: TicketPurchaseBodyType }>,
-      reply,
-      done
-    ) => {
-      const authenticated = authenticationHook(request.headers.authorization)
-      if (authenticated) done()
-      else void reply.code(401).send({ error: "Authentication required" })
-    },
-    handler: async (
-      request: FastifyRequest<{ Body: TicketPurchaseBodyType }>,
-      reply
-    ) => {
+    onRequest: [fastify.jwtAuth],
+    handler: async (request, reply) => {
       try {
+        const typedRequest = request as FastifyRequest<{
+          Body: TicketPurchaseBodyType
+        }>
         const success = await purchaseTicketHandler(
-          request.body.user_email,
-          request.body.projection_id,
-          request.body.seat_code
+          typedRequest.user.email,
+          typedRequest.body.projection_id,
+          typedRequest.body.seat_code
         )
         if (success)
           void reply.code(200).send({ message: "Ticket purchased correctly" })
@@ -44,6 +63,10 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
     },
     schema: {
       body: TicketPurchaseBody,
+      response: {
+        200: SuccessResponse,
+        500: ErrorResponse,
+      },
     },
   })
 

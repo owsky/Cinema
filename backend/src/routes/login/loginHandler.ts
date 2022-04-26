@@ -10,7 +10,7 @@ export default async function loginHandler(email: string, plainText: string) {
     const verify = await createPassword(plainText, salt, config.SECRET)
     if (verify) {
       if (user.password === verify) {
-        return signToken(email, user.full_name, user.user_role)
+        return signToken(user.email, user.full_name, user.user_role)
       }
     } else {
       throw new Error("Couldn't generate password")
