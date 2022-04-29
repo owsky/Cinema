@@ -1,6 +1,7 @@
 DROP SCHEMA IF EXISTS public CASCADE;
-CREATE SCHEMA IF NOT EXISTS public;
+CREATE SCHEMA public;
 SET search_path to public;
+CREATE EXTENSION pg_trgm;
 
 CREATE TYPE movie_genre_type AS ENUM (
   'Action',

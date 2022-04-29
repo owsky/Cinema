@@ -14,6 +14,7 @@
   "author": "owsky",
   "license": "ISC",
   "dependencies": {
+    "@fastify/rate-limit": "^6.0.0",
     "argon2": "^0.28.5",
     "date-fns": "^2.28.0",
     "dotenv": "^16.0.0",

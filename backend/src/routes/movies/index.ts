@@ -8,6 +8,7 @@ import { Movie } from "../../models/Movie"
 import getAllMoviesHandler from "./handlers/movieGetHandler"
 import { MovieParams, MovieParamsType } from "./MovieParams"
 import getMovieSchedule from "../../db/moviesMethods/getMovieSchedule"
+import movieTitleGetHandler from "./handlers/movieTitleGetHandler"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
@@ -91,10 +92,12 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "GET",
     url: "/schedule",
-    handler: async (request, reply) => {
+    handler: async (
+      request: FastifyRequest<{ Querystring: ScheduleQueryType }>,
+      reply
+    ) => {
       try {
-        const req = request as ScheduleQueryType
-        const schedule = await scheduleGetHandler(req.currentWeek)
+        const schedule = await scheduleGetHandler(request.query.currentWeek)
         void reply.code(200).send(schedule)
       } catch (e) {
         request.log.error(e)
@@ -105,6 +108,35 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       querystring: ScheduleQuery,
       response: {
         200: Type.Array(Projection),
+        500: ErrorResponse,
+      },
+    },
+  })
+
+  const MovieNameQuery = Type.Object({
+    title: Type.String(),
+  })
+  type MovieNameQueryType = Static<typeof MovieNameQuery>
+
+  fastify.route({
+    method: "GET",
+    url: "/search",
+    handler: async (
+      request: FastifyRequest<{ Querystring: MovieNameQueryType }>,
+      reply
+    ) => {
+      try {
+        const results = await movieTitleGetHandler(request.query.title)
+        void reply.code(200).send(results)
+      } catch (e) {
+        request.log.error(e)
+        void reply.code(500).send({ error: "Search failed" })
+      }
+    },
+    schema: {
+      querystring: MovieNameQuery,
+      response: {
+        200: Type.Array(Type.String()),
         500: ErrorResponse,
       },
     },
