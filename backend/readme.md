@@ -16,7 +16,7 @@ Current completion of features
 ✔️ View specific movie's schedule  
 ✔️ Purchase ticket  
 ✔️ Purchase multiple tickets at once  
-⬜ View orders history  
+✔️ View orders history  
 ⬜ Search movies  
 ⬜ Search actors  
 ⬜ View specific actor's information
