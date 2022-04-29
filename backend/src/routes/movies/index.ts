@@ -1,12 +1,12 @@
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
 import scheduleGetHandler from "./handlers/scheduleGetHandler"
-import { Type } from "@sinclair/typebox"
+import { Static, Type } from "@sinclair/typebox"
 import { ErrorResponse } from "../ErrorTypebox"
 import { Projection } from "../../models/Projection"
 import getMovieHandler from "./handlers/movieParamGetHandler"
 import { Movie } from "../../models/Movie"
 import getAllMoviesHandler from "./handlers/movieGetHandler"
-import { MovieParams, MovieParamsType } from "./movieParams"
+import { MovieParams, MovieParamsType } from "./MovieParams"
 import getMovieSchedule from "../../db/moviesMethods/getMovieSchedule"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
@@ -83,12 +83,18 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
     },
   })
 
+  const ScheduleQuery = Type.Object({
+    currentWeek: Type.Optional(Type.Boolean()),
+  })
+  type ScheduleQueryType = Static<typeof ScheduleQuery>
+
   fastify.route({
     method: "GET",
     url: "/schedule",
     handler: async (request, reply) => {
       try {
-        const schedule = await scheduleGetHandler()
+        const req = request as ScheduleQueryType
+        const schedule = await scheduleGetHandler(req.currentWeek)
         void reply.code(200).send(schedule)
       } catch (e) {
         request.log.error(e)
@@ -96,26 +102,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       }
     },
     schema: {
-      response: {
-        200: Type.Array(Projection),
-        500: ErrorResponse,
-      },
-    },
-  })
-
-  fastify.route({
-    method: "GET",
-    url: "/schedule/week",
-    handler: async (request, reply) => {
-      try {
-        const schedule = await scheduleGetHandler(true)
-        void reply.code(200).send(schedule)
-      } catch (e) {
-        request.log.error(e)
-        void reply.code(500).send({ error: "Failed to retrieve the schedule" })
-      }
-    },
-    schema: {
+      querystring: ScheduleQuery,
       response: {
         200: Type.Array(Projection),
         500: ErrorResponse,
