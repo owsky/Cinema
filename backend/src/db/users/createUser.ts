@@ -1,11 +1,12 @@
 import { pool } from ".."
+import { Role } from "../../models/User"
 
 export default async function createUser(
   email: string,
   fullName: string,
   password: string,
   salt: string,
-  role = "user"
+  role = Role.user
 ) {
   const client = await pool.connect()
   await client.query(

@@ -1,4 +1,5 @@
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
+import { ErrorResponse } from "../ErrorTypebox"
 import { Email, EmailType } from "./emailTypebox"
 import userGetHandler from "./handlers/userGetHandler"
 import { User } from "./userTypebox"
@@ -27,6 +28,8 @@ const route: FastifyPluginCallback = (fastify, _opts, done) => {
       },
       response: {
         200: User,
+        404: ErrorResponse,
+        500: ErrorResponse,
       },
     },
   })

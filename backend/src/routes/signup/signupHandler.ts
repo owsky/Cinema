@@ -6,11 +6,15 @@ import generateSalt from "../../utils/generateSalt"
 const signupHandler = async (
   email: string,
   fullName: string,
-  plainText: string
+  plainTextPassword: string
 ) => {
   const salt = await generateSalt()
   if (salt) {
-    const password = await createPassword(plainText, salt, config.SECRET)
+    const password = await createPassword(
+      plainTextPassword,
+      salt,
+      config.SECRET
+    )
     if (password) {
       await postgres.usersMethods.createUser(email, fullName, password, salt)
     } else {

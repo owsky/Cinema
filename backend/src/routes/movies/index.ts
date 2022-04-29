@@ -5,24 +5,10 @@ import { ErrorResponse } from "../ErrorTypebox"
 import { Projection } from "../../models/Projection"
 import getMovieHandler from "./handlers/movieParamGetHandler"
 import { Movie } from "../../models/Movie"
-import getAllMoviesHandler from "./handlers/movieGetHandler"
 import { MovieParams, MovieParamsType } from "./MovieParams"
 import getMovieSchedule from "../../db/moviesMethods/getMovieSchedule"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
-  fastify.route({
-    method: "GET",
-    url: "/",
-    handler: async (request, reply) => {
-      try {
-        void reply.code(200).send(await getAllMoviesHandler())
-      } catch (e) {
-        request.log.error(e)
-        void reply.code(500).send({ error: "Internal server error" })
-      }
-    },
-  })
-
   fastify.route({
     method: "GET",
     url: "/:movieId",
@@ -47,7 +33,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       params: MovieParams,
       response: {
         200: Movie,
-        404: ErrorResponse,
+        "4xx": ErrorResponse,
         500: ErrorResponse,
       },
     },
@@ -77,7 +63,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       params: MovieParams,
       response: {
         200: Type.Array(Projection),
-        404: ErrorResponse,
+        "4xx": ErrorResponse,
         500: ErrorResponse,
       },
     },

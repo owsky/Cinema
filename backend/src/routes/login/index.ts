@@ -31,7 +31,7 @@ const route: FastifyPluginCallback = (fastify, _opts, done) => {
       body: LoginRequest,
       response: {
         200: LoginResponse,
-        403: ErrorResponse,
+        401: ErrorResponse,
         500: ErrorResponse,
       },
     },
