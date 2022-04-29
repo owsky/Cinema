@@ -18,7 +18,7 @@ Current completion of features
 ✔️ Purchase multiple tickets at once  
 ✔️ View orders history  
 ✔️ Search movies  
-⬜ Search actors  
+✔️ Search actors  
 ⬜ View specific actor's information
 
 ### Admins

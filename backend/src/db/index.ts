@@ -2,6 +2,7 @@ import { Pool } from "pg"
 import logger from "../logger"
 import moviesMethods from "./moviesMethods"
 import usersMethods from "./users"
+import search from "./search"
 
 export const pool = new Pool({
   idleTimeoutMillis: 30000,
@@ -15,5 +16,6 @@ pool.on("error", (err, _client) => {
 const postgres = {
   usersMethods,
   moviesMethods,
+  search,
 }
 export default postgres
