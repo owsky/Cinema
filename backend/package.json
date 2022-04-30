@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node ./dist/index.js",
     "compileAndRun": "npm run lint && npm run format && npm run build && npm run start",
-    "dev": "npx nodemon src/index.ts"
+    "dev": "nodemon src/index.ts"
   },
   "author": "owsky",
   "license": "ISC",
@@ -37,7 +37,7 @@
     "eslint": "^8.12.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
-    "nodemon": "^2.0.15",
+    "nodemon": "^2.0.16",
     "pino-pretty": "^7.6.1",
     "prettier": "^2.6.2",
     "ts-node": "^10.7.0",
