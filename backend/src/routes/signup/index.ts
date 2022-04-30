@@ -17,6 +17,7 @@ const route: FastifyPluginCallback = (fastify, _opts, done) => {
     ) => {
       try {
         await signupHandler(
+          fastify.authentication.passwordUtils.createPassword,
           request.body.email,
           request.body.full_name,
           request.body.password

@@ -1,4 +1,5 @@
-import { onRequestHookHandler } from "fastify"
+import { FastifyPluginCallback, onRequestAsyncHookHandler } from "fastify"
+import { JwtPayload } from "jsonwebtoken"
 
 export interface JsonWebToken {
   email: string
@@ -6,11 +7,40 @@ export interface JsonWebToken {
   userRole: string
 }
 
-declare module "fastify" {
-  interface FastifyInstance {
-    jwtAuth: onRequestHookHandler
+export interface PluginOptions {
+  secret: string
+}
+
+export interface AuthenticationMethods {
+  authenticationHook: onRequestAsyncHookHandler
+  passwordUtils: {
+    createPassword: (
+      plaintextPassword: string,
+      salt?: string
+    ) => Promise<{ password: string; salt: string } | null>
+    verifyPassword: (
+      hash: string,
+      plaintextPassword: string,
+      salt: string
+    ) => Promise<boolean>
   }
-  interface FastifyRequest {
-    user: JsonWebToken
+  jwtUtils: {
+    verifyToken: (token: string) => string | JwtPayload | undefined
+    signToken: (email: string, fullName: string, userRole: string) => string
   }
 }
+
+declare module "fastify" {
+  interface FastifyInstance {
+    authentication: AuthenticationMethods
+  }
+
+  interface FastifyRequest {
+    user: JsonWebToken
+    verifyToken: (token: string) => string | JwtPayload | undefined
+  }
+}
+
+export const cinemaAuthenticationPlugin: FastifyPluginCallback<PluginOptions>
+
+export default cinemaAuthenticationPlugin

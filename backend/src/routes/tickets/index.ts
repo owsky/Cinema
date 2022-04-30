@@ -13,7 +13,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "GET",
     url: "/",
-    onRequest: [fastify.jwtAuth],
+    onRequest: [fastify.authentication.authenticationHook],
     handler: async (request, reply) => {
       try {
         const history = await purchaseHistoryHandler(request.user.email)
@@ -41,7 +41,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "POST",
     url: "/",
-    onRequest: [fastify.jwtAuth],
+    onRequest: [fastify.authentication.authenticationHook],
     handler: async (request, reply) => {
       try {
         const typedRequest = request as FastifyRequest<{

@@ -13,6 +13,8 @@ const route: FastifyPluginCallback = (fastify, _opts, done) => {
     ) => {
       try {
         const token = await loginHandler(
+          fastify.authentication.passwordUtils.createPassword,
+          fastify.authentication.jwtUtils.signToken,
           request.body.email,
           request.body.password
         )

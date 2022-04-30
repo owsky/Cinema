@@ -1,12 +1,17 @@
 import { onRequestAsyncHookHandler } from "fastify"
 import postgres from "../../db"
 import { JsonWebToken } from "./authentication"
-import verifyToken from "./verifyJWT"
 
+/**
+ * Authentication hook.
+ * Expects a bearer token in the authorization header
+ * @param request FastifyRequest
+ * @param reply FastifyReply
+ */
 const onRequestHook: onRequestAsyncHookHandler = async (request, reply) => {
   const token = request.headers.authorization
   if (token) {
-    const payload = verifyToken(token)
+    const payload = request.verifyToken(token)
     if (payload) {
       const userToken = payload as JsonWebToken
       const user = await postgres.usersMethods.getUser(userToken.email)

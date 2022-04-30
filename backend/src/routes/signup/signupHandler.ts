@@ -1,27 +1,25 @@
-import config from "../../config"
 import postgres from "../../db"
-import createPassword from "../../utils/createPassword"
-import generateSalt from "../../utils/generateSalt"
 
 const signupHandler = async (
+  createPassword: (
+    plaintextPassword: string,
+    salt?: string | undefined
+  ) => Promise<{ password: string; salt: string } | null>,
   email: string,
   fullName: string,
   plainTextPassword: string
 ) => {
-  const salt = await generateSalt()
-  if (salt) {
-    const password = await createPassword(
-      plainTextPassword,
-      salt,
-      config.SECRET
+  console.log(plainTextPassword)
+  const passwordSalt = await createPassword(plainTextPassword)
+  if (passwordSalt) {
+    await postgres.usersMethods.createUser(
+      email,
+      fullName,
+      passwordSalt.password,
+      passwordSalt.salt
     )
-    if (password) {
-      await postgres.usersMethods.createUser(email, fullName, password, salt)
-    } else {
-      throw new Error("Couldn't generate password")
-    }
   } else {
-    throw new Error("Couldn't generate salt")
+    throw new Error("Couldn't generate password")
   }
 }
 export default signupHandler

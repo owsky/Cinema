@@ -15,12 +15,10 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/rate-limit": "^6.0.0",
-    "argon2": "^0.28.5",
     "date-fns": "^2.28.0",
     "dotenv": "^16.0.0",
     "fastify": "^3.28.0",
     "fastify-plugin": "^3.0.1",
-    "jsonwebtoken": "^8.5.1",
     "pg": "^8.7.3",
     "pg-format": "^1.0.4",
     "pino": "^7.10.0"
@@ -28,7 +26,6 @@
   "devDependencies": {
     "@sinclair/typebox": "^0.23.4",
     "@tsconfig/node17": "^1.0.0",
-    "@types/jsonwebtoken": "^8.5.8",
     "@types/node": "^17.0.23",
     "@types/pg": "^8.6.5",
     "@types/pg-format": "^1.0.2",
