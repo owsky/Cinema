@@ -5,6 +5,7 @@ import signupRoute from "./signup"
 import moviesRoute from "./movies"
 import ticketsRoute from "./tickets"
 import searchRoute from "./search"
+import actorsRoutes from "./actors"
 
 const routes: FastifyPluginAsync = async (fastify, _opts) => {
   await Promise.all([
@@ -14,6 +15,7 @@ const routes: FastifyPluginAsync = async (fastify, _opts) => {
     fastify.register(moviesRoute, { prefix: "/movies" }),
     fastify.register(ticketsRoute, { prefix: "/tickets" }),
     fastify.register(searchRoute, { prefix: "/search" }),
+    fastify.register(actorsRoutes, { prefix: "/actors" }),
   ])
 }
 

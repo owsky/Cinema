@@ -19,7 +19,7 @@ Current completion of features
 ✔️ View orders history  
 ✔️ Search movies  
 ✔️ Search actors  
-⬜ View specific actor's information
+✔️ View specific actor's information
 
 ### Admins
 
