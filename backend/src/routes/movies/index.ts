@@ -6,7 +6,7 @@ import { Projection } from "../../models/Projection"
 import getMovieHandler from "./handlers/movieParamGetHandler"
 import { Movie } from "../../models/Movie"
 import { MovieParams, MovieParamsType } from "./MovieParams"
-import getMovieSchedule from "../../db/moviesMethods/getMovieSchedule"
+import movieScheduleGetHandler from "./handlers/movieScheduleGetHandler"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
@@ -51,7 +51,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
         void reply.code(400).send({ error: "Missing movie ID in parameter" })
       else
         try {
-          const schedule = await getMovieSchedule(movieId)
+          const schedule = await movieScheduleGetHandler(movieId)
           if (schedule) void reply.code(200).send(schedule)
           else void reply.code(404).send({ error: "Movie not found" })
         } catch (e) {

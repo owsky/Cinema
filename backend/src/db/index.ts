@@ -1,6 +1,6 @@
 import { Pool } from "pg"
 import logger from "../logger"
-import moviesMethods from "./moviesMethods"
+import moviesMethods from "./movies"
 import usersMethods from "./users"
 import search from "./search"
 import actorsMethods from "./actors"
