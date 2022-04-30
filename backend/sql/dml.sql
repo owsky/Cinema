@@ -112,135 +112,135 @@ VALUES
 
 -- MOVIES
 INSERT INTO movies
-  (title, duration, genre, synopsys, director, release_date)
+  (title, runtime, genre, synopsys, director, year)
 VALUES
   (
     'Shutter Island',
-    139,
+    '139 min',
     'Thriller',
     'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.',
     1,
-    '2010-02-19'
+    '2010'
   ),
   (
     'Inception',
-    162,
+    '162 min',
     'Action',
     'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
     2,
-    '2010-07-16'
+    '2010'
   ),
   (
     '2001: A Space Odyssey',
-    164,
+    '164 min',
     'Sci-Fi',
     'After discovering a mysterious artifact buried beneath the Lunar surface, mankind sets off on a quest to find its origins with help from intelligent supercomputer H.A.L. 9000.',
     3,
-    '1968-04-02'
+    '1968'
   ),
   (
     'Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb',
-    102,
+    '102 min',
     'Comedy',
     'An insane general triggers a path to nuclear holocaust that a War Room full of politicians and generals frantically tries to stop.',
     3,
-    '1964-05-14'
+    '1964'
   ),
   (
     'Parasite',
-    132,
+    '132 min',
     'Comedy',
     'With an insightful and searing exploration of human behavior, Parasite is a masterfully crafted film that is a definite must watch.',
     5,
-    '2019-11-07'
+    '2019'
   ),
   (
     '1917',
-    119,
+    '119 min',
     'Drama',
     '1917 is tense, captivating, meticulous, horrifying and stirring.',
     6,
-    '2020-01-23'
+    '2020'
   ),
   (
     'Tenet',
-    150,
+    '150 min',
     'Action',
     'The film''s screenplay keeps underlining and explaining its layered plot about technology that can reverse time.',
     7,
-    '2020-08-26'
+    '2020'
   ),
   (
     'The Outpost',
-    123,
+    '123 min',
     'Action',
     'The Outpost is crafted with precision, expertise and experience. It''s a war drama that transports you to the battlefield in all its cinematic brilliance.',
     8,
-    '2020-06-24'
+    '2020'
   ),
   (
     'Onward',
-    156,
+    '156 min',
     'Animation',
     'The animation is top-notch and visually appealing. The characters are adequately cartoonish and also highly relatable and humane.',
     9,
-    '2020-03-05'
+    '2020'
   ),
   (
     'The Invisible Man',
-    125,
+    '125 min',
     'Horror',
     'One of the rare psychological horror-thrillers that should come with a trigger warning, The Invisible Man subverts many genre tropes to keep you looking over your shoulder well after the credits roll.',
     10,
-    '2019-03-05'
+    '2019'
   ),
   (
     'The Shawshank Redemption',
-    142,
+    '142 min',
     'Drama',
     'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
     11,
-    '1994-10-14'
+    '1994'
   ),
   (
     'The Godfather',
-    175,
+    '175 min',
     'Drama',
     'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.',
     12,
-    '1972-03-24'
+    '1972'
   ),
   (
     'The Dark Knight',
-    152,
+    '152 min',
     'Action',
     'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.',
     7,
-    '2008-07-18'
+    '2008'
   ),
   (
     'The Lord of the Rings: The Return of the King',
-    201,
+    '201 min',
     'Adventure',
     'Gandalf and Aragorn lead the World of Men against Sauron''s army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.',
     13,
-    '2003-12-17'
+    '2003'
   ),
   (
     'Pulp Fiction',
-    154,
+    '154 min',
     'Drama',
     'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.',
     14,
-    '1994-10-14'
+    '1994'
   ),
   (
     'The Good, the Bad and the Ugly',
-    178,
+    '178 min',
     'Western',
     'A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.',
     15,
-    '1967-12-29'
+    '1967'
   );
 
 -- ACTORS

@@ -7,8 +7,57 @@ import getMovieHandler from "./handlers/movieParamGetHandler"
 import { Movie } from "../../models/Movie"
 import { MovieParams, MovieParamsType } from "./MovieParams"
 import movieScheduleGetHandler from "./handlers/movieScheduleGetHandler"
+import { SuccessResponse } from "../SuccessTypebox"
+import postgres from "../../db"
+import { DatabaseError } from "pg"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
+  const MoviePostBody = Type.Object({
+    Title: Type.String(),
+    Year: Type.String(),
+    Runtime: Type.String(),
+    Genre: Type.String(),
+    Director: Type.String(),
+    Plot: Type.String(),
+    Actors: Type.String(),
+  })
+  type MoviePostBodyType = Static<typeof MoviePostBody>
+
+  fastify.route({
+    method: "POST",
+    url: "/",
+    handler: async (request, reply) => {
+      try {
+        const req = request as FastifyRequest<{ Body: MoviePostBodyType }>
+        await postgres.moviesMethods.insertNewMovie(
+          req.body.Title,
+          req.body.Year,
+          req.body.Runtime,
+          req.body.Genre,
+          req.body.Director,
+          req.body.Plot,
+          req.body.Actors.split(", ")
+        )
+        void reply.code(200).send({ message: "Movie inserted correctly" })
+      } catch (e) {
+        request.log.error(e)
+        if (e instanceof DatabaseError && e.code === "P0001")
+          void reply
+            .code(400)
+            .send({ error: "Movie already saved in the dabase" })
+        else void reply.code(500).send({ error: "Internal server error" })
+      }
+    },
+    schema: {
+      body: MoviePostBody,
+      response: {
+        200: SuccessResponse,
+        400: ErrorResponse,
+        500: ErrorResponse,
+      },
+    },
+  })
+
   fastify.route({
     method: "GET",
     url: "/:movieId",
