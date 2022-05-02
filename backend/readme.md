@@ -24,7 +24,7 @@ Current completion of features
 ### Admins
 
 ⬜ Edit schedule  
-⬜ Add new movies  
+✔️ Add new movies  
 ⬜ Edit existing movies  
 ⬜ Add new actors  
 ⬜ Edit existing actors
