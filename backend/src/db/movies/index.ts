@@ -3,6 +3,7 @@ import getMovie from "./getMovie"
 import getMovieSchedule from "./getMovieSchedule"
 import insertNewMovie from "./insertNewMovie"
 import addToSchedule from "./addToSchedule"
+import removeFromSchedule from "./removeFromSchedule"
 
 const moviesMethods = {
   getCurrentSchedule,
@@ -10,5 +11,6 @@ const moviesMethods = {
   getMovieSchedule,
   insertNewMovie,
   addToSchedule,
+  removeFromSchedule,
 }
 export default moviesMethods
