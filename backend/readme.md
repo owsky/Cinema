@@ -23,6 +23,6 @@ Current completion of features
 
 ### Admins
 
-⬜ Edit schedule  
+✔️ Edit schedule  
 ✔️ Add new movies  
 ⬜ Edit existing movies
