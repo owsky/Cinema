@@ -13,14 +13,16 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "GET",
     url: "/",
-    onRequest: [fastify.authentication.authenticationHook],
+    onRequest: [fastify.authentication.userAuthHook],
     handler: async (request, reply) => {
       try {
         const history = await purchaseHistoryHandler(request.user.email)
         void reply.code(200).send(history)
       } catch (e) {
         request.log.error(e)
-        void reply.code(500).send({ error: "Couldn't purchase the ticket" })
+        void reply
+          .code(500)
+          .send({ error: "Couldn't retrieve the purchase history" })
       }
     },
     schema: {
@@ -41,7 +43,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "POST",
     url: "/",
-    onRequest: [fastify.authentication.authenticationHook],
+    onRequest: [fastify.authentication.userAuthHook],
     handler: async (request, reply) => {
       try {
         const typedRequest = request as FastifyRequest<{

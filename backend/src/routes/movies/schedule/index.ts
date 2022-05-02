@@ -70,7 +70,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "POST",
     url: "/",
-    onRequest: [fastify.authentication.authenticationHook],
+    onRequest: [fastify.authentication.adminAuthHook],
     handler: async (request, reply) => {
       const typedRequest = request as FastifyRequest<{
         Body: MovieSchedulePostBodyType

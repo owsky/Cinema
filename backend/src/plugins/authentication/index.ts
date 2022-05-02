@@ -1,7 +1,8 @@
 import { FastifyPluginCallback } from "fastify"
 import fastifyPlugin from "fastify-plugin"
 import { AuthenticationMethods, PluginOptions } from "./authentication"
-import onRequestHook from "./onRequestHook"
+import userAuthHookMethod from "./userAuthHook"
+import adminAuthHook from "./adminAuthHook"
 import {
   createPassword as createPasswordMethod,
   verifyPassword as verifyPasswordMethod,
@@ -16,7 +17,8 @@ const authPlugin: FastifyPluginCallback<PluginOptions> = (
 ) => {
   if (!opts.secret) throw new Error("No secret was declare in plugin options")
   const exports: AuthenticationMethods = {
-    authenticationHook: onRequestHook,
+    userAuthHook: userAuthHookMethod,
+    adminAuthHook: adminAuthHook,
     passwordUtils: {
       createPassword: (plaintextPassword: string, salt?: string) =>
         createPasswordMethod(plaintextPassword, opts.secret, salt),

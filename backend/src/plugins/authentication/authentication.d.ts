@@ -12,7 +12,8 @@ export interface PluginOptions {
 }
 
 export interface AuthenticationMethods {
-  authenticationHook: onRequestAsyncHookHandler
+  userAuthHook: onRequestAsyncHookHandler
+  adminAuthHook: onRequestAsyncHookHandler
   passwordUtils: {
     createPassword: (
       plaintextPassword: string,
