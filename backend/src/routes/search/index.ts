@@ -1,12 +1,8 @@
-import { Type, Static } from "@sinclair/typebox"
+import { Type } from "@sinclair/typebox"
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
 import { ErrorResponse } from "../ErrorTypebox"
-import searchHandler from "./searchHandler"
-
-const SearchQuery = Type.Object({
-  input: Type.String(),
-})
-type SearchQueryType = Static<typeof SearchQuery>
+import searchHandler from "./handlers/searchHandler"
+import { SearchQueryType, SearchQuery } from "./typebox/SearchQuery"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({

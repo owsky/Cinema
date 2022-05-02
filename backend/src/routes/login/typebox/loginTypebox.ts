@@ -1,5 +1,5 @@
 import { Type, Static } from "@sinclair/typebox"
-import { SuccessResponse } from "../SuccessTypebox"
+import { SuccessResponse } from "../../SuccessTypebox"
 
 export const LoginRequest = Type.Object({
   email: Type.String(),

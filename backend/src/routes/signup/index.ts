@@ -2,8 +2,8 @@ import { FastifyPluginCallback, FastifyRequest } from "fastify"
 import { DatabaseError } from "pg"
 import { ErrorResponse } from "../ErrorTypebox"
 import { SuccessResponse } from "../SuccessTypebox"
-import signupHandler from "./signupHandler"
-import { Signup, SignupType } from "./SignupTypebox"
+import signupHandler from "./handlers/signupHandler"
+import { Signup, SignupType } from "./typebox/SignupTypebox"
 
 const route: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({

@@ -7,7 +7,7 @@ import purchaseTicketHandler from "./handlers/purchaseTicketHandler"
 import {
   TicketPurchaseBodyType,
   TicketPurchaseBody,
-} from "./TicketPurchaseBody"
+} from "./typebox/TicketPurchaseBody"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({

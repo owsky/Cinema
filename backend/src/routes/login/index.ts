@@ -1,7 +1,11 @@
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
 import { ErrorResponse } from "../ErrorTypebox"
-import { LoginRequest, LoginRequestType, LoginResponse } from "./loginTypebox"
-import loginHandler from "./loginHandler"
+import {
+  LoginRequest,
+  LoginRequestType,
+  LoginResponse,
+} from "./typebox/loginTypebox"
+import loginHandler from "./handlers/loginHandler"
 
 const route: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({

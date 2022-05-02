@@ -25,6 +25,4 @@ Current completion of features
 
 ⬜ Edit schedule  
 ✔️ Add new movies  
-⬜ Edit existing movies  
-⬜ Add new actors  
-⬜ Edit existing actors
+⬜ Edit existing movies

@@ -1,4 +1,4 @@
-import postgres from "../../db"
+import postgres from "../../../db"
 
 const signupHandler = async (
   createPassword: (

@@ -1,15 +1,10 @@
-import { Static, Type } from "@sinclair/typebox"
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
 import { Actor } from "../../models/Actor"
 import { ErrorResponse } from "../ErrorTypebox"
-import actorsGetHandler from "./actorsGetHandler"
+import actorsGetHandler from "./handlers/actorsGetHandler"
+import { ActorQueryType, ActorQuery } from "./typebox/ActorQuery"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
-  const ActorQuery = Type.Object({
-    actor_id: Type.Number(),
-  })
-  type ActorQueryType = Static<typeof ActorQuery>
-
   fastify.route({
     method: "GET",
     url: "/",
