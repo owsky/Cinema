@@ -21,7 +21,7 @@ CREATE TABLE directors (
 CREATE TABLE movies (
   movie_id serial PRIMARY KEY,
   title varchar NOT NULL,
-  runtime varchar NOT NULL,
+  runtime integer NOT NULL,
   year varchar,
   plot varchar NOT NULL,
   director integer NOT NULL,
@@ -73,8 +73,8 @@ CREATE TABLE projections (
   projection_id serial PRIMARY KEY,
   movie integer NOT NULL,
   room varchar NOT NULL,
-  start_date date NOT NULL,
-  end_date date NOT NULL,
+  start_date timestamp NOT NULL,
+  end_date timestamp NOT NULL,
   price money NOT NULL,
   CONSTRAINT movie_fkey
     FOREIGN KEY (movie)
@@ -230,3 +230,35 @@ BEGIN
 	  RETURN director_id_var;
 END;
 $$;
+
+DROP TRIGGER IF EXISTS check_projection_overlap_trigger ON projections;
+DROP FUNCTION IF EXISTS check_projection_overlap;
+CREATE FUNCTION check_projection_overlap()
+	RETURNS TRIGGER
+	LANGUAGE PLPGSQL
+AS
+$$
+DECLARE
+	movie_title_overlap varchar;
+	start_date_overlap timestamp;
+	end_date_overlap timestamp;
+BEGIN
+	SELECT title, start_date, end_date INTO movie_title_overlap, start_date_overlap, end_date_overlap
+	FROM projections JOIN movies ON projections.movie = movies.movie_id
+	WHERE
+		NEW.room = room AND
+		(start_date, end_date) OVERLAPS (NEW.start_date, NEW.end_date);
+
+	IF FOUND THEN
+		RAISE EXCEPTION 'New projection overlaps existing projection %: % - %', movie_title_overlap, start_date_overlap, end_date_overlap;
+	END IF;
+
+	RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER check_projection_overlap_trigger
+	BEFORE INSERT
+	ON "projections"
+	FOR EACH ROW
+EXECUTE PROCEDURE check_projection_overlap();

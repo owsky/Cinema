@@ -1,4 +1,4 @@
-import { FastifyPluginCallback, FastifyRequest } from "fastify"
+import { FastifyPluginAsync, FastifyRequest } from "fastify"
 import { ErrorResponse } from "../ErrorTypebox"
 import getMovieHandler from "./handlers/movieParamGetHandler"
 import { Movie } from "../../models/Movie"
@@ -7,8 +7,10 @@ import { SuccessResponse } from "../SuccessTypebox"
 import postgres from "../../db"
 import { DatabaseError } from "pg"
 import { MoviePostBody, MoviePostBodyType } from "./typebox/MoviePostBody"
+import scheduleRoutes from "./schedule"
 
-const movies: FastifyPluginCallback = (fastify, _opts, done) => {
+const movies: FastifyPluginAsync = async (fastify, _opts) => {
+  await fastify.register(scheduleRoutes, { prefix: "/schedule" })
   fastify.route({
     method: "POST",
     url: "/",
@@ -73,8 +75,6 @@ const movies: FastifyPluginCallback = (fastify, _opts, done) => {
       },
     },
   })
-
-  done()
 }
 
 export default movies

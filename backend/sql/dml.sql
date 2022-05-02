@@ -112,11 +112,11 @@ VALUES
 
 -- MOVIES
 INSERT INTO movies
-  (title, runtime, genre, synopsys, director, year)
+  (title, runtime, genre, plot, director, year)
 VALUES
   (
     'Shutter Island',
-    '139 min',
+    139,
     'Thriller',
     'In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.',
     1,
@@ -124,7 +124,7 @@ VALUES
   ),
   (
     'Inception',
-    '162 min',
+    162,
     'Action',
     'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
     2,
@@ -132,7 +132,7 @@ VALUES
   ),
   (
     '2001: A Space Odyssey',
-    '164 min',
+    164,
     'Sci-Fi',
     'After discovering a mysterious artifact buried beneath the Lunar surface, mankind sets off on a quest to find its origins with help from intelligent supercomputer H.A.L. 9000.',
     3,
@@ -140,7 +140,7 @@ VALUES
   ),
   (
     'Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb',
-    '102 min',
+    102,
     'Comedy',
     'An insane general triggers a path to nuclear holocaust that a War Room full of politicians and generals frantically tries to stop.',
     3,
@@ -148,7 +148,7 @@ VALUES
   ),
   (
     'Parasite',
-    '132 min',
+    132,
     'Comedy',
     'With an insightful and searing exploration of human behavior, Parasite is a masterfully crafted film that is a definite must watch.',
     5,
@@ -156,7 +156,7 @@ VALUES
   ),
   (
     '1917',
-    '119 min',
+    119,
     'Drama',
     '1917 is tense, captivating, meticulous, horrifying and stirring.',
     6,
@@ -164,7 +164,7 @@ VALUES
   ),
   (
     'Tenet',
-    '150 min',
+    150,
     'Action',
     'The film''s screenplay keeps underlining and explaining its layered plot about technology that can reverse time.',
     7,
@@ -172,7 +172,7 @@ VALUES
   ),
   (
     'The Outpost',
-    '123 min',
+    123,
     'Action',
     'The Outpost is crafted with precision, expertise and experience. It''s a war drama that transports you to the battlefield in all its cinematic brilliance.',
     8,
@@ -180,7 +180,7 @@ VALUES
   ),
   (
     'Onward',
-    '156 min',
+    156,
     'Animation',
     'The animation is top-notch and visually appealing. The characters are adequately cartoonish and also highly relatable and humane.',
     9,
@@ -188,7 +188,7 @@ VALUES
   ),
   (
     'The Invisible Man',
-    '125 min',
+    125,
     'Horror',
     'One of the rare psychological horror-thrillers that should come with a trigger warning, The Invisible Man subverts many genre tropes to keep you looking over your shoulder well after the credits roll.',
     10,
@@ -196,7 +196,7 @@ VALUES
   ),
   (
     'The Shawshank Redemption',
-    '142 min',
+    142,
     'Drama',
     'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
     11,
@@ -204,7 +204,7 @@ VALUES
   ),
   (
     'The Godfather',
-    '175 min',
+    175,
     'Drama',
     'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.',
     12,
@@ -212,7 +212,7 @@ VALUES
   ),
   (
     'The Dark Knight',
-    '152 min',
+    152,
     'Action',
     'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.',
     7,
@@ -220,7 +220,7 @@ VALUES
   ),
   (
     'The Lord of the Rings: The Return of the King',
-    '201 min',
+    201,
     'Adventure',
     'Gandalf and Aragorn lead the World of Men against Sauron''s army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.',
     13,
@@ -228,7 +228,7 @@ VALUES
   ),
   (
     'Pulp Fiction',
-    '154 min',
+    154,
     'Drama',
     'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.',
     14,
@@ -236,7 +236,7 @@ VALUES
   ),
   (
     'The Good, the Bad and the Ugly',
-    '178 min',
+    178,
     'Western',
     'A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.',
     15,
@@ -388,7 +388,7 @@ INSERT INTO projections(
   (
     6,
     '2022-05-03 10:00:00',
-    '2021-05-03 12:00:00',
+    '2022-05-03 12:00:00',
     'Room B',
     10.00
   );

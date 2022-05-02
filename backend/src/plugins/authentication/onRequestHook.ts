@@ -22,7 +22,7 @@ const onRequestHook: onRequestAsyncHookHandler = async (request, reply) => {
           userRole: user.user_role,
         }
       } else {
-        void reply.code(403).send({ error: "Forbidden" })
+        void reply.code(403).send({ error: "Invalid Json Web Token" })
       }
     } else {
       void reply.code(401).send({ error: "Invalid Json Web Token supplied" })

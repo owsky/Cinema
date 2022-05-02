@@ -5,12 +5,17 @@ import { ErrorResponse } from "../../ErrorTypebox"
 import movieScheduleGetHandler from "./handlers/movieScheduleGetHandler"
 import scheduleGetHandler from "./handlers/scheduleGetHandler"
 import { MovieParams, MovieParamsType } from "../typebox/MovieParams"
-import { ScheduleQueryType, ScheduleQuery } from "./ScheduleQuery"
-
+import { ScheduleQueryType, ScheduleQuery } from "./typebox/ScheduleQuery"
+import postgres from "../../../db"
+import {
+  MovieSchedulePostBody,
+  MovieSchedulePostBodyType,
+} from "./typebox/MovieSchedulePostParams"
+import { SuccessResponse } from "../../SuccessTypebox"
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
     method: "GET",
-    url: "/schedule",
+    url: "/",
     handler: async (
       request: FastifyRequest<{ Querystring: ScheduleQueryType }>,
       reply
@@ -34,7 +39,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
 
   fastify.route({
     method: "GET",
-    url: "/schedule/:movieId/",
+    url: "/:movieId",
     handler: async (
       request: FastifyRequest<{ Params: MovieParamsType }>,
       reply
@@ -57,6 +62,36 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       response: {
         200: Type.Array(Projection),
         "4xx": ErrorResponse,
+        500: ErrorResponse,
+      },
+    },
+  })
+
+  fastify.route({
+    method: "POST",
+    url: "/",
+    onRequest: [fastify.authentication.authenticationHook],
+    handler: async (request, reply) => {
+      const typedRequest = request as FastifyRequest<{
+        Body: MovieSchedulePostBodyType
+      }>
+      try {
+        await postgres.moviesMethods.addToSchedule(
+          typedRequest.body.movie_id,
+          typedRequest.body.start_date,
+          typedRequest.body.price,
+          typedRequest.body.room
+        )
+        void reply.code(200).send({ message: "Movie added to schedule" })
+      } catch (e) {
+        request.log.error(e)
+        void reply.code(500).send({ error: "Couldn't add movie to schedule" })
+      }
+    },
+    schema: {
+      body: MovieSchedulePostBody,
+      response: {
+        200: SuccessResponse,
         500: ErrorResponse,
       },
     },
