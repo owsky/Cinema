@@ -8,9 +8,9 @@ import { MovieParams, MovieParamsType } from "../typebox/MovieParams"
 import { ScheduleQueryType, ScheduleQuery } from "./typebox/ScheduleQuery"
 import postgres from "../../../db"
 import {
-  MovieSchedulePostBody,
-  MovieSchedulePostBodyType,
-} from "./typebox/MovieSchedulePostParams"
+  MovieScheduleBody,
+  MovieScheduleBodyType,
+} from "./typebox/MovieScheduleBody"
 import { SuccessResponse } from "../../SuccessTypebox"
 import {
   ProjectionDeleteParams,
@@ -48,7 +48,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
     onRequest: [fastify.authentication.adminAuthHook],
     handler: async (request, reply) => {
       const typedRequest = request as FastifyRequest<{
-        Body: MovieSchedulePostBodyType
+        Body: MovieScheduleBodyType
       }>
       try {
         await postgres.moviesMethods.addToSchedule(
@@ -64,9 +64,48 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       }
     },
     schema: {
-      body: MovieSchedulePostBody,
+      body: MovieScheduleBody,
       response: {
         200: SuccessResponse,
+        500: ErrorResponse,
+      },
+    },
+  })
+
+  fastify.route({
+    method: "PUT",
+    url: "/:projectionId",
+    onRequest: [fastify.authentication.adminAuthHook],
+    handler: async (request, reply) => {
+      const typedRequest = request as FastifyRequest<{
+        Params: ProjectionDeleteParamsType
+        Body: MovieScheduleBodyType
+      }>
+      try {
+        const success = await postgres.moviesMethods.editMovieSchedule(
+          typedRequest.params.projectionId,
+          typedRequest.body.movie_id,
+          typedRequest.body.start_date,
+          typedRequest.body.price,
+          typedRequest.body.room
+        )
+        if (!success)
+          void reply
+            .code(400)
+            .send({ error: "Trying to update a non-existent projection" })
+        else
+          void reply.code(200).send({ message: "Projection edit successful" })
+      } catch (e) {
+        request.log.error(e)
+        void reply.code(500).send({ error: "Couldn't edit projection" })
+      }
+    },
+    schema: {
+      params: ProjectionDeleteParams,
+      body: MovieScheduleBody,
+      response: {
+        200: SuccessResponse,
+        400: ErrorResponse,
         500: ErrorResponse,
       },
     },
