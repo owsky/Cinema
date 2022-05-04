@@ -29,6 +29,7 @@ CREATE TABLE movies (
   CONSTRAINT director_fkey
     FOREIGN KEY (director)
     REFERENCES directors(director_id)
+		ON UPDATE CASCADE
 );
 
 CREATE TABLE cast_entry (
@@ -67,6 +68,8 @@ CREATE TABLE seats (
   CONSTRAINT room_fkey
     FOREIGN KEY (room)
     REFERENCES rooms(room_name)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
 );
 
 CREATE TABLE projections (
@@ -78,10 +81,12 @@ CREATE TABLE projections (
   price money NOT NULL,
   CONSTRAINT movie_fkey
     FOREIGN KEY (movie)
-    REFERENCES movies(movie_id),
+    REFERENCES movies(movie_id)
+		ON UPDATE CASCADE,
   CONSTRAINT room_fkey
     FOREIGN KEY (room)
     REFERENCES rooms(room_name)
+		ON UPDATE CASCADE
 );
 
 CREATE TABLE tickets (
@@ -91,13 +96,19 @@ CREATE TABLE tickets (
   seat integer NOT NULL,
   CONSTRAINT user_email_fkey
     FOREIGN KEY (user_email)
-    REFERENCES users(email),
+    REFERENCES users(email)
+		ON UPDATE CASCADE
+		ON DELETE SET NULL,
   CONSTRAINT projection_fkey
     FOREIGN KEY (projection)
-    REFERENCES projections(projection_id),
+    REFERENCES projections(projection_id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
   CONSTRAINT seat_fkey
     FOREIGN KEY (seat)
     REFERENCES seats(seat_id)
+		ON UPDATE CASCADE
+		ON DELETE SET NULL
 );
 
 CREATE FUNCTION check_available_seat()

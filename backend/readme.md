@@ -28,4 +28,4 @@ Current completion of features
 ✔️ Remove movies from schedule
 ✔️ Add new movies  
 ⬜ Edit existing movies
-⬜ Delete existing movies
+✔️ Delete existing movies

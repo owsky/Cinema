@@ -75,6 +75,38 @@ const movies: FastifyPluginAsync = async (fastify, _opts) => {
       },
     },
   })
+
+  fastify.route({
+    method: "DELETE",
+    url: "/:movieId",
+    onRequest: [fastify.authentication.adminAuthHook],
+    handler: async (request, reply) => {
+      const movieId = (request as FastifyRequest<{ Params: MovieParamsType }>)
+        .params.movieId
+      if (!movieId)
+        void reply.code(400).send({ error: "Missing movie ID parameter" })
+      else
+        try {
+          const success = await postgres.moviesMethods.removeMovie(movieId)
+          if (!success)
+            void reply
+              .code(400)
+              .send({ error: "Trying to delete a non-existent movie" })
+          else
+            void reply.code(200).send({ message: "Movie deleted succesfully" })
+        } catch (e) {
+          request.log.error(e)
+          void reply.code(500).send({ error: "Internal server error" })
+        }
+    },
+    schema: {
+      params: MovieParams,
+      response: {
+        200: SuccessResponse,
+        500: ErrorResponse,
+      },
+    },
+  })
 }
 
 export default movies

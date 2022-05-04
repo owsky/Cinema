@@ -1,28 +1,13 @@
 import { Static, Type } from "@sinclair/typebox"
 
-export enum Genre {
-  Action,
-  Adventure,
-  Animation,
-  Comedy,
-  Drama,
-  Fantasy,
-  Historical,
-  Horror,
-  Romance,
-  SciFi,
-  Thriller,
-  Western,
-}
-
 export const Movie = Type.Object({
   movie_id: Type.Integer(),
   title: Type.String(),
-  duration: Type.Integer(),
-  release_date: Type.String(),
+  runtime: Type.Integer(),
+  year: Type.Integer(),
   director: Type.String(),
-  synopsys: Type.String(),
-  genre: Type.Enum(Genre),
+  plot: Type.String(),
+  genre: Type.String(),
 })
 
 export type MovieType = Static<typeof Movie>
