@@ -1,33 +1,27 @@
-import { FastifyPluginCallback, FastifyRequest } from "fastify"
+import { FastifyPluginCallback } from "fastify"
+import postgres from "../../db"
 import { ErrorResponse } from "../ErrorTypebox"
-import { Email, EmailType } from "./typebox/emailTypebox"
-import userGetHandler from "./handlers/userGetHandler"
-import { User } from "./typebox/userTypebox"
+import { SuccessResponse } from "../SuccessTypebox"
 
 const route: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
-    method: "GET",
+    method: "DELETE",
     url: "/",
-    handler: async (
-      request: FastifyRequest<{ Querystring: EmailType }>,
-      reply
-    ) => {
-      const email = request.query.email
+    onRequest: [fastify.authentication.userAuthHook],
+    handler: async (request, reply) => {
       try {
-        const user = await userGetHandler(email)
-        if (!user) void reply.code(404).send({ error: "User not found" })
-        else void reply.send(user)
+        await postgres.usersMethods.deleteUser(request.user.email)
+        void reply
+          .code(200)
+          .send({ message: "User account deleted successfully" })
       } catch (e) {
         request.log.error(e)
         void reply.code(500).send({ error: "Internal server error" })
       }
     },
     schema: {
-      querystring: {
-        Email,
-      },
       response: {
-        200: User,
+        200: SuccessResponse,
         404: ErrorResponse,
         500: ErrorResponse,
       },

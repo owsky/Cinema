@@ -1,6 +1,5 @@
 import { FastifyPluginAsync, FastifyRequest } from "fastify"
 import { ErrorResponse } from "../ErrorTypebox"
-import getMovieHandler from "./handlers/movieParamGetHandler"
 import { Movie } from "../../models/Movie"
 import { MovieParams, MovieParamsType } from "./typebox/MovieParams"
 import { SuccessResponse } from "../SuccessTypebox"
@@ -58,7 +57,7 @@ const movies: FastifyPluginAsync = async (fastify, _opts) => {
         void reply.code(400).send({ error: "Missing movie ID parameter" })
       else
         try {
-          const movie = await getMovieHandler(movieId)
+          const movie = await postgres.moviesMethods.getMovie(movieId)
           if (movie) void reply.code(200).send(movie)
           else void reply.code(404).send({ error: "Movie not found" })
         } catch (e) {

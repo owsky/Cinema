@@ -8,45 +8,15 @@ CREATE TYPE user_role_type AS ENUM (
   'admin'
 );
 
-CREATE TABLE actors (
-  actor_id serial PRIMARY KEY,
-  full_name varchar NOT NULL
-);
-
-CREATE TABLE directors (
-  director_id serial PRIMARY KEY,
-  full_name varchar NOT NULL
-);
-
 CREATE TABLE movies (
   movie_id serial PRIMARY KEY,
   title varchar NOT NULL,
   runtime integer NOT NULL,
-  year varchar,
+  year integer NOT NULL,
   plot varchar NOT NULL,
-  director integer NOT NULL,
+  director varchar NOT NULL,
   genre text NOT NULL,
-  CONSTRAINT director_fkey
-    FOREIGN KEY (director)
-    REFERENCES directors(director_id)
-		ON UPDATE CASCADE
-);
-
-CREATE TABLE cast_entry (
-  actor integer,
-  movie integer,
-  PRIMARY KEY (actor, movie),
-  CONSTRAINT actor_fkey
-    FOREIGN KEY (actor)
-    REFERENCES actors(actor_id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE
-  ,
-  CONSTRAINT movie_fkey
-    FOREIGN KEY (movie)
-    REFERENCES movies(movie_id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE
+	actors varchar[] NOT NULL
 );
 
 CREATE TABLE users (
@@ -74,26 +44,28 @@ CREATE TABLE seats (
 
 CREATE TABLE projections (
   projection_id serial PRIMARY KEY,
-  movie integer NOT NULL,
-  room varchar NOT NULL,
+  movie integer,
+  room varchar,
   start_date timestamp NOT NULL,
   end_date timestamp NOT NULL,
   price money NOT NULL,
   CONSTRAINT movie_fkey
     FOREIGN KEY (movie)
     REFERENCES movies(movie_id)
-		ON UPDATE CASCADE,
+		ON UPDATE CASCADE
+		ON DELETE SET NULL,
   CONSTRAINT room_fkey
     FOREIGN KEY (room)
     REFERENCES rooms(room_name)
 		ON UPDATE CASCADE
+		ON DELETE SET NULL
 );
 
 CREATE TABLE tickets (
   ticket_id serial PRIMARY KEY,
-  user_email varchar NOT NULL,
+  user_email varchar,
   projection integer NOT NULL,
-  seat integer NOT NULL,
+  seat integer,
   CONSTRAINT user_email_fkey
     FOREIGN KEY (user_email)
     REFERENCES users(email)
@@ -128,7 +100,6 @@ BEGIN
 	RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER check_available_seat_trigger
 	BEFORE INSERT
 	ON "tickets"
@@ -158,92 +129,12 @@ BEGIN
 	RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER check_duplicate_movie_trigger
 	BEFORE INSERT
 	ON "movies"
 	FOR EACH ROW
 EXECUTE PROCEDURE check_duplicate_movie();
 
-CREATE FUNCTION add_actors(actor_names text[])
-	RETURNS varchar[]
-	LANGUAGE PLPGSQL
-AS
-$$
-DECLARE
-	actor_name varchar;
-	actor_ids integer[];
-	actor_id_var integer;
-BEGIN
-	FOREACH actor_name IN ARRAY actor_names LOOP
-		WITH
-          inserted as (
-            INSERT INTO actors(full_name)
-            SELECT (actor_name)
-            WHERE NOT EXISTS (
-              SELECT actor_id
-              FROM actors
-              WHERE full_name = actor_name
-            )
-            RETURNING actor_id
-          ),
-          selected as (
-            SELECT actor_id
-            FROM actors
-            WHERE full_name = actor_name
-          )
-		  SELECT actor_id INTO actor_id_var
-		  FROM (
-			  SELECT actor_id
-			  FROM inserted
-			  UNION ALL
-			  SELECT actor_id
-			  FROM selected
-		  ) AS foo;
-		actor_ids = array_append(actor_ids, actor_id_var);
-	END LOOP;
-	RETURN actor_ids;
-END;
-$$;
-
-CREATE FUNCTION add_director(director_name text)
-	RETURNS text
-	LANGUAGE PLPGSQL
-AS
-$$
-DECLARE
-	director_id_var text;
-BEGIN
-	WITH
-	  inserted as (
-		INSERT INTO directors(full_name)
-		SELECT (director_name)
-		WHERE NOT EXISTS (
-		  SELECT director_id
-		  FROM directors
-		  WHERE full_name = director_name
-		)
-		RETURNING director_id
-	  ),
-	  selected as (
-		SELECT director_id
-		FROM directors
-		WHERE full_name = director_name
-	  )
-	  SELECT director_id INTO director_id_var
-	  FROM (
-		  SELECT director_id
-		  FROM inserted
-		  UNION ALL
-		  SELECT director_id
-		  FROM selected
-	  ) AS foo;
-	  RETURN director_id_var;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS check_projection_overlap_trigger ON projections;
-DROP FUNCTION IF EXISTS check_projection_overlap;
 CREATE FUNCTION check_projection_overlap()
 	RETURNS TRIGGER
 	LANGUAGE PLPGSQL
@@ -267,7 +158,6 @@ BEGIN
 	RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER check_projection_overlap_trigger
 	BEFORE INSERT
 	ON "projections"

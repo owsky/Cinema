@@ -1,12 +1,10 @@
 import createUser from "./createUser"
 import getUser from "./getUser"
-import buyTicket from "./buyTicket"
-import getPurchaseHistory from "./getPurchaseHistory"
+import deleteUser from "./deleteUser"
 
 const usersMethods = {
   getUser,
   createUser,
-  buyTicket,
-  getPurchaseHistory,
+  deleteUser,
 }
 export default usersMethods

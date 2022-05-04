@@ -17,9 +17,7 @@ Current completion of features
 ✔️ Purchase ticket  
 ✔️ Purchase multiple tickets at once  
 ✔️ View orders history  
-✔️ Search movies  
-✔️ Search actors  
-✔️ View specific actor's information
+✔️ Search movies
 
 ### Admins
 
@@ -27,5 +25,5 @@ Current completion of features
 ✔️ Edit movie projection on schedule
 ✔️ Remove movies from schedule
 ✔️ Add new movies  
-⬜ Edit existing movies
+✔️ Edit existing movies
 ✔️ Delete existing movies

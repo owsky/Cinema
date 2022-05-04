@@ -1,9 +1,8 @@
 import { Type } from "@sinclair/typebox"
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
+import postgres from "../../db"
 import { ErrorResponse } from "../ErrorTypebox"
 import { SuccessResponse } from "../SuccessTypebox"
-import purchaseHistoryHandler from "./handlers/purchaseHistoryHandler"
-import purchaseTicketHandler from "./handlers/purchaseTicketHandler"
 import {
   TicketPurchaseBodyType,
   TicketPurchaseBody,
@@ -16,7 +15,9 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
     onRequest: [fastify.authentication.userAuthHook],
     handler: async (request, reply) => {
       try {
-        const history = await purchaseHistoryHandler(request.user.email)
+        const history = await postgres.ticketMethods.getPurchaseHistory(
+          request.user.email
+        )
         void reply.code(200).send(history)
       } catch (e) {
         request.log.error(e)
@@ -49,7 +50,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
         const typedRequest = request as FastifyRequest<{
           Body: TicketPurchaseBodyType
         }>
-        const success = await purchaseTicketHandler(
+        const success = await postgres.ticketMethods.buyTicket(
           typedRequest.user.email,
           typedRequest.body.projection_id,
           typedRequest.body.seat_code

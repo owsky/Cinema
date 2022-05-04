@@ -7,11 +7,12 @@ export const Projection = Type.Object({
   end_date: Type.String(),
   price: Type.String(),
   title: Type.String(),
-  duration: Type.String(),
-  release_date: Type.String(),
-  synopsys: Type.String(),
+  runtime: Type.String(),
+  year: Type.String(),
+  plot: Type.String(),
   genre: Type.String(),
   director: Type.String(),
+  actors: Type.Array(Type.String()),
 })
 
 export type ProjectionType = Static<typeof Projection>

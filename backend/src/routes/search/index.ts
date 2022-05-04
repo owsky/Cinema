@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox"
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
+import postgres from "../../db"
 import { ErrorResponse } from "../ErrorTypebox"
-import searchHandler from "./handlers/searchHandler"
 import { SearchQueryType, SearchQuery } from "./typebox/SearchQuery"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
@@ -13,7 +13,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       reply
     ) => {
       try {
-        const results = await searchHandler(request.query.input)
+        const results = await postgres.search(request.query.input)
         void reply.code(200).send(results)
       } catch (e) {
         request.log.error(e)

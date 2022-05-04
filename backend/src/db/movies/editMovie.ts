@@ -1,55 +1,53 @@
 import { pool } from ".."
-import postgresFormat from "pg-format"
-import logger from "../../logger"
+
+interface MovieQuery {
+  movie_id: number
+  title: string
+  runtime: number
+  year: number
+  plot: string
+  genre: string
+  actors: string[]
+  director: string
+}
 
 export default async function editMovie(
-  title: string,
-  year: string,
-  runtime: string,
-  genre: string,
-  director: string,
-  plot: string,
-  actors: string[]
+  movieId: number,
+  title?: string,
+  year?: string,
+  runtime?: string,
+  genre?: string,
+  director?: string,
+  plot?: string,
+  actors?: string[]
 ) {
-  const client = await pool.connect()
-  try {
-    await client.query("BEGIN;")
-    const { rows: actorsRows } = await client.query(
-      postgresFormat(`SELECT add_actors(ARRAY[%L]);`, actors)
-    )
-    const actorsIds = (actorsRows as { add_actors: number[] }[])[0].add_actors
-
-    const { rows: directorRows } = await client.query(
-      `SELECT add_director($1);`,
-      [director]
-    )
-    const directorId = (directorRows as { add_director: number }[])[0]
-      .add_director
-    const { rows: movieRows } = await client.query(
-      `UPDATE movies(title, runtime, year, plot, director, genre)
-      VALUES($1, $2, $3, $4, $5, $6)
-      WHERE movie_id = $7
-      RETURNING movie_id;
-      `,
-      [title, runtime, year, plot, directorId, genre, movieId]
-    )
-    logger.info(movieRows)
-    const movieId = (movieRows as { movie_id: string }[])[0].movie_id
-    await client.query(
-      postgresFormat(
-        `
-        INSERT INTO cast_entry(actor, movie)
-        VALUES %L;
-      `,
-        actorsIds.map(id => [id, movieId])
-      )
-    )
-    await client.query(`COMMIT;`)
-  } catch (e) {
-    logger.error(e)
-    await client.query("ROLLBACK;")
-    throw e
-  } finally {
-    client.release()
-  }
+  const { rows: movieRows } = await pool.query(
+    `SELECT * FROM movies WHERE movie_id = $1`,
+    [movieId]
+  )
+  const movieTuple = (movieRows as MovieQuery[])[0]
+  const movieTitle = title ? title : movieTuple.title
+  const movieYear = year ? year : movieTuple.year
+  const movieRuntime = runtime ? runtime : movieTuple.runtime
+  const movieGenre = genre ? genre : movieTuple.genre
+  const movieDirector = director ? director : movieTuple.director
+  const moviePlot = plot ? plot : movieTuple.plot
+  const movieActors = actors ? actors : movieTuple.actors
+  await pool.query(
+    `
+    UPDATE movies
+    SET title = $2, year = $3, runtime = $4, genre = $5, director = $6, plot = $7, actors = $8
+    WHERE movie_id = $1
+  `,
+    [
+      movieId,
+      movieTitle,
+      movieYear,
+      movieRuntime,
+      movieGenre,
+      movieDirector,
+      moviePlot,
+      movieActors,
+    ]
+  )
 }

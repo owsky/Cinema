@@ -2,7 +2,7 @@ import { pool } from ".."
 import logger from "../../logger"
 import { PurchaseHistoryType } from "../../models/PurchaseHistory"
 
-export default async function createUser(email: string) {
+export default async function getPurchaseHistory(email: string) {
   try {
     const { rows } = await pool.query(
       `

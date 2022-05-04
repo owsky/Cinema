@@ -2,8 +2,6 @@ import { Type } from "@sinclair/typebox"
 import { FastifyPluginCallback, FastifyRequest } from "fastify"
 import { Projection } from "../../../models/Projection"
 import { ErrorResponse } from "../../ErrorTypebox"
-import movieScheduleGetHandler from "./handlers/movieScheduleGetHandler"
-import scheduleGetHandler from "./handlers/scheduleGetHandler"
 import { MovieParams, MovieParamsType } from "../typebox/MovieParams"
 import { ScheduleQueryType, ScheduleQuery } from "./typebox/ScheduleQuery"
 import postgres from "../../../db"
@@ -16,6 +14,7 @@ import {
   ProjectionDeleteParams,
   ProjectionDeleteParamsType,
 } from "./typebox/projectionDeleteParams"
+import { DatabaseError } from "pg"
 
 const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   fastify.route({
@@ -26,7 +25,9 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
       reply
     ) => {
       try {
-        const schedule = await scheduleGetHandler(request.query.currentWeek)
+        const schedule = await postgres.projectionMethods.getCurrentSchedule(
+          request.query.currentWeek
+        )
         void reply.code(200).send(schedule)
       } catch (e) {
         request.log.error(e)
@@ -51,7 +52,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
         Body: MovieScheduleBodyType
       }>
       try {
-        await postgres.moviesMethods.addToSchedule(
+        await postgres.projectionMethods.addToSchedule(
           typedRequest.body.movie_id,
           typedRequest.body.start_date,
           typedRequest.body.price,
@@ -73,7 +74,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
   })
 
   fastify.route({
-    method: "PUT",
+    method: "PATCH",
     url: "/:projectionId",
     onRequest: [fastify.authentication.adminAuthHook],
     handler: async (request, reply) => {
@@ -82,22 +83,19 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
         Body: MovieScheduleBodyType
       }>
       try {
-        const success = await postgres.moviesMethods.editMovieSchedule(
+        await postgres.projectionMethods.editMovieSchedule(
           typedRequest.params.projectionId,
           typedRequest.body.movie_id,
           typedRequest.body.start_date,
           typedRequest.body.price,
           typedRequest.body.room
         )
-        if (!success)
-          void reply
-            .code(400)
-            .send({ error: "Trying to update a non-existent projection" })
-        else
-          void reply.code(200).send({ message: "Projection edit successful" })
+        void reply.code(200).send({ message: "Projection edit successful" })
       } catch (e) {
         request.log.error(e)
-        void reply.code(500).send({ error: "Couldn't edit projection" })
+        if (e instanceof DatabaseError)
+          void reply.code(500).send({ error: "Couldn't edit projection" })
+        else void reply.code(500).send(e)
       }
     },
     schema: {
@@ -120,7 +118,7 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
         Params: ProjectionDeleteParamsType
       }>
       try {
-        await postgres.moviesMethods.removeFromSchedule(
+        await postgres.projectionMethods.removeFromSchedule(
           typedRequest.params.projectionId
         )
         void reply
@@ -149,10 +147,13 @@ const routes: FastifyPluginCallback = (fastify, _opts, done) => {
     ) => {
       const movieId = request.params.movieId
       if (!movieId)
-        void reply.code(400).send({ error: "Missing movie ID in parameter" })
+        void reply.code(400).send({ error: "Missing movie ID parameter" })
       else
         try {
-          const schedule = await movieScheduleGetHandler(movieId)
+          const schedule = await postgres.projectionMethods.getMovieSchedule(
+            movieId
+          )
+          request.log.info(schedule)
           if (schedule) void reply.code(200).send(schedule)
           else void reply.code(404).send({ error: "Movie not found" })
         } catch (e) {
