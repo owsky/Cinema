@@ -8,6 +8,7 @@ async function start() {
     await dbConnect()
     const fastify = await createServer()
     await fastify.listen(config.PORT, config.HOST)
+    fastify.swagger()
   } catch (e) {
     logger.error(e)
     process.exit(-1)

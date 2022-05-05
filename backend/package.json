@@ -14,7 +14,9 @@
   "author": "owsky",
   "license": "ISC",
   "dependencies": {
+    "@fastify/cors": "^7.0.0",
     "@fastify/rate-limit": "^6.0.0",
+    "@fastify/swagger": "^6.0.1",
     "date-fns": "^2.28.0",
     "dotenv": "^16.0.0",
     "fastify": "^3.28.0",
