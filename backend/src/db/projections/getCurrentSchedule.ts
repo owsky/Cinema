@@ -21,16 +21,15 @@ export default async function getCurrentSchedule(currentWeek?: boolean) {
         end_date,
         price,
         title,
-        duration,
-        release_date,
-        synopsys,
+        runtime,
+        year,
+        plot,
         genre,
-        full_name as director
+        director,
+        actors
       FROM
         projections JOIN movies
           ON projections.movie = movies.movie_id
-        JOIN directors
-          ON movies.director = directors.director_id
       WHERE
         projections.start_date >= now() AND
         projections.start_date <= to_timestamp($1)
