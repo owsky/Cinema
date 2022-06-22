@@ -21,9 +21,9 @@ Current completion of features
 
 ### Admins
 
-✔️ Add movie to schedule
-✔️ Edit movie projection on schedule
-✔️ Remove movies from schedule
+✔️ Add movie to schedule  
+✔️ Edit movie projection on schedule  
+✔️ Remove movies from schedule  
 ✔️ Add new movies  
-✔️ Edit existing movies
-✔️ Delete existing movies
+✔️ Edit existing movies  
+✔️ Delete existing movies  
